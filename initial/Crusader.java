@@ -15,7 +15,7 @@ public class Crusader extends MyRobot {
         TreeMap<Integer, Integer> friendlyBotDistance = new TreeMap<Integer, Integer>();
 
         if(r.me.turn == 1)
-            r.log("i was made" + r.me.id);
+            r.log("I am a Crusader");
 
         // look at nearby bots
         for(Robot other: r.getVisibleRobots()){
