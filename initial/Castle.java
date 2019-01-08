@@ -7,20 +7,20 @@ public class Castle extends MyRobot {
 
     static Action takeTurn() {
         r.log("" + r.me.id + ": Castle Turn");
-        if (pilgrimCounter * 10 < r.me.turn) {
+        if (crusaderCounter * 300 < r.me.turn) {
             Direction buildDirection = findBuildDirection(r.me.x, r.me.y);
             if (buildDirection != null) {
                 r.log("built");
                 return r.buildUnit(3, buildDirection.x, buildDirection.y); // CRUSADER
             }
-            pilgrimCounter++;
+            crusaderCounter++;
         }
         return null;
     }
 
     // must check in visible range
     static boolean isEmpty(int x, int y) {
-        boolean[][] passableMap = r.getPassableMap();
+        boolean[][] passableMap = r.map;
         int[][] visibleRobotMap = r.getVisibleRobotMap();
         return passableMap[y][x] && visibleRobotMap[y][x] == 0;
     }
