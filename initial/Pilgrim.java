@@ -2,8 +2,8 @@ package bc19;
 
 public class Pilgrim extends MyRobot {
 
-    public static Action turn(BCAbstractRobot r) {
-        r.log("" + r.me.id);
+    static Action takeTurn() {
+        r.log("" + r.me.id + ": Pilgrim Turn");
         return null;
     }
 }
