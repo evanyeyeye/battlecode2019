@@ -4,8 +4,12 @@ import java.util.*;
 
 public class Crusader extends MyRobot {
 
+    final static int TYPE = 3;
     final static int ATTACK_RADIUS = 4;
     final static int SPEED = 6;
+    final static int KARBONITE_COST = 20;
+    final static int FUEL_COST = 50;
+
     public static Action takeTurn() {
         TreeMap<Integer, Integer> enemyBotDistance = new TreeMap<Integer, Integer>();
         TreeMap<Integer, Integer> friendlyBotDistance = new TreeMap<Integer, Integer>();

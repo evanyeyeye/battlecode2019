@@ -6,12 +6,13 @@ public class Castle extends MyRobot {
     static int crusaderCounter = 0;
 
     static Action takeTurn() {
-        r.log("" + r.me.id + ": Castle Turn");
-        if (crusaderCounter * 300 < r.me.turn) {
+        r.log("Castle Turn");
+        if (r.karbonite > Crusader.KARBONITE_COST && r.fuel > Crusader.FUEL_COST && 
+            crusaderCounter * 300 < r.me.turn) {
             Direction buildDirection = findBuildDirection(r.me.x, r.me.y);
             if (buildDirection != null) {
-                r.log("built");
-                return r.buildUnit(3, buildDirection.x, buildDirection.y); // CRUSADER
+                r.log("    Built Crusader");
+                return r.buildUnit(Crusader.TYPE, buildDirection.x, buildDirection.y);
             }
             crusaderCounter++;
         }
