@@ -1,10 +1,11 @@
 package bc19;
 
 import java.util.*;
-final int ATTACK_RANGE = 6;
 
 public class Crusader extends MyRobot {
 
+    final static int ATTACK_RADIUS = 4;
+    final static int SPEED = 6;
     public static Action takeTurn() {
         TreeMap<Integer, Integer> enemyBotDistance = new TreeMap<Integer, Integer>();
         TreeMap<Integer, Integer> friendlyBotDistance = new TreeMap<Integer, Integer>();
@@ -22,8 +23,8 @@ public class Crusader extends MyRobot {
 
         // move if no enemies
         if(enemyBotDistance.size() <= 0){
-            int dx = (int)(Math.random() * 2 * r.me.unit.SPEED - r.me.unit.SPEED + 1);
-            int dy = (int)(Math.random() * 2 * r.me.unit.SPEED - r.me.unit.SPEED + 1);
+            int dx = (int)(Math.random() * 2 * SPEED - SPEED + 1);
+            int dy = (int)(Math.random() * 2 * SPEED - SPEED + 1);  // TODO: Replace constants
             if(isEmpty(r.me.x + dx, r.me.y + dy))
                 return r.move(dx, dy);
             else
@@ -33,7 +34,7 @@ public class Crusader extends MyRobot {
         Robot closestEnemy = r.getRobot(enemyBotDistance.firstEntry().getValue());
 
         // attack enemy
-        if(enemyBotDistance.firstKey() < r.me.unit.ATTACK_RADIUS)
+        if(enemyBotDistance.firstKey() < ATTACK_RADIUS)  // TODO: Replace constants
             return attackRobot(closestEnemy);
 
         // get closer to enemy

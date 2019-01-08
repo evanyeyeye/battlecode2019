@@ -19,7 +19,7 @@ public class MyRobot extends BCAbstractRobot {
             case 2:
                 return Pilgrim.takeTurn();
             case 3:
-                return Crusader.turn(this);
+                return Crusader.takeTurn();
             case 4:
                 return Prophet.turn(this);
             case 5:
