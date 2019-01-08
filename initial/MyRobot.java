@@ -2,18 +2,22 @@ package bc19;
 
 public class MyRobot extends BCAbstractRobot {
 
+    public static BCAbstractRobot r;
     public int turn;
-
+    
     public Action turn() {
 
+        r = this;
+
         turn++;
+
         switch (me.unit) {
             case 0:
-                return Castle.turn(this);
+                return Castle.takeTurn();
             case 1:
                 return Church.turn(this);
             case 2:
-                return Pilgrim.turn(this);
+                return Pilgrim.takeTurn();
             case 3:
                 return Crusader.turn(this);
             case 4:
