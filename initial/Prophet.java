@@ -2,7 +2,7 @@ package bc19;
 
 public class Prophet extends MyRobot {
 
-    public static Action turn(BCAbstractRobot r) {
+    static Action takeTurn() {
         r.log("" + r.me.id);
         return null;
     }
