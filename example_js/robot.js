@@ -12,7 +12,7 @@ class MyRobot extends BCAbstractRobot {
             this.log("Crusader health: " + this.me.health)
 
             var visible = this.getVisibleRobots()
-            
+
             // this sucks I'm sorry...
             var self = this // 'this' fails to properly identify MyRobot when used inside of anonymous function below :(
 
