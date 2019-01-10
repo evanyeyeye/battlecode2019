@@ -1,3 +1,4 @@
 *.bc19
 /.idea
 *.iml
+/initial_js_test
