@@ -5,27 +5,35 @@ import {pilgrimTurn} from './pilgrim.js'
 import {crusaderTurn} from './crusader.js'
 import {prophetTurn} from './prophet.js'
 import {preacherTurn} from './preacher.js'
-
-var step = 0
+import {reverseDirection, PathMaster} from './pathmaster.js'
+import {PathField} from './pathfield.js'
 
 class MyRobot extends BCAbstractRobot {
+
+    constructor() {
+        super()
+        this.step = 0
+    }
+
     turn() {
-        step++
-        var wisdom = 3
-        this.wisdom = 8
-        switch (this.me.unit) {
+        var self = this
+        self.step++
+        if (self.step == 1) {
+            self.pm = new PathMaster(self, self.map)
+        }
+        switch (self.me.unit) {
             case SPECS.CASTLE:
-                return castleTurn(this)
+                return castleTurn(self)
             case SPECS.CHURCH:
-                return churchTurn(this)
+                return churchTurn(self)
             case SPECS.PILGRIM:
-                return pilgrimTurn(this)
+                return pilgrimTurn(self)
             case SPECS.CRUSADER:
-                return crusaderTurn(this)
+                return crusaderTurn(self)
             case SPECS.PROPHET:
-                return prophetTurn(this)
+                return prophetTurn(self)
             case SPECS.PREACHER:
-                return preacherTurn(this)
+                return preacherTurn(self)
         }
         return
     }
