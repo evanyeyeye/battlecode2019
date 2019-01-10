@@ -92,24 +92,12 @@ export class PathField {
         var optimalDirection = this.findOptimalDirection(x, y, this.target)
         var self = this
         this.field[y][x].dirs.sort(function(a, b) {
-            var adx = a[1]
-            var ady = a[0]
-            var bdx = b[1]
-            var bdy = b[0]
-            if (adx == 0 || ady == 0) {
-                adx *= 2
-                ady *= 2
-            }
-            if (bdx == 0 || bdy == 0) {
-                bdx *= 2
-                bdy *= 2
-            }
             return self.getDirectionAffinity(b, optimalDirection) - self.getDirectionAffinity(a, optimalDirection)
         })
     }
 
     getDirectionAtPoint(x, y) {
-        if (!this.sorted) {
+        if (!this.field[y][x].sorted) {
             this.sortDirectionsAtPoint(x, y)
         }
         return this.field[y][x].dirs[0]
