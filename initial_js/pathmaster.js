@@ -12,36 +12,57 @@ function generateMatrix(height, width) {
 }
 
 // dictionary keys automatically becoming strings
-var mapping = {}
-mapping[[-1, -1]] = [1, 1]
-mapping[[-1, 0]] = [1, 0]
-mapping[[-1, 1]] = [1, -1]
-mapping[[0, -1]] = [0, 1]
-mapping[[0, 0]] = [0, 0]
-mapping[[0, 1]] = [0, -1]
-mapping[[1, -1]] = [-1, 1]
-mapping[[1, 0]] = [-1, 0]
-mapping[[1, 1]] = [-1, -1]
+var reverse = {}
+reverse[[-1, -1]] = [1, 1]
+reverse[[-1, 0]] = [1, 0]
+reverse[[-1, 1]] = [1, -1]
+reverse[[0, -1]] = [0, 1]
+reverse[[0, 0]] = [0, 0]
+reverse[[0, 1]] = [0, -1]
+reverse[[1, -1]] = [-1, 1]
+reverse[[1, 0]] = [-1, 0]
+reverse[[1, 1]] = [-1, -1]
 
 export function reverseDirection(dir) {
-    return mapping[dir]
+    return reverse[dir]
 }
 
 var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
 
-export class PathLocation {
+var cost = {}
+cost[[-1, -1]] = [1, 1]
+cost[[-1, 0]] = [1, 0]
+cost[[-1, 1]] = [1, 1]
+cost[[0, -1]] = [0, 1]
+cost[[0, 0]] = [0, 0]
+cost[[0, 1]] = [0, 1]
+cost[[1, -1]] =[1, 1]
+cost[[1, 0]] = [1, 0]
+cost[[1, 1]] = [1, 1]
 
-    constructor(x, y, dir, dist) {
+var squares = {}
+for (var i = 0; i < 65; i++) {
+    squares[i] = i * i
+}
+
+class BFSLocation {
+
+    constructor(x, y, dir, xdist, ydist) {
         this.x = x
         this.y = y
         this.dir = dir
-        this.dist = dist
+        this.xdist = xdist
+        this.ydist = ydist
     }
 
     add(dir) {
         var dx = dir[1]
         var dy = dir[0]
-        return new PathLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.dist + 1)
+        return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.xdist + cost[dir][1], this.ydist + cost[dir][0])
+    }
+
+    dist() {
+        return squares[this.xdist] + squares[this.ydist]
     }
 }
 
@@ -57,23 +78,25 @@ export class PathMaster {
         var pf = new PathField(this.r, this.map, target)
 
         var queue = []
-        var cur = new PathLocation(target[1], target[0], [0, 0], 0)
+        var cur = new BFSLocation(target[1], target[0], [0, 0], 0, 0)
         queue.push(cur)
 
         while (queue.length > 0) {
             cur = queue.shift()
             if (pf.isPointSet(cur.x, cur.y)) {
-                if (pf.getPoint(cur.x, cur.y).dist == cur.dist) {
+                if (pf.getPoint(cur.x, cur.y).dist > cur.dist()) {
+                    pf.setPoint(cur.x, cur.y, cur.dir, cur.dist())
+                } else if (pf.getPoint(cur.x, cur.y).dist == cur.dist()) {
                     pf.addDirection(cur.x, cur.y, cur.dir)
                 }
                 continue
             } else {
-                pf.setPoint(cur.x, cur.y, cur.dir, cur.dist)
+                pf.setPoint(cur.x, cur.y, cur.dir, cur.dist())
             }
             for (let dir of directions) {
                 var poss = cur.add(dir)
                 if (pf.isPointValid(poss.x, poss.y) && this.isPassable(cur.x, cur.y)) {
-                    if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist == poss.dist) {
+                    if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist >= poss.dist()) {
                         queue.push(poss)
                     }
                 }
