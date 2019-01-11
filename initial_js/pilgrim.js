@@ -15,7 +15,7 @@ function findMove(r){
 	if (targetMine==null){
 		target=targetLoc
 	}	
-	var pf = r.pm.getPathField([targetLoc]) //going to the location
+	var pf = r.pm.getPathField(targetLoc) //going to the location
     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
         var test = pf.getDirectionAtPoint(r.me.x, r.me.y)
         return r.move(test[1], test[0])
@@ -33,7 +33,7 @@ function checkDanger(r){
 //check where the closest safe mine is 
 function ClosestSafeMine(r){
 	var dangerSet=checkDanger(r);
-	for 
+	// for 
 
 }
 //just straight up distance

@@ -47,18 +47,21 @@ for (var i = 0; i < 65; i++) {
 
 class BFSLocation {
 
-    constructor(x, y, dir, xdist, ydist) {
+    constructor(x, y, dir, dist) {
         this.x = x
         this.y = y
         this.dir = dir
-        this.xdist = xdist
-        this.ydist = ydist
+        this.dist = dist
+        // this.xdist = xdist
+        // this.ydist = ydist
     }
+
 
     add(dir) {
         var dx = dir[1]
         var dy = dir[0]
-        return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.xdist + cost[dir][1], this.ydist + cost[dir][0])
+        // return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.xdist + cost[dir][1], this.ydist + cost[dir][0])
+        return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.dist + 1)
     }
 
     dist() {
@@ -78,25 +81,25 @@ export class PathMaster {
         var pf = new PathField(this.r, this.map, target)
 
         var queue = []
-        var cur = new BFSLocation(target[1], target[0], [0, 0], 0, 0)
+        var cur = new BFSLocation(target[1], target[0], [0, 0], 0)
         queue.push(cur)
 
         while (queue.length > 0) {
             cur = queue.shift()
             if (pf.isPointSet(cur.x, cur.y)) {
-                if (pf.getPoint(cur.x, cur.y).dist > cur.dist()) {
-                    pf.setPoint(cur.x, cur.y, cur.dir, cur.dist())
-                } else if (pf.getPoint(cur.x, cur.y).dist == cur.dist()) {
+                if (pf.getPoint(cur.x, cur.y).dist > cur.dist) {
+                    pf.setPoint(cur.x, cur.y, cur.dir, cur.dist)
+                } else if (pf.getPoint(cur.x, cur.y).dist == cur.dist) {
                     pf.addDirection(cur.x, cur.y, cur.dir)
                 }
                 continue
             } else {
-                pf.setPoint(cur.x, cur.y, cur.dir, cur.dist())
+                pf.setPoint(cur.x, cur.y, cur.dir, cur.dist)
             }
             for (let dir of directions) {
                 var poss = cur.add(dir)
                 if (pf.isPointValid(poss.x, poss.y) && this.isPassable(cur.x, cur.y)) {
-                    if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist >= poss.dist()) {
+                    if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist >= poss.dist) {
                         queue.push(poss)
                     }
                 }
