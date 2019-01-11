@@ -6,7 +6,7 @@ export function crusaderTurn(r) {
     }
     var pf = r.pm.getPathField([10, 10])
     if (r.fuel > SPECS.UNITS[SPECS.CRUSADER].FUEL_PER_MOVE) {
-        var test = pf.getDirectionAtPoint(r.me.x, r.me.y)
+        var test = pf.getDirectionAtPoint(r.me.x, r.me.y)[0]
         // r.log(test)
         return r.move(test[1], test[0])
     }

@@ -100,7 +100,10 @@ export class PathField {
         if (!this.field[y][x].sorted) {
             this.sortDirectionsAtPoint(x, y)
         }
-        return this.field[y][x].dirs[0]
+        var first = this.field[y][x].dirs[0]
+        var second = getDirectionAtPoint(y + first[0], x + first[1])
+        var third = getDirectionAtPoint(y + first[0] + second[0], x + first[1] + second[1])
+        return [first, second, third]
     }
 
     getPoint(x, y) {
