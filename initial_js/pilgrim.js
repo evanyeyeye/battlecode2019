@@ -9,7 +9,7 @@ const FUEL = 1
 
 var fuelThreshold =  750 // if over this amount of fuel, free to build. Probably should be variable
 
-var unsafeLoc = [];  // from castle to see 
+var unsafeLoc = new Set();  // set to see place is unsafe 
 var priorityResource = KARBONITE;  // 0 is karbonite 1 is fuel
 
 var karboniteMines = {}  // maps mine locations to distance from base castle location
@@ -23,7 +23,8 @@ export function pilgrimTurn(r) {
 
     let state = MINE  // idk if this is going to be useful
     priorityResource = Math.floor(Math.random() * 2)
-    r.log("Looking to mine " + priorityResource)
+    r.log("Looking to mine " + priorityResource) 
+    //check if current mine is safe or not
 
     // no reason to float karbonite?
     if (r.karbonite > 100 && r.fuel > fuelThreshold) {
@@ -103,12 +104,33 @@ function updateMines(r) {
 }
 
 function getSquaredDistance(x1, y1, x2, y2) {
-    return (x2 - x1)**2 + (y2 - y2)
+    return (x2 - x1)**2 + (y2 - y2)**2
 }
 
-// return a set of all the places that have the potential to get attacked. 
-// Check current location and mines to see
-function checkDanger(r) {
+// check all mines that are dangerous according to units in vision
+// later check if you cna safely mine
+function checkDanger(minearray) {
+    var merged = new Set([karboniteMines, fuelMines])
+   
+    var visible = r.getVisibleRobots()
+ for (var curMine in merged) {
+    // || unsafeLoc.has(curMine) not sure if you check unsafe loc or not
+    //only do it if something can possibly be attacked by thigns in vision
+  if (getSquaredDistance(r.x,r.y,curMine[0],curMine[1])**0.5<18){
+    for (var robot in visible){
+        if (inRange(robot,curMine)){
+            unsafeLoc.add(curMine);
+
+            break;
+        }
+
+
+
+    }
+
+  }
+}
+
 
 }
 
@@ -132,4 +154,13 @@ function closestSafeMine(r) {
 
 function findBuildLocation(r) {
     // for building churches
+}
+function inRange(r,l){
+    //not sure if location is x or y
+   if (getSquaredDistance(r.x,r.y,l[0],l[1])<SPECS.UNITS[SPECS.r.unit].ATTACK_RADIUS[1]){
+
+    return true;    
+   }
+   return false;
+
 }
