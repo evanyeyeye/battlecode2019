@@ -10,7 +10,7 @@ const FUEL = 1
 var fuelThreshold =  750 // if over this amount of fuel, free to build. Probably should be variable
 
 var unsafeLoc = new Set();  // set to see place is unsafe 
-var priorityResource = KARBONITE;  // 0 is karbonite 1 is fuel
+var priorityResource = -1;  // 0 is karbonite 1 is fuel
 
 var karboniteMines = {}  // maps mine locations to distance from base castle location
 var fuelMines = {}
@@ -22,12 +22,13 @@ export function pilgrimTurn(r) {
     }
 
     let state = MINE  // idk if this is going to be useful
-    priorityResource = Math.floor(Math.random() * 2)
-    r.log("Looking to mine " + priorityResource) 
+    if (priorityResource == -1)
+        priorityResource = Math.floor(Math.random() * 2)
+
     //check if current mine is safe or not
 
     // no reason to float karbonite?
-    if (r.karbonite > 100 && r.fuel > fuelThreshold) {
+    if (r.karbonite > 2*SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > fuelThreshold) {
         state = BUILD
     }
 
@@ -65,7 +66,7 @@ export function pilgrimTurn(r) {
 
     // check if on top of mine
     if (targetMine != null && getSquaredDistance(r.me.x, r.me.y, targetMine[1], targetMine[0]) == 0) {
-        r.log("i'm actually mining")
+        r.log("i'm actually trying to mine")
         return r.mine()
     }
 
@@ -109,29 +110,24 @@ function getSquaredDistance(x1, y1, x2, y2) {
 
 // check all mines that are dangerous according to units in vision
 // later check if you cna safely mine
-function checkDanger(minearray) {
+function checkDanger(r) {
     var merged = new Set([karboniteMines, fuelMines])
    
     var visible = r.getVisibleRobots()
- for (var curMine in merged) {
-    // || unsafeLoc.has(curMine) not sure if you check unsafe loc or not
-    //only do it if something can possibly be attacked by thigns in vision
-  if (getSquaredDistance(r.x,r.y,curMine[0],curMine[1])**0.5<18){
-    for (var robot in visible){
-        if (inRange(robot,curMine)){
-            unsafeLoc.add(curMine);
+    for (var curMine in merged) {
+        // || unsafeLoc.has(curMine) not sure if you check unsafe loc or not
+        // only do it if something can possibly be attacked by thigns in vision
+        if (getSquaredDistance(r.x,r.y,curMine[0],curMine[1])**0.5<18){
+            for (var robot in visible){
+                if (inRange(robot,curMine)){
+                    unsafeLoc.add(curMine);
 
-            break;
+                    break;
+                }
+            }
+
         }
-
-
-
     }
-
-  }
-}
-
-
 }
 
 // check where the closest safe mine is 
