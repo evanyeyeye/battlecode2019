@@ -105,7 +105,7 @@ function updateMines(r) {
 }
 
 function getSquaredDistance(x1, y1, x2, y2) {
-    return (x2 - x1)**2 + (y2 - y2)**2
+    return (x2 - x1)**2 + (y1 - y2)**2
 }
 
 // check all mines that are dangerous according to units in vision
