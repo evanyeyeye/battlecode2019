@@ -8,7 +8,7 @@ export function crusaderTurn(r) {
     if (r.fuel > SPECS.UNITS[SPECS.CRUSADER].FUEL_PER_MOVE) {
         var test = pf.getDirectionAtPoint(r.me.x, r.me.y)
         // r.log(test)
-        return r.move(test[1], test[0])
+        // return r.move(test[1], test[0])
     }
     return
 }

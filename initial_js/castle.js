@@ -24,6 +24,16 @@ export function castleTurn(r) {
     if (r.me.turn == 1) {
         r.log("I am a Castle")
     }
+    // build pilgrims
+    if (r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL && pilgrimCounter * 300 < r.me.turn) {
+        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+        if (buildDirection != null) {
+            r.log("Built Pilgrim")
+            return r.buildUnit(SPECS.PILGRIM, buildDirection[1], buildDirection[0])
+        }
+        pilgrimCounter++
+    }
+    // build crusaders
     if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL && crusaderCounter * 300 < r.me.turn) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
