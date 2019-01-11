@@ -81,7 +81,6 @@ export function pilgrimTurn(r) {
         return r.move(test[1], test[0])
     }
 
-
 }
 
 function isEmpty(r, x, y) {
@@ -128,7 +127,7 @@ function closestSafeMine(r) {
             target = location
         }
     }
-    return target
+    return target.split(",").map((n) => parseInt(n))
 }
 
 function findBuildLocation(r) {

@@ -87,9 +87,7 @@ export class PathMaster {
         while (queue.length > 0) {
             cur = queue.shift()
             if (pf.isPointSet(cur.x, cur.y)) {
-                if (pf.getPoint(cur.x, cur.y).dist > cur.dist) {
-                    pf.setPoint(cur.x, cur.y, cur.dir, cur.dist)
-                } else if (pf.getPoint(cur.x, cur.y).dist == cur.dist) {
+                if (pf.getPoint(cur.x, cur.y).dist == cur.dist) {
                     pf.addDirection(cur.x, cur.y, cur.dir)
                 }
                 continue
@@ -99,7 +97,7 @@ export class PathMaster {
             for (let dir of directions) {
                 var poss = cur.add(dir)
                 if (pf.isPointValid(poss.x, poss.y) && this.isPassable(cur.x, cur.y)) {
-                    if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist >= poss.dist) {
+                    if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist == poss.dist) {
                         queue.push(poss)
                     }
                 }
@@ -112,7 +110,7 @@ export class PathMaster {
     getPathField(target) {
         var x = target[1]
         var y = target[0]
-        if (this.pathFieldCache[y][x] == null) {
+        if (!this.pathFieldCache[y][x]) {
             this.pathFieldCache[y][x] = this.generatePathField(target)
         }
         return this.pathFieldCache[y][x]

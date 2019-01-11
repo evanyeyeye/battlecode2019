@@ -34,13 +34,13 @@ export function castleTurn(r) {
         pilgrimCounter++
     }
     // build crusaders
-    if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL && crusaderCounter * 300 < r.me.turn) {
-        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-        if (buildDirection != null) {
-            r.log("Built Crusader")
-            return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
-        }
-        crusaderCounter++
-    }
-    return
+    // if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL && crusaderCounter * 300 < r.me.turn) {
+    //     var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+    //     if (buildDirection != null) {
+    //         r.log("Built Crusader")
+    //         return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
+    //     }
+    //     crusaderCounter++
+    // }
+    // return
 }

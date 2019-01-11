@@ -88,7 +88,7 @@ export class PathField {
     }
 
     sortDirectionsAtPoint(x, y) {
-        this.sorted = true
+        this.field[y][x].sorted = true
         var optimalDirection = this.findOptimalDirection(x, y, this.target)
         var self = this
         this.field[y][x].dirs.sort(function(a, b) {
@@ -97,6 +97,7 @@ export class PathField {
     }
 
     getDirectionAtPoint(x, y) {
+        // this.r.log(this.field)
         if (!this.field[y][x].sorted) {
             this.sortDirectionsAtPoint(x, y)
         }
