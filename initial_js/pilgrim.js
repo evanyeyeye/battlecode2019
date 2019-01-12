@@ -74,9 +74,7 @@ export function pilgrimTurn(r) {
         let pf = r.pm.getPathField(baseLocation)
         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-            if (notEmpty(r, r.me.x + test[0], r.me.y + test[1]))  // idk
-                return
-            return r.move(test[0], test[1])
+            return tryMoveRotate(r, test)
         }
     }
 
@@ -103,11 +101,10 @@ export function pilgrimTurn(r) {
     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
         // r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-        if (notEmpty(r, r.me.x + test[0], r.me.y + test[1]))  // idk
-            return
-        return r.move(test[0], test[1])
+        return tryMoveRotate(r, test)
     }
 
+    return
 }
 
 function isEmpty(r, x, y) {
@@ -228,4 +225,58 @@ function closestSafeMine(r) {
 
 function findBuildLocation(r) {
     // for building churches
+}
+
+function inRange(r, enemy, l) {
+    // not sure if location is x or y
+
+    if (enemy.unit == SPECS.CRUSADER || enemy.unit == SPECS.PROPHET || enemy.unit == SPECS.PREACHER) {
+        if (getSquaredDistance(enemy.x, enemy.y, l[0], l[1]) < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]) {
+            return true
+        }
+    }
+    return false
+
+}
+
+// sorry this is my terrible code I'll make it as beautiful as Larry later
+var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
+var imBad = {}
+imBad[[-1, -1]] = 0
+imBad[[-1, 0]] = 1
+imBad[[-1, 1]] = 2
+imBad[[0, 1]] = 3
+imBad[[1, 1]] = 4
+imBad[[1, 0]] = 5
+imBad[[1, -1]] = 6
+imBad[[0, -1]] = 7
+
+function rotate(dir, n) {
+    return directions[(imBad[dir] + n + 8) % 8]
+}
+
+// I am lazy I will make this a for loop later
+function tryMoveRotate(r, dir) {
+    let x = r.me.x
+    let y = r.me.y
+    let visible = r.getVisibleRobotMap()
+    let passable = r.getPassableMap()
+    let x1 = x + dir[1]
+    let y1 = y + dir[0]
+    if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
+        return r.move(dir[1], dir[0])
+    }
+    let dir1 = rotate(dir, 1)
+    x1 = x + dir1[1]
+    y1 = y + dir1[0]
+    if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
+        return r.move(dir1[1], dir1[0])
+    }
+    dir1 = rotate(dir, -1)
+    x1 = x + dir1[1]
+    y1 = y + dir1[0]
+    if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
+        return r.move(dir1[1], dir1[0])
+    }
+    return 
 }
