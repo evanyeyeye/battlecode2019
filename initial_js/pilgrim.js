@@ -10,7 +10,7 @@ const FUEL = 1
 var fuelThreshold =  750 // if over this amount of fuel, free to build. Probably should be variable
 
 var unsafeLoc = new Set();  // set to see place is unsafe
-var occupiedLoc = new Set(); //set to occupied loc  both take in string verison of location both take in string verison of location
+var occupiedLoc = new Set(); // set to occupied loc  both take in string verison of location both take in string verison of location
 var priorityResource = -1;  // 0 is karbonite 1 is fuel both take in string verison of location
 
 var karboniteMines = {}  // maps mine locations to distance from base castle location
@@ -30,7 +30,7 @@ export function pilgrimTurn(r) {
 
     // no reason to float karbonite?
     if (r.karbonite > 2*SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > fuelThreshold) {
-        state = BUILD
+        state = BUILD  // not actually used right now
     }
 
     // ok now find the best move
@@ -46,6 +46,7 @@ export function pilgrimTurn(r) {
                 baseCastleLocation = [otherRobot.x, otherRobot.y]
             }
             friendlyRobots[otherRobot.id] = distance
+            updateMines(r)  // refresh mines based on distance to base castle location
         }
         else {
             enemyRobots[otherRobot.id] = distance
@@ -54,7 +55,12 @@ export function pilgrimTurn(r) {
     // edit this so that if does make sense go for other resource
     // return to castle if full
     if (r.me.karbonite == SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
-        r.log('reurning base ')
+        if(getManhattanDistance(r.me.x, r.me.y, baseCastleLocation[0], baseCastleLocation[1]) <=1) {
+            // close enough to give the collected resources
+            return r.give(baseCastleLocation[0] - r.me.x, baseCastleLocation[1] - r.me.y, r.me.karbonite, r.me.fuel)
+        }
+        // return to castle
+        r.log('returning base ')
         let pf = r.pm.getPathField(baseCastleLocation.reverse())
         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
@@ -63,14 +69,14 @@ export function pilgrimTurn(r) {
     }
 
     // look at mines
-    updateMines(r)
+    // updateMines(r)  // since this only changes with base castle location, moved up to that part of the code
 	let targetMine = closestSafeMine(r)
     let curLocation=r.me.x.toString()+","+r.me.y.toString()
-    r.log('curloc')
-    r.log(curLocation)
-    for(let i of occupiedLoc) { r.log(i); }
+    r.log('curloc: ' + curLocation)
+    for (let i of occupiedLoc) { r.log(i); }
+
     // check if on top of mine
-    if (occupiedLoc.has(curLocation)||(targetMine != null && getManhattanDistance(r.me.x, r.me.x, targetMine[0], targetMine[1]) == 0)) {
+    if (occupiedLoc.has(curLocation) || (targetMine != null && getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0)) {
         r.log("i'm actually trying to mine at " + targetMine[0] + ", " + targetMine[1])
         return r.mine()
     }
@@ -95,13 +101,14 @@ function isEmpty(r, x, y) {
     let visibleRobotMap = r.getVisibleRobotMap();
     return passableMap[y][x] && visibleRobotMap[y][x] == 0;
 }
+
 function notEmpty(r, x, y) {
     let passableMap = r.map;
     let visibleRobotMap = r.getVisibleRobotMap();
     return passableMap[y][x] && visibleRobotMap[y][x] != 0 && visibleRobotMap[y][x] != -1; //we know there
 }
 
-// update mine locatoins based on distance from 
+// update mine locations based on distance from 
 function updateMines(r) {
     for (let j = 0; j<r.karbonite_map.length; j++) {
         for (let i = 0; i<r.karbonite_map[0].length; i++) {
@@ -128,22 +135,19 @@ return Math.abs(x2 - x1) + Math.abs(y2 - y1)
 function checkMine(r) {
     
     let merged = Object.assign({},karboniteMines, fuelMines);
-   // r.log([r.me.x,r.me.y])
-  //r.log(merged);
+    // r.log([r.me.x,r.me.y])
+    //r.log(merged);
     let visible = r.getVisibleRobots()
     for (let curMine in merged) {
         let tempMine=curMine.split(",").map((n) => parseInt(n))
-       // r.log(tempMine);
+        // r.log(tempMine);
         //r.log([r.me.x,r.me.y])
 
 
         if (notEmpty(r,tempMine[0],tempMine[1])){
             if (occupiedLoc.has(tempMine.toString())==false){
-
-            occupiedLoc.add(tempMine.toString());
-
-       }      
-
+                occupiedLoc.add(tempMine.toString());
+            }      
         }
       
         if (isEmpty(r,tempMine[0],tempMine[1])){
@@ -167,10 +171,6 @@ function checkMine(r) {
 
         }
     }
-  
-   
-   
-
 }
 
 // check where the closest safe mine is 
@@ -208,12 +208,12 @@ function findBuildLocation(r) {
 }
 
 function inRange(r,l) {
-    //not sure if location is x or y
+    // not sure if location is x or y
 
     if (r.me.unit==SPECS.CRUSADER||r.me.unit==SPECS.PROPHET||r.me.unit==SPECS.PREACHER)
-   if (getSquaredDistance(r.me.x,r.me.y,l[0],l[1])<SPECS.UNITS[r.me.unit].ATTACK_RADIUS[1]){
+    if (getSquaredDistance(r.me.x,r.me.y,l[0],l[1])<SPECS.UNITS[r.me.unit].ATTACK_RADIUS[1]) {
         return true;    
-   }
-   return false;
+    }
+    return false;
 
 }
