@@ -9,8 +9,9 @@ const FUEL = 1
 
 var fuelThreshold =  750 // if over this amount of fuel, free to build. Probably should be variable
 
-var unsafeLoc = new Set();  // set to see place is unsafe 
-var priorityResource = -1;  // 0 is karbonite 1 is fuel
+var unsafeLoc = new Set();  // set to see place is unsafe
+var occupiedLoc = new Set(); //set to occupied loc  both take in string verison of location both take in string verison of location
+var priorityResource = -1;  // 0 is karbonite 1 is fuel both take in string verison of location
 
 var karboniteMines = {}  // maps mine locations to distance from base castle location
 var fuelMines = {}
@@ -50,7 +51,7 @@ export function pilgrimTurn(r) {
             enemyRobots[otherRobot.id] = distance
         }
     }
-
+    // edit this so that if does make sense go for other resource
     // return to castle if full
     if (r.me.karbonite == SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
         let pf = r.pm.getPathField(baseCastleLocation.reverse())
@@ -90,6 +91,11 @@ function isEmpty(r, x, y) {
     let visibleRobotMap = r.getVisibleRobotMap();
     return passableMap[y][x] && visibleRobotMap[y][x] == 0;
 }
+function notEmpty(r, x, y) {
+    let passableMap = r.map;
+    let visibleRobotMap = r.getVisibleRobotMap();
+    return passableMap[y][x] && visibleRobotMap[y][x] != 0 && visibleRobotMap[y][x] != -1; //we know there
+}
 
 // update mine locatoins based on distance from 
 function updateMines(r) {
@@ -115,17 +121,40 @@ return Math.abs(x2 - x1) + Math.abs(y2 - y1)
 
 // check all mines that are dangerous according to units in vision
 // later check if you cna safely mine
-function checkDanger(r) {
-    let merged = new Set([karboniteMines, fuelMines])
-   
+function checkMine(r) {
+    
+    let merged = Object.assign({},karboniteMines, fuelMines);
+   // r.log([r.me.x,r.me.y])
+  //r.log(merged);
     let visible = r.getVisibleRobots()
     for (let curMine in merged) {
+        let tempMine=curMine.split(",").map((n) => parseInt(n))
+       // r.log(tempMine);
+        //r.log([r.me.x,r.me.y])
+
+
+        if (notEmpty(r,tempMine[0],tempMine[1])){
+            if (occupiedLoc.has(tempMine)==false){
+
+            occupiedLoc.add(tempMine.toString());
+
+       }      
+
+        }
+        if (isEmpty(r,tempMine[0],tempMine[1])){
+             if (occupiedLoc.has(tempMine)){
+
+            occupiedLoc.delete(tempMine.toString());
+        }
+        
+       }
+        
         // || unsafeLoc.has(curMine) not sure if you check unsafe loc or not
         // only do it if something can possibly be attacked by thigns in vision
-        if (getSquaredDistance(r.x,r.y,curMine[0],curMine[1])**0.5<18){
+        if (getSquaredDistance(r.me.x,r.me.y,tempMine[0],tempMine[1])**0.5<18){
             for (let robot in visible){
-                if (inRange(robot,curMine)){
-                    unsafeLoc.add(curMine);
+                if (inRange(r,tempMine)){
+                    unsafeLoc.add(tempMine.toString());
 
                     break;
                 }
@@ -133,21 +162,35 @@ function checkDanger(r) {
 
         }
     }
+  
+   for(let i of occupiedLoc) { r.log(i); }
+   
+
 }
 
 // check where the closest safe mine is 
 function closestSafeMine(r) {
-	let dangerSet = checkDanger(r)
+	checkMine(r)
     let mines = karboniteMines
+
     if (priorityResource == FUEL)
         mines = fuelMines
+
     let target = null
     let minDistance = 2 * 64 * 64
 
     for (const [location, distance] of Object.entries(mines)) {
         if (distance < minDistance) {
+            r.log(location)
+            if (occupiedLoc.has(location)==false){
+
             minDistance = distance
             target = location
+            }
+            else{
+                r.log('mine occupied')
+            }
+
         }
     }
     return target.split(",").map((n) => parseInt(n))
@@ -159,7 +202,9 @@ function findBuildLocation(r) {
 
 function inRange(r,l) {
     //not sure if location is x or y
-   if (getSquaredDistance(r.x,r.y,l[0],l[1])<SPECS.UNITS[SPECS.r.unit].ATTACK_RADIUS[1]){
+
+    if (r.me.unit==SPECS.CRUSADER||r.me.unit==SPECS.PROPHET||r.me.unit==SPECS.PREACHER)
+   if (getSquaredDistance(r.me.x,r.me.y,l[0],l[1])<SPECS.UNITS[r.me.unit].ATTACK_RADIUS[1]){
         return true;    
    }
    return false;
