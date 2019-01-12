@@ -261,22 +261,22 @@ function tryMoveRotate(r, dir) {
     let y = r.me.y
     let visible = r.getVisibleRobotMap()
     let passable = r.getPassableMap()
-    let x1 = x + dir[1]
-    let y1 = y + dir[0]
+    let x1 = x + dir[0]
+    let y1 = y + dir[1]
     if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir[1], dir[0])
+        return r.move(dir[0], dir[1])
     }
     let dir1 = rotate(dir, 1)
-    x1 = x + dir1[1]
-    y1 = y + dir1[0]
+    x1 = x + dir[0]
+    y1 = y + dir1[1]
     if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir1[1], dir1[0])
+        return r.move(dir[0], dir1[1])
     }
     dir1 = rotate(dir, -1)
-    x1 = x + dir1[1]
-    y1 = y + dir1[0]
+    x1 = x + dir[0]
+    y1 = y + dir1[1]
     if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir1[1], dir1[0])
+        return r.move(dir[0], dir1[1])
     }
     return 
 }
