@@ -55,11 +55,18 @@ export function pilgrimTurn(r) {
     // return to castle if full
     if (r.me.karbonite == SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
         r.log('reurning base ')
+        if (getSquaredDistance(r.me.x,r.me.y,baseCastleLocation[0],baseCastleLocation[1])<3){
+            r.log("sucess fully give !!!!!!!!!!!!!!!!!!!!!!")
+            return r.give(baseCastleLocation[0]-r.me.x,baseCastleLocation[1]-r.me.y,r.me.karbonite,r.me.fuel)
+            r.log(r.me.karbonite )     
+        }
+        else{
         let pf = r.pm.getPathField(baseCastleLocation.reverse())
         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
             return r.move(test[1], test[0])
         }
+    }
     }
 
     // look at mines
