@@ -4,7 +4,7 @@ const MINE = 0
 const SCOUT = 1
 const BUILD = 2
 
-const KARBONITE =  0
+const KARBONITE = 0
 const FUEL = 1
 
 var fuelThreshold =  750 // if over this amount of fuel, free to build churches. Probably should be variable

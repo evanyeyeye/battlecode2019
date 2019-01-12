@@ -83,7 +83,7 @@ export class PathMaster {
         this.pathFieldCache = generateMatrix(this.map[0].length, this.map.length)
     }
 
-    generatePathField(target) {
+    generatePathField(target, includeCastle = false) {
         let pf = new PathField(this.r, this.map, target)
 
         let queue = []
@@ -102,7 +102,7 @@ export class PathMaster {
                 pf.setPoint(cur.x, cur.y, cur.direction, cur.dist)  // set this as a point
                 for (let dir of directions) {  // search out
                     let poss = cur.add(dir)
-                    if (pf.isPointValid(poss.x, poss.y) && this.isPassable(poss.x, poss.y)) {  // valid point
+                    if (pf.isPointValid(poss.x, poss.y) && this.isPassable(poss.x, poss.y, includeCastle)) {  // valid point
                         if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist) {  // point is either not seen before, or can be reached faster
                             queue.push(poss)
                         }
@@ -114,23 +114,19 @@ export class PathMaster {
         return pf
     }
 
-    getPathField(target) {
+    getPathField(target, includeCastle = false) {
         let x = target[0]
         let y = target[1]
-        /*
-        if (this.pathFieldCache[y][x]) {
-            this.r.log("Retrieving cached field")
-            return this.pathFieldCache[y][x]
-        }
-        */
         if (!this.pathFieldCache[y][x]) {
-            this.r.log("Generating path field")
-            this.pathFieldCache[y][x] = this.generatePathField(target)
+            // this.r.log("Generating path field")
+            this.pathFieldCache[y][x] = this.generatePathField(target, includeCastle)
         }
         return this.pathFieldCache[y][x]
     }
 
-    isPassable(x, y) {
+    isPassable(x, y, includeCastle = false) {
+        if (includeCastle)
+            return this.map[y][x]
         let robot = this.r.getRobot(this.r.getVisibleRobotMap()[y][x])
         if(robot == null || (robot.unit != SPECS.CASTLE && robot.unit != SPECS.CHURCH))  // no castle or church there
             return this.map[y][x]
