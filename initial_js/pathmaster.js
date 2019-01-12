@@ -27,7 +27,8 @@ export function reverseDirection(dir) {
     return reverse[dir]
 }
 
-var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
+// var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
+var directions = [[-1, -1],  [-1, 1], [1, 1], [1, -1], [1, 0], [0, 1], [-1, 0], [0, -1]]
 
 var cost = {}
 cost[[-1, -1]] = [1, 1]
@@ -61,6 +62,9 @@ class BFSLocation {
         var dx = dir[1]
         var dy = dir[0]
         // return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.xdist + cost[dir][1], this.ydist + cost[dir][0])
+        if (!dir.includes(0))
+            return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.dist + 2)
+
         return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.dist + 1)
     }
 
@@ -87,8 +91,9 @@ export class PathMaster {
         while (queue.length > 0) {
             cur = queue.shift()
             if (pf.isPointSet(cur.x, cur.y)) {
-                if (pf.getPoint(cur.x, cur.y).dist == cur.dist) {
-                    pf.addDirection(cur.x, cur.y, cur.dir)
+                if (pf.getPoint(cur.x, cur.y).dist > cur.dist) {
+                    // pf.addDirection(cur.x, cur.y, cur.dir)
+                    pf.updateDirection(cur.x, cur.y, cur.dir)
                 }
                 continue
             } else {
@@ -97,7 +102,7 @@ export class PathMaster {
             for (let dir of directions) {
                 var poss = cur.add(dir)
                 if (pf.isPointValid(poss.x, poss.y) && this.isPassable(cur.x, cur.y)) {
-                    if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist == poss.dist) {
+                    if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist) {
                         queue.push(poss)
                     }
                 }

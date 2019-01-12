@@ -11,15 +11,15 @@ function generateMatrix(height, width) {
 
 class PathPoint {
 
-    constructor(dirs, dist) {
-        this.dirs = dirs
+    constructor(dir, dist) {
+        this.dir = dir
         this.dist = dist
         this.sorted = false
     }
 
-    addDirection(dir) {
-        this.dirs.push(dir)
-    }
+    // addDirection(dir) {
+    //     this.dir.push(dir)
+    // }
 }
 
 export class PathField {
@@ -87,25 +87,25 @@ export class PathField {
         return (adx * bdx) + (ady * bdy)
     }
 
-    sortDirectionsAtPoint(x, y) {
-        this.field[y][x].sorted = true
-        var optimalDirection = this.findOptimalDirection(x, y, this.target)
-        var self = this
-        this.field[y][x].dirs.sort(function(a, b) {
-            return self.getDirectionAffinity(b, optimalDirection) - self.getDirectionAffinity(a, optimalDirection)
-        })
-    }
+    // sortDirectionsAtPoint(x, y) {
+    //     this.field[y][x].sorted = true
+    //     var optimalDirection = this.findOptimalDirection(x, y, this.target)
+    //     var self = this
+    //     this.field[y][x].dir.sort(function(a, b) {
+    //         return self.getDirectionAffinity(b, optimalDirection) - self.getDirectionAffinity(a, optimalDirection)
+    //     })
+    // }
 
     getDirectionAtPoint(x, y) {
         // this.r.log(this.field)
-        if (!this.field[y][x].sorted) {
-            this.sortDirectionsAtPoint(x, y)
-        }
-        // var first = this.field[y][x].dirs[0]
+        // if (!this.field[y][x].sorted) {
+        //     this.sortDirectionsAtPoint(x, y)
+        // }
+        // var first = this.field[y][x].dir[0]
         // var second = this.getDirectionAtPoint(y + first[0], x + first[1])
         // var third = this.getDirectionAtPoint(y + first[0] + second[0], x + first[1] + second[1])
         // return [first, second, third]
-        return this.field[y][x].dirs[0]
+        return this.field[y][x].dir
     }
 
     getPoint(x, y) {
@@ -113,10 +113,13 @@ export class PathField {
     }
 
     setPoint(x, y, dir, dist) {
-        this.field[y][x] = new PathPoint([dir], dist)
+        this.field[y][x] = new PathPoint(dir, dist)
     }
 
-    addDirection(x, y, dir) {
-        this.field[y][x].addDirection(dir)
+    updateDirection(x, y, dir) {
+        this.field[y][x].dir = dir
     }
+    // addDirection(x, y, dir) {
+    //     this.field[y][x].addDirection(dir)
+    // }
 }
