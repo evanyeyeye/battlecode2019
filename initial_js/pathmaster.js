@@ -95,7 +95,7 @@ export class PathMaster {
             if (pf.isPointSet(cur.x, cur.y)) {  // point already exists
                 if (pf.getPoint(cur.x, cur.y).dist > cur.dist) {  // update only if new distance is shorter
                     // pf.addDirection(cur.x, cur.y, cur.direction)
-                    pf.updateDirection(cur.x, cur.y, cur.direction)
+                    pf.updatePoint(cur.x, cur.y, cur.direction, cur.dist)
                 }
             } 
             else {
@@ -117,7 +117,14 @@ export class PathMaster {
     getPathField(target) {
         let x = target[0]
         let y = target[1]
+        /*
+        if (this.pathFieldCache[y][x]) {
+            this.r.log("Retrieving cached field")
+            return this.pathFieldCache[y][x]
+        }
+        */
         if (!this.pathFieldCache[y][x]) {
+            this.r.log("Generating path field")
             this.pathFieldCache[y][x] = this.generatePathField(target)
         }
         return this.pathFieldCache[y][x]

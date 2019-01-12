@@ -114,6 +114,10 @@ export class PathField {
         return this.field[y][x].direction
     }
 
+    getDistanceFromTarget(x, y) {
+        return this.field[y][x].dist
+    }
+
     getPoint(x, y) {
         return this.field[y][x]
     }
@@ -122,8 +126,9 @@ export class PathField {
         this.field[y][x] = new PathPoint(dir, dist)
     }
 
-    updateDirection(x, y, dir) {
+    updatePoint(x, y, dir, dist) {
         this.field[y][x].direction = dir
+        this.field[y][x].dist = dist
     }
     // addDirection(x, y, dir) {
     //     this.field[y][x].addDirection(dir)

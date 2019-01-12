@@ -41,6 +41,7 @@ export function castleTurn(r) {
         r.log("I am a Castle")
         numMines = iDMines(r)
     }
+    r.log("The round is: " + r.me.turn)
     // build pilgrims
     if (pilgrimCounter < numMines && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
