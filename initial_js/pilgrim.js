@@ -12,7 +12,7 @@ var fuelThreshold =  750 // if over this amount of fuel, free to build churches.
 var unsafeLoc = new Set();  // set to see place is unsafe
 var occupiedLoc = new Set(); // set to occupied loc  both take in string verison of location both take in string verison of location
 var priorityResource = -1;  // 0 is karbonite 1 is fuel both take in string verison of location
-
+// TODO: DOES NOT ACCOUNT FOR OBSTACLES IN HOW EASY A MINE IS TO REACH
 var karboniteMines = {}  // maps mine locations to distance from base castle location
 var fuelMines = {}
 var baseLocation = null  // castle or church to return resources to

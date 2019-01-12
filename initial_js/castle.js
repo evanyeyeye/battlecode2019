@@ -28,25 +28,27 @@ function iDMines(r) {  // deterministically label mines
             }
         }
     }
+    return counter
 }
 
 var mineID = {}
+var numMines = 0
 var pilgrimCounter = 0
 var crusaderCounter = 0
 
 export function castleTurn(r) {
     if (r.me.turn == 1) {
         r.log("I am a Castle")
-        iDMines(r)
+        numMines = iDMines(r)
     }
     // build pilgrims
-    if (pilgrimCounter < 3 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL && pilgrimCounter * 300 < r.me.turn) {
+    if (pilgrimCounter < numMines && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Built Pilgrim")
+            pilgrimCounter++
             return r.buildUnit(SPECS.PILGRIM, buildDirection[1], buildDirection[0])
         }
-        pilgrimCounter++
     }
     // // build crusaders
     // if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL && crusaderCounter * 300 < r.me.turn) {
@@ -54,8 +56,8 @@ export function castleTurn(r) {
     //     if (buildDirection != null) {
     //         r.log("Built Crusader")
     //         return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
+    //         crusaderCounter++
     //     }
-    //     crusaderCounter++
     // }
     return
 }
