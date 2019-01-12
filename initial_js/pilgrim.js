@@ -26,8 +26,6 @@ export function pilgrimTurn(r) {
     if (priorityResource == -1)
         priorityResource = Math.floor(Math.random() * 2)
 
-    //check if current mine is safe or not
-
     // no reason to float karbonite?
     if (r.karbonite > 2*SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > fuelThreshold) {
         state = BUILD  // not actually used right now
@@ -55,13 +53,14 @@ export function pilgrimTurn(r) {
     // edit this so that if does make sense go for other resource
     // return to castle if full
     if (r.me.karbonite == SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
-        if(getManhattanDistance(r.me.x, r.me.y, baseCastleLocation[0], baseCastleLocation[1]) <=1) {
+        if(getSquaredDistance(r.me.x, r.me.y, baseCastleLocation[0], baseCastleLocation[1]) <= 2) {
             // close enough to give the collected resources
             return r.give(baseCastleLocation[0] - r.me.x, baseCastleLocation[1] - r.me.y, r.me.karbonite, r.me.fuel)
         }
+
         // return to castle
-        r.log('returning base ')
         let pf = r.pm.getPathField(baseCastleLocation.reverse())
+        baseCastleLocation.reverse()  // revert for log
         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
             return r.move(test[1], test[0])
@@ -71,9 +70,9 @@ export function pilgrimTurn(r) {
     // look at mines
     // updateMines(r)  // since this only changes with base castle location, moved up to that part of the code
 	let targetMine = closestSafeMine(r)
-    let curLocation=r.me.x.toString()+","+r.me.y.toString()
+    let curLocation = r.me.x.toString() + "," + r.me.y.toString()
     r.log('curloc: ' + curLocation)
-    for (let i of occupiedLoc) { r.log(i); }
+    // for (let i of occupiedLoc) { r.log(i); }
 
     // check if on top of mine
     if (occupiedLoc.has(curLocation) || (targetMine != null && getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0)) {
@@ -87,7 +86,8 @@ export function pilgrimTurn(r) {
 	}
 
     // path to location
-	let pf = r.pm.getPathField(targetMine.reverse())
+	let pf = r.pm.getPathField(targetMine.reverse())  // this keeps the reversal
+    targetMine.reverse()  // revert for log
     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
         r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
@@ -105,7 +105,7 @@ function isEmpty(r, x, y) {
 function notEmpty(r, x, y) {
     let passableMap = r.map;
     let visibleRobotMap = r.getVisibleRobotMap();
-    return passableMap[y][x] && visibleRobotMap[y][x] != 0 && visibleRobotMap[y][x] != -1; //we know there
+    return passableMap[y][x] && visibleRobotMap[y][x] > 0;  // passable, but visibly has a robot id
 }
 
 // update mine locations based on distance from 
@@ -131,51 +131,40 @@ return Math.abs(x2 - x1) + Math.abs(y2 - y1)
 }
 
 // check all mines that are dangerous according to units in vision
-// later check if you cna safely mine
+// later check if you can safely mine
 function checkMine(r) {
-    
     let merged = Object.assign({},karboniteMines, fuelMines);
-    // r.log([r.me.x,r.me.y])
-    //r.log(merged);
     let visible = r.getVisibleRobots()
     for (let curMine in merged) {
-        let tempMine=curMine.split(",").map((n) => parseInt(n))
-        // r.log(tempMine);
-        //r.log([r.me.x,r.me.y])
-
-
-        if (notEmpty(r,tempMine[0],tempMine[1])){
-            if (occupiedLoc.has(tempMine.toString())==false){
+        let tempMine = curMine.split(",").map((n) => parseInt(n))
+        if (notEmpty(r, tempMine[0], tempMine[1])) {
+            if (!occupiedLoc.has(tempMine.toString())){
                 occupiedLoc.add(tempMine.toString());
             }      
         }
       
-        if (isEmpty(r,tempMine[0],tempMine[1])){
-             if (occupiedLoc.has(tempMine.toString())){
-                r.log('no longer occupied :))))))))')
-            occupiedLoc.delete(tempMine.toString());
+        if (isEmpty(r, tempMine[0], tempMine[1])) {
+             if (occupiedLoc.has(tempMine.toString())) {
+                r.log('the mine at ' + curMine + ' is no longer occupied')
+                occupiedLoc.delete(tempMine.toString());
+            }
         }
-        
-       }
-        
         // || unsafeLoc.has(curMine) not sure if you check unsafe loc or not
-        // only do it if something can possibly be attacked by thigns in vision
-        if (getSquaredDistance(r.me.x,r.me.y,tempMine[0],tempMine[1])**0.5<18){
+        // only do it if something can possibly be attacked by things in vision
+        if (getSquaredDistance(r.me.x,r.me.y,tempMine[0], tempMine[1]) ** 0.5 < 18){
             for (let robot in visible){
-                if (inRange(r,tempMine)){
+                if (robot.team != r.me.team && inRange(r, robot, tempMine)){
                     unsafeLoc.add(tempMine.toString());
-
                     break;
                 }
             }
-
         }
     }
 }
 
 // check where the closest safe mine is 
 function closestSafeMine(r) {
-	checkMine(r)
+	checkMine(r)  // update the status of mines
     let mines = karboniteMines
 
     if (priorityResource == FUEL)
@@ -184,21 +173,16 @@ function closestSafeMine(r) {
     let target = null
     let minDistance = 2 * 64 * 64
  
-
     for (const [location, distance] of Object.entries(mines)) {
         if (distance < minDistance) {
-            r.log(location)
-            if (occupiedLoc.has(location)==false){
-
-            minDistance = distance
-            target = location
+            if (!occupiedLoc.has(location)) {
+                minDistance = distance
+                target = location
             }
-            else{
-                r.log('mine occupied')
+            else {
+                r.log('mine at ' + location + ' is occupied')
             }
-
         }
-
     }
     return target.split(",").map((n) => parseInt(n))
 }
@@ -207,12 +191,13 @@ function findBuildLocation(r) {
     // for building churches
 }
 
-function inRange(r,l) {
+function inRange(r, enemy, l) {
     // not sure if location is x or y
 
-    if (r.me.unit==SPECS.CRUSADER||r.me.unit==SPECS.PROPHET||r.me.unit==SPECS.PREACHER)
-    if (getSquaredDistance(r.me.x,r.me.y,l[0],l[1])<SPECS.UNITS[r.me.unit].ATTACK_RADIUS[1]) {
-        return true;    
+    if (enemy.unit == SPECS.CRUSADER || enemy.unit == SPECS.PROPHET || enemy.unit == SPECS.PREACHER) {
+        if (getSquaredDistance(enemy.x, enemy.y, l[0], l[1]) < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]) {
+            return true;    
+        }
     }
     return false;
 
