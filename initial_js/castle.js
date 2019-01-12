@@ -33,7 +33,7 @@ export function castleTurn(r) {
         }
         pilgrimCounter++
     }
-    // build crusaders
+    // // build crusaders
     // if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL && crusaderCounter * 300 < r.me.turn) {
     //     var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
     //     if (buildDirection != null) {
@@ -42,5 +42,5 @@ export function castleTurn(r) {
     //     }
     //     crusaderCounter++
     // }
-    // return
+    return
 }
