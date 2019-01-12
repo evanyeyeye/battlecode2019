@@ -40,7 +40,7 @@ export function pilgrimTurn(r) {
     // look around
     for (let otherRobot of r.getVisibleRobots()) {
         let distance = getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
-        if (otherRobot.team == r.me.team) {
+        if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE) {
             // set closest friendly castle as base
             if (baseCastleLocation == null  || getManhattanDistance(r.me.x, r.me.y, baseCastleLocation[0], baseCastleLocation[1]) < distance) {
                 baseCastleLocation = [otherRobot.x, otherRobot.y]
@@ -54,6 +54,7 @@ export function pilgrimTurn(r) {
     // edit this so that if does make sense go for other resource
     // return to castle if full
     if (r.me.karbonite == SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
+        r.log('reurning base ')
         let pf = r.pm.getPathField(baseCastleLocation.reverse())
         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
@@ -137,16 +138,17 @@ function checkMine(r) {
 
 
         if (notEmpty(r,tempMine[0],tempMine[1])){
-            if (occupiedLoc.has(tempMine)==false){
+            if (occupiedLoc.has(tempMine.toString())==false){
 
             occupiedLoc.add(tempMine.toString());
 
        }      
 
         }
+      
         if (isEmpty(r,tempMine[0],tempMine[1])){
-             if (occupiedLoc.has(tempMine)){
-
+             if (occupiedLoc.has(tempMine.toString())){
+                r.log('no longer occupied :))))))))')
             occupiedLoc.delete(tempMine.toString());
         }
         

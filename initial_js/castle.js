@@ -25,7 +25,7 @@ export function castleTurn(r) {
         r.log("I am a Castle")
     }
     // build pilgrims
-    if (r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL && pilgrimCounter * 300 < r.me.turn) {
+    if (pilgrimCounter<1|| r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL && pilgrimCounter * 300 < r.me.turn) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Built Pilgrim")
