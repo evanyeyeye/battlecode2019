@@ -71,13 +71,12 @@ export function pilgrimTurn(r) {
         }
 
         // return to church/castle
-        let pf = r.pm.getPathField(baseLocation.reverse())
-        baseLocation.reverse()  // revert for future use
+        let pf = r.pm.getPathField(baseLocation)
         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-            if (notEmpty(r, r.me.x + test[1], r.me.y + test[0]))  // idk
+            if (notEmpty(r, r.me.x + test[0], r.me.y + test[1]))  // idk
                 return
-            return r.move(test[1], test[0])
+            return r.move(test[0], test[1])
         }
     }
 
@@ -100,14 +99,13 @@ export function pilgrimTurn(r) {
 	}
 
     // path to location
-	let pf = r.pm.getPathField(targetMine.reverse())  // this keeps the reversal
-    targetMine.reverse()  // revert for log
+	let pf = r.pm.getPathField(targetMine)  // this keeps the reversal
     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
         // r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-        if (notEmpty(r, r.me.x + test[1], r.me.y + test[0]))  // idk
+        if (notEmpty(r, r.me.x + test[0], r.me.y + test[1]))  // idk
             return
-        return r.move(test[1], test[0])
+        return r.move(test[0], test[1])
     }
 
 }

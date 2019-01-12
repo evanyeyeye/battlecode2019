@@ -1,34 +1,38 @@
-function generateMatrix(height, width) {
-    var matrix = []
-    for (var y = 0; y < height; y++) {
+
+// generate a matrix
+function generateMatrix(width, height) {
+    let matrix = []
+    for (let y = 0; y < height; y++) {
         matrix[y] = []
-        for (var x = 0; x < width; x++) { 
+        for (let x = 0; x < width; x++) { 
             matrix[y][x] = null
         }    
     }
     return matrix
 }
 
+// stores direction to move in, distance to target?
 class PathPoint {
 
     constructor(dir, dist) {
-        this.dir = dir
+        this.direction = dir
         this.dist = dist
         this.sorted = false
     }
 
     // addDirection(dir) {
-    //     this.dir.push(dir)
+    //     this.direction.push(dir)
     // }
 }
 
+// matrix holding PathPoints that point to the target
 export class PathField {
 
     constructor(r, map, target) {
-        this.r = r // for debugging
-        this.map = map // this map is getPassableMap()
+        this.r = r  // for debugging
+        this.map = map  // this map is getPassableMap()
         this.target = target
-        this.field = generateMatrix(this.map.length, this.map[0].length)
+        this.field = generateMatrix(this.map[0].length, this.map.length)
     }
 
     isPointValid(x, y) {
@@ -39,9 +43,10 @@ export class PathField {
         return this.field[y][x] != null
     }
 
+    // return optimal direction to move from (x, y) to target
     findOptimalDirection(x, y, target) {
-        var dx = target[1] - x
-        var dy = target[0] - y
+        let dx = target[0] - x
+        let dy = target[1] - y
         if (Math.abs(dx) >= 2.414 * Math.abs(dy)) {
             if (dx > 0) {
                 return [0, 1]
@@ -71,11 +76,12 @@ export class PathField {
         }
     }
 
+    // idk what this does, not changed for x,y
     getDirectionAffinity(a, b) {
-        var adx = a[1]
-        var ady = a[0]
-        var bdx = b[1]
-        var bdy = b[0]
+        let adx = a[1]
+        let ady = a[0]
+        let bdx = b[1]
+        let bdy = b[0]
         if (adx == 0 || ady == 0) {
             adx *= 2
             ady *= 2
@@ -91,7 +97,7 @@ export class PathField {
     //     this.field[y][x].sorted = true
     //     var optimalDirection = this.findOptimalDirection(x, y, this.target)
     //     var self = this
-    //     this.field[y][x].dir.sort(function(a, b) {
+    //     this.field[y][x].direction.sort(function(a, b) {
     //         return self.getDirectionAffinity(b, optimalDirection) - self.getDirectionAffinity(a, optimalDirection)
     //     })
     // }
@@ -101,11 +107,11 @@ export class PathField {
         // if (!this.field[y][x].sorted) {
         //     this.sortDirectionsAtPoint(x, y)
         // }
-        // var first = this.field[y][x].dir[0]
+        // var first = this.field[y][x].direction[0]
         // var second = this.getDirectionAtPoint(y + first[0], x + first[1])
         // var third = this.getDirectionAtPoint(y + first[0] + second[0], x + first[1] + second[1])
         // return [first, second, third]
-        return this.field[y][x].dir
+        return this.field[y][x].direction
     }
 
     getPoint(x, y) {
@@ -117,7 +123,7 @@ export class PathField {
     }
 
     updateDirection(x, y, dir) {
-        this.field[y][x].dir = dir
+        this.field[y][x].direction = dir
     }
     // addDirection(x, y, dir) {
     //     this.field[y][x].addDirection(dir)

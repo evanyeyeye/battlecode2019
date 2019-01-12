@@ -1,10 +1,11 @@
 import {PathField} from './pathfield.js'
+import {SPECS} from 'battlecode'
 
-function generateMatrix(height, width) {
-    var matrix = []
-    for (var y = 0; y < height; y++) {
+function generateMatrix(width, height) {
+    let matrix = []
+    for (let y = 0; y < height; y++) {
         matrix[y] = []
-        for (var x = 0; x < width; x++) { 
+        for (let x = 0; x < width; x++) { 
             matrix[y][x] = null
         }    
     }
@@ -42,7 +43,7 @@ cost[[1, 0]] = [1, 0]
 cost[[1, 1]] = [1, 1]
 
 var squares = {}
-for (var i = 0; i < 65; i++) {
+for (let i = 0; i < 65; i++) {
     squares[i] = i * i
 }
 
@@ -51,26 +52,27 @@ class BFSLocation {
     constructor(x, y, dir, dist) {
         this.x = x
         this.y = y
-        this.dir = dir
+        this.direction = dir
         this.dist = dist
         // this.xdist = xdist
         // this.ydist = ydist
     }
 
 
-    add(dir) {
-        var dx = dir[1]
-        var dy = dir[0]
+    add(nextDir) {
+        let dx = nextDir[0]
+        let dy = nextDir[1]
         // return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.xdist + cost[dir][1], this.ydist + cost[dir][0])
-        if (!dir.includes(0))
-            return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.dist + 2)
+        if (!nextDir.includes(0))  // diagonal direction
+            return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(nextDir), this.dist + 2)
 
-        return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.dist + 1)
+        return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(nextDir), this.dist + 1)
     }
-
+    /*
     dist() {
         return squares[this.xdist] + squares[this.ydist]
     }
+    */
 }
 
 export class PathMaster {
@@ -78,32 +80,32 @@ export class PathMaster {
     constructor(r, map) {
         this.r = r // for debugging
         this.map = map // this map is getPassableMap()
-        this.pathFieldCache = generateMatrix(this.map.length, this.map[0].length)
+        this.pathFieldCache = generateMatrix(this.map[0].length, this.map.length)
     }
 
     generatePathField(target) {
-        var pf = new PathField(this.r, this.map, target)
+        let pf = new PathField(this.r, this.map, target)
 
-        var queue = []
-        var cur = new BFSLocation(target[1], target[0], [0, 0], 0)
+        let queue = []
+        let cur = new BFSLocation(target[0], target[1], [0, 0], 0)
         queue.push(cur)
 
         while (queue.length > 0) {
             cur = queue.shift()
-            if (pf.isPointSet(cur.x, cur.y)) {
-                if (pf.getPoint(cur.x, cur.y).dist > cur.dist) {
-                    // pf.addDirection(cur.x, cur.y, cur.dir)
-                    pf.updateDirection(cur.x, cur.y, cur.dir)
+            if (pf.isPointSet(cur.x, cur.y)) {  // point already exists
+                if (pf.getPoint(cur.x, cur.y).dist > cur.dist) {  // update only if new distance is shorter
+                    // pf.addDirection(cur.x, cur.y, cur.direction)
+                    pf.updateDirection(cur.x, cur.y, cur.direction)
                 }
-                continue
-            } else {
-                pf.setPoint(cur.x, cur.y, cur.dir, cur.dist)
-            }
-            for (let dir of directions) {
-                var poss = cur.add(dir)
-                if (pf.isPointValid(poss.x, poss.y) && this.isPassable(cur.x, cur.y)) {
-                    if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist) {
-                        queue.push(poss)
+            } 
+            else {
+                pf.setPoint(cur.x, cur.y, cur.direction, cur.dist)  // set this as a point
+                for (let dir of directions) {  // search out
+                    let poss = cur.add(dir)
+                    if (pf.isPointValid(poss.x, poss.y) && this.isPassable(poss.x, poss.y)) {  // valid point
+                        if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist) {  // point is either not seen before, or can be reached faster
+                            queue.push(poss)
+                        }
                     }
                 }
             }
@@ -113,8 +115,8 @@ export class PathMaster {
     }
 
     getPathField(target) {
-        var x = target[1]
-        var y = target[0]
+        let x = target[0]
+        let y = target[1]
         if (!this.pathFieldCache[y][x]) {
             this.pathFieldCache[y][x] = this.generatePathField(target)
         }
@@ -122,6 +124,9 @@ export class PathMaster {
     }
 
     isPassable(x, y) {
-        return this.map[y][x]
+        let robot = this.r.getRobot(this.r.getVisibleRobotMap()[y][x])
+        if(robot == null || (robot.unit != SPECS.CASTLE && robot.unit != SPECS.CHURCH))  // no castle or church there
+            return this.map[y][x]
+        return false
     }
 }
