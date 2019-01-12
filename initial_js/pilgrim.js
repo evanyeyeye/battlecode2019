@@ -64,9 +64,12 @@ export function pilgrimTurn(r) {
     // look at mines
     updateMines(r)
 	let targetMine = closestSafeMine(r)
-
+    let curLocation=r.me.x.toString()+","+r.me.y.toString()
+    r.log('curloc')
+    r.log(curLocation)
+    for(let i of occupiedLoc) { r.log(i); }
     // check if on top of mine
-    if (targetMine != null && getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0) {
+    if (occupiedLoc.has(curLocation)||(targetMine != null && getManhattanDistance(r.me.x, r.me.x, targetMine[0], targetMine[1]) == 0)) {
         r.log("i'm actually trying to mine at " + targetMine[0] + ", " + targetMine[1])
         return r.mine()
     }
@@ -163,7 +166,7 @@ function checkMine(r) {
         }
     }
   
-   for(let i of occupiedLoc) { r.log(i); }
+   
    
 
 }
@@ -178,6 +181,7 @@ function closestSafeMine(r) {
 
     let target = null
     let minDistance = 2 * 64 * 64
+ 
 
     for (const [location, distance] of Object.entries(mines)) {
         if (distance < minDistance) {
@@ -192,6 +196,7 @@ function closestSafeMine(r) {
             }
 
         }
+
     }
     return target.split(",").map((n) => parseInt(n))
 }
