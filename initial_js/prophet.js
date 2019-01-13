@@ -50,7 +50,8 @@ export function prophetTurn(r) {
             // set closest friendly castle or church as base
             if ( (otherRobot.unit==SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || (getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) < distance) )) {
                 baseLocation = [otherRobot.x, otherRobot.y]
-            }
+                //r.log("based location is "+baseLocation)
+            }	
             friendlyRobots[otherRobot.id] = distance
             updateMines(r)  // refresh mines based on distance to base castle location
         }
@@ -63,6 +64,7 @@ export function prophetTurn(r) {
     // return to church/castle if full
     if (r.me.karbonite == SPECS.UNITS[SPECS.PROPHET].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PROPHET].FUEL_CAPACITY) {
         // r.log("Carrying resources back to " + baseLocation)
+
         if(getSquaredDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) <= 2) {
             // close enough to give the collected resources
             return r.give(baseLocation[0] - r.me.x, baseLocation[1] - r.me.y, r.me.karbonite, r.me.fuel)
@@ -72,6 +74,7 @@ export function prophetTurn(r) {
         let pf = r.pm.getPathField(baseLocation)
         if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
+            r.log(test)
             return tryMoveRotate(r, test)
         }
     }
@@ -85,18 +88,23 @@ export function prophetTurn(r) {
     */
 
   
-	let targetMine = idToMine[1];
+	let targetMine = idToMine[Math.floor(Math.random() * Object.keys(iDMines).length)]; //fix this later this is going to random
     let curLocation = r.me.x.toString() + "," + r.me.y.toString()
     // r.log('curloc: ' + curLocation)
     // for (let i of occupiedLoc) { r.log(i); }
 
    	
     // path to location
+    r.log("path to target")
+    r.log(targetMine)
 	let pf = r.pm.getPathField(targetMine)  // this keeps the reversal
     if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
         // r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
+        if (test!=null)
+        {
         return tryMoveRotate(r, test)
+    }
     }
 
     return
@@ -110,7 +118,7 @@ function kite(r){
 
 
 }
-function findAttack(){
+function findAttack(r){
 
 
 }
@@ -163,7 +171,7 @@ function iDMines(r) {  // deterministically label mines
                 // r.log("Pilgrim: Mine at " + [i, j] + " is " + counter)
                 mineID[[i, j]] = counter
                 idToMine[counter]=[i,j];
-                r.log(idToMine);
+          
                 counter++
             }
         }
