@@ -199,7 +199,7 @@ function rotate(dir, n) {
 
 // I am lazy I will make this a for loop later
 function tryMoveRotate(r, dir) {
-    if (dir == [0, 0])
+    if (JSON.stringify(dir) === "[0,0]")
         return
     let x = r.me.x
     let y = r.me.y
