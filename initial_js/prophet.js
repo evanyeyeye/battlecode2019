@@ -8,6 +8,20 @@ var checkedMine={}
 var idToMine={};
 var baseLocation=null;
 
+const KARBONITE =  0
+const FUEL = 1
+
+var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
+var imBad = {}
+imBad[[-1, -1]] = 0
+imBad[[-1, 0]] = 1
+imBad[[-1, 1]] = 2
+imBad[[0, 1]] = 3
+imBad[[1, 1]] = 4
+imBad[[1, 0]] = 5
+imBad[[1, -1]] = 6
+imBad[[0, -1]] = 7
+
 export function prophetTurn(r) {
     if (r.me.turn == 1) {
         r.log("I am a prophet")
@@ -71,7 +85,7 @@ export function prophetTurn(r) {
     */
 
   
-	let targetMine = [5];
+	let targetMine = idToMine[1];
     let curLocation = r.me.x.toString() + "," + r.me.y.toString()
     // r.log('curloc: ' + curLocation)
     // for (let i of occupiedLoc) { r.log(i); }
