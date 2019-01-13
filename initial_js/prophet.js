@@ -3,11 +3,99 @@ var karboniteMines = {}  // maps mine locations to distance from base castle loc
 var fuelMines = {}
 var mineID = {}  // maps location of mine to its ID
 var fuelMines = {}
+var curMine=null
+var checkedMine={}
+
 export function prophetTurn(r) {
+    if (r.me.turn == 1) {
+        r.log("I am a prophet")
+        iDMines(r)
+        // find the closest castle, probably built from there
+        for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
+            if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
+                // recieve message
+                let message = otherRobot.signal()
+            }
+        }
+    }
+
+   
+    if (priorityResource == -1)
+        priorityResource = Math.floor(Math.random() * 2)
+
+    // ok now find the best move
+    let friendlyRobots = {}
+    let enemyRobots = {}
+
+    // look around
+    for (let otherRobot of r.getVisibleRobots()) {
+        let distance = getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
+        if (otherRobot.team == r.me.team) {
+            // set closest friendly castle or church as base
+            if ( (otherRobot.unit==SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || (getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) < distance) )) {
+                baseLocation = [otherRobot.x, otherRobot.y]
+            }
+            friendlyRobots[otherRobot.id] = distance
+            updateMines(r)  // refresh mines based on distance to base castle location
+        }
+        else {
+            enemyRobots[otherRobot.id] = distance
+        }
+    }
+
+    // edit this so that if does make sense go for other resource
+    // return to church/castle if full
+    if (r.me.karbonite == SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
+        // r.log("Carrying resources back to " + baseLocation)
+        if(getSquaredDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) <= 2) {
+            // close enough to give the collected resources
+            return r.give(baseLocation[0] - r.me.x, baseLocation[1] - r.me.y, r.me.karbonite, r.me.fuel)
+        }
+
+        // return to church/castle
+        let pf = r.pm.getPathField(baseLocation)
+        if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
+            let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
+            return tryMoveRotate(r, test)
+        }
+    }
+
+    // look at mines
+   //go to the mine assigned
+	let targetMine = null;
+    let curLocation = r.me.x.toString() + "," + r.me.y.toString()
+    // r.log('curloc: ' + curLocation)
+    // for (let i of occupiedLoc) { r.log(i); }
+
+    // check if on top of mine
+    if ( (occupiedLoc.has(curLocation) || (targetMine != null && getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0)) && r.fuel >= SPECS.MINE_FUEL_COST) {
+        // r.log("i'm actually trying to mine at " + targetMine[0] + ", " + targetMine[1])
+        return r.mine()
+    }
+
+    // no available mines?
+	if (targetMine == null) {
+		targetMine = baseLocation
+	}
+
+    // path to location
+	let pf = r.pm.getPathField(targetMine)  // this keeps the reversal
+    if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
+        // r.log("I want to move to " + targetMine)
+        let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
+        return tryMoveRotate(r, test)
+    }
+
     return
 }
 
+//decide which direction to go when kiting, or it can just not kite
+function kite(r){
+	
 
+
+
+}
 function isEmpty(r, x, y) {
     let passableMap = r.map;
     let visibleRobotMap = r.getVisibleRobotMap();

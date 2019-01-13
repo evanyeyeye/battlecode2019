@@ -48,6 +48,23 @@ function calculateMineDistance(r, id, resource) {
     let pf = r.pm.getPathField(mineLoc, true)
     return pf.getDistanceFromTarget(r.me.x, r.me.y)
 }
+function calculatenumMines(r,distance_threshhold){
+    let closeMineCount=0;
+     let merged = Object.assign({},karboniteMines, fuelMines);
+     r.log(merged)
+     for (const [location, distance] of Object.entries(merged)) {
+        r.log(distance)
+        if (distance < distance_threshhold) {
+            closeMineCount++;
+            
+        }
+    }
+    return closeMineCount;
+
+
+    
+}
+
 
 var kMineID = {}  // maps mine id to its location
 var fMineID = {}
@@ -55,9 +72,10 @@ var fMineID = {}
 var karboniteMines = {}  // maps mine id to distance from this castle
 var fuelMines = {}
 
-var numMines = 0
+var totalMines = 0 // total mine is number of total mines
 var numKMines = 0  // maybe not all necessary, check dictionary lengths instead?
 var numFMines = 0
+var numMines =0; //numMines is number of closem ines
 
 var pilgrimCounter = 0
 var crusaderCounter = 0
@@ -65,9 +83,14 @@ var crusaderCounter = 0
 export function castleTurn(r) {
     if (r.me.turn == 1) {
         r.log("I am a Castle")
-        numMines = iDMines(r)
-        numKMines = Object.keys(kMineID).length
-        numFMines = Object.keys(fMineID).length
+
+        totalMines = iDMines(r)//this calculate toal mines
+
+
+        numMines = calculatenumMines(r,20);//this calculates number of mines within range
+        
+       // numKMines = Object.keys(kMineID).length
+        //numFMines = Object.keys(fMineID).length
         r.log("There are " + numMines + " mines")
     }
 
@@ -84,11 +107,12 @@ export function castleTurn(r) {
     }
     else if (r.me.turn == numMines+1) {
         r.log("Finished calculating fuel distances")
+
     }
 
     // r.log("The round is: " + r.me.turn)
     // build pilgrims
-    if (pilgrimCounter < numMines && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {
+    if (pilgrimCounter < numMines+2 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Built Pilgrim")
@@ -96,6 +120,17 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
         }
     }
+/*
+    if (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
+        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+        if (buildDirection != null) {
+            r.log("Built Prophet")
+          
+            return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+        }
+    }
+    */
+
     // // build crusaders
     // if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL && crusaderCounter * 300 < r.me.turn) {
     //     var buildDirection = findBuildDirection(r, r.me.x, r.me.y)

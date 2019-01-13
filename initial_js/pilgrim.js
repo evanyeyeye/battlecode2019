@@ -16,7 +16,7 @@ var priorityResource = -1;  // 0 is karbonite 1 is fuel both take in string veri
 var karboniteMines = {}  // maps mine locations to distance from base castle location
 var fuelMines = {}
 var baseLocation = null  // castle or church to return resources to
-
+var priorityResource=0;
 var mineID = {}  // maps location of mine to its ID
 
 export function pilgrimTurn(r) {
