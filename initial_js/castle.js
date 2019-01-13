@@ -84,7 +84,8 @@ var fMineManhattan = {}
 var kMinePilgrim = {}  // maps mine ids to number pilgrims mining there
 var fMinePilgrim = {}
 
-var totalMines = 0  // total mine is number of total mines
+var totalMines = 0  // total number of mines
+
 var numKMines = 0  // maybe not all necessary, check dictionary lengths instead?
 var numFMines = 0
 var numMines = 0;  // numMines is number of close mines
@@ -124,7 +125,7 @@ export function castleTurn(r) {
     }
 
     // build pilgrims
-    if (pilgrimCounter < numMines+2 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {
+    if (pilgrimCounter < 1 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Built Pilgrim")
@@ -132,7 +133,7 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
         }
     }
-    /*
+
     if (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
@@ -141,7 +142,7 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
         }
     }
-    */
+   
 
     // // build crusaders
     // if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL && crusaderCounter * 300 < r.me.turn) {
