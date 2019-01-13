@@ -11,6 +11,10 @@ function isEmpty(r, x, y) {
     return passableMap[y][x] && visibleRobotMap[y][x] == 0;
 }
 
+function getManhattanDistance(x1, y1, x2, y2) {
+    return Math.abs(x2 - x1) + Math.abs(y2 - y1)
+}
+
 function findBuildDirection(r, x, y) {
     for (let dir of directions) {
         if (isEmpty(r, x + dir[0], y + dir[1])) {
@@ -20,17 +24,19 @@ function findBuildDirection(r, x, y) {
     return null
 }
 
-function iDMines(r) {  // deterministically label mines
+function iDMines(r) {  // deterministically label mines, build manhattan distances for early use
     let kCounter = 0  // counts number of karbonite mines
     let fCounter = 0  // counts number of fuel mines
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i]){
                 kMineID[kCounter] = i.toString()+','+j.toString()
+                kMineManhattan[kCounter] = getManhattanDistance(r.me.x, r.me.y, i, j)
                 kCounter++
             }
             if (r.fuel_map[j][i]) {
                 fMineID[fCounter] = i.toString()+','+j.toString()
+                fMineManhattan[fCounter] = getManhattanDistance(r.me.x, r.me.y, i, j)
                 fCounter++
             }
         }
@@ -48,15 +54,16 @@ function calculateMineDistance(r, id, resource) {
     let pf = r.pm.getPathField(mineLoc, true)
     return pf.getDistanceFromTarget(r.me.x, r.me.y)
 }
-function calculatenumMines(r,distance_threshhold){
+
+// returns number of mines within a certain distance of the castle
+function calculateNumMines(r,distance_threshhold){
     let closeMineCount=0;
-     let merged = Object.assign({},karboniteMines, fuelMines);
+     let merged = Object.assign({}, kMineDistance, fMineDistance);
      r.log(merged)
      for (const [location, distance] of Object.entries(merged)) {
-        r.log(distance)
+        // r.log(distance)
         if (distance < distance_threshhold) {
             closeMineCount++;
-            
         }
     }
     return closeMineCount;
@@ -65,17 +72,22 @@ function calculatenumMines(r,distance_threshhold){
     
 }
 
-
 var kMineID = {}  // maps mine id to its location
 var fMineID = {}
 
-var karboniteMines = {}  // maps mine id to distance from this castle
-var fuelMines = {}
+var kMineDistance = {}  // maps mine id to distance from this castle
+var fMineDistance = {}
 
-var totalMines = 0 // total mine is number of total mines
+var kMineManhattan = {}  // maps mine id to manhattan distance, use early game before we finish pathfinding
+var fMineManhattan = {}
+
+var kMinePilgrim = {}  // maps mine ids to number pilgrims mining there
+var fMinePilgrim = {}
+
+var totalMines = 0  // total mine is number of total mines
 var numKMines = 0  // maybe not all necessary, check dictionary lengths instead?
 var numFMines = 0
-var numMines =0; //numMines is number of closem ines
+var numMines = 0;  // numMines is number of close mines
 
 var pilgrimCounter = 0
 var crusaderCounter = 0
@@ -84,25 +96,26 @@ export function castleTurn(r) {
     if (r.me.turn == 1) {
         r.log("I am a Castle")
 
-        totalMines = iDMines(r)//this calculate toal mines
+        totalMines = iDMines(r)  // this calculate total mines
 
-
-        numMines = calculatenumMines(r,20);//this calculates number of mines within range
+        numMines = calculateNumMines(r,20);  // this calculates number of mines within range
         
-       // numKMines = Object.keys(kMineID).length
-        //numFMines = Object.keys(fMineID).length
+        numKMines = Object.keys(kMineID).length
+        numFMines = Object.keys(fMineID).length
         r.log("There are " + numMines + " mines")
     }
 
+    // r.log("The round is: " + r.me.turn)
+
     // start calculating mine distances, 1 per turn, id of turn-1
-    if (r.me.turn <= numMines) {  // a lot of this is terrible
+    if (r.me.turn <= totalMines) {  // a lot of this is terrible
         let id = r.me.turn - 1
         if (id < numKMines)  // start with karbonite
-            karboniteMines[id] = calculateMineDistance(r, id, KARBONITE)
+            kMineDistance[id] = calculateMineDistance(r, id, KARBONITE)
         else {
             id -= numKMines
             r.log("Finished calculating karbonite distances, id of " + id)
-            fuelMines[id] = calculateMineDistance(r, id, FUEL)
+            fMineDistance[id] = calculateMineDistance(r, id, FUEL)
         }
     }
     else if (r.me.turn == numMines+1) {
@@ -110,7 +123,6 @@ export function castleTurn(r) {
 
     }
 
-    // r.log("The round is: " + r.me.turn)
     // build pilgrims
     if (pilgrimCounter < numMines+2 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -120,7 +132,7 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
         }
     }
-/*
+    /*
     if (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
