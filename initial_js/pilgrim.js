@@ -17,7 +17,10 @@ var karboniteMines = {}  // maps mine locations to distance from base castle loc
 var fuelMines = {}
 var baseLocation = null  // castle or church to return resources to
 var priorityResource=0;
-var mineID = {}  // maps location of mine to its ID
+var allMineID = {}  // maps mine ID to its STRING location
+var mineToID = {}  // maps string location to id, convenience
+
+var castleTargetMineID = null // the target mine that the castle gives
 
 export function pilgrimTurn(r) {
     if (r.me.turn == 1) {
@@ -27,7 +30,8 @@ export function pilgrimTurn(r) {
         for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
-                let message = otherRobot.signal()
+                castleTargetMineID = otherRobot.signal
+                r.log("Pilgrim received a target mine: " + castleTargetMineID)
             }
         }
     }
@@ -50,7 +54,7 @@ export function pilgrimTurn(r) {
         const distance = getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         if (otherRobot.team == r.me.team) {
             // set closest friendly castle or church as base
-            if ( (otherRobot.unit==SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || (getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) < distance) )) {
+            if ( (otherRobot.unit==SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || distance < (getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1])) )) {
                 baseLocation = [otherRobot.x, otherRobot.y]
                 updateMines(r)  // refresh mines based on distance to base castle location
             }
@@ -82,9 +86,15 @@ export function pilgrimTurn(r) {
 
     // ---------- MOVING TO A MINE OR MINING THERE ----------
 
+    // old way to find mines
+    
+
     // look at mines
     // updateMines(r)  // since this only changes with base castle location, moved up to that part of the code
-	let targetMine = closestSafeMine(r)
+    let targetMine = allMineID[castleTargetMineID].split(",").map((n) => parseInt(n))
+    if (targetMine === null)
+	   targetMine = closestSafeMine(r)
+
     let curLocation = r.me.x.toString() + "," + r.me.y.toString()
     // r.log('curloc: ' + curLocation)
     // for (let i of occupiedLoc) { r.log(i); }
@@ -92,7 +102,7 @@ export function pilgrimTurn(r) {
     // check if on top of mine
     if ( (occupiedLoc.has(curLocation) || (targetMine != null && getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0)) && r.fuel >= SPECS.MINE_FUEL_COST) {
         // r.log("i'm actually trying to mine at " + targetMine[0] + ", " + targetMine[1])
-        r.castleTalk(2)  // each turn, let castles know you're here mining
+        r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // each turn, let castles know you're here mining
         return r.mine()
     }
 
@@ -102,7 +112,7 @@ export function pilgrimTurn(r) {
 	}
 
     // path to location
-	let pf = r.pm.getPathField(targetMine)  // this keeps the reversal
+	let pf = r.pm.getPathField(targetMine)
     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
         // r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
@@ -113,9 +123,11 @@ export function pilgrimTurn(r) {
 }
 
 function isEmpty(r, x, y) {
-    const passableMap = r.map;
-    const visibleRobotMap = r.getVisibleRobotMap();
-    return passableMap[y][x] && visibleRobotMap[y][x] == 0;
+    if (x >= 0 && x < r.map[0].length && y >= 0 && y < r.map.length) {
+        const passableMap = r.map;
+        const visibleRobotMap = r.getVisibleRobotMap();
+        return passableMap[y][x] && visibleRobotMap[y][x] == 0;
+    }
 }
 
 function notEmpty(r, x, y) {
@@ -147,7 +159,8 @@ function iDMines(r) {  // deterministically label mines
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]){
                 // r.log("Pilgrim: Mine at " + [i, j] + " is " + counter)
-                mineID[[i, j]] = counter
+                allMineID[counter] = i.toString() +',' + j.toString()
+                mineToID[i.toString() + ',' + j.toString()] = counter
                 counter++
             }
         }

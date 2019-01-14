@@ -12,6 +12,8 @@ const KARBONITE =  0
 const FUEL = 1
 var friendlyRobots = {}
 var enemyRobots = {}
+var robotXForLambda=null;
+var robotYForLambda=null;
 
 var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
 var imBad = {}
@@ -155,6 +157,8 @@ function findAttack(r){
                 return false
             })
             )
+    robotXForLambda=r.me.x;
+    robotYForLambda=r.me.y;
 
     let attackTarget=attackable.reduce(function(a,b){ 
     
@@ -178,7 +182,7 @@ function findAttack(r){
         }
         if (SPECS.UNITS[a.unit].CONSTRUCTION_KARBONITE==SPECS.UNITS[b.unit].CONSTRUCTION_KARBONITE)
         {
-            if (getManhattanDistance(a.x,a.y,r.me.x,r.me.y)<getManhattanDistance(r.me.x,r.me.y,b,x,b.y))
+            if (getManhattanDistance(a.x,a.y,robotXForLambda,robotYForLambda)<getManhattanDistance(robotXForLambda,robotYForLambda,b,x,b.y))
             {
                 return a;
             }
