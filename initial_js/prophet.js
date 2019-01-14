@@ -10,6 +10,8 @@ var baseLocation=null;
 var targetMine = null
 const KARBONITE =  0
 const FUEL = 1
+var friendlyRobots = {}
+var enemyRobots = {}
 
 var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
 var imBad = {}
@@ -41,8 +43,8 @@ export function prophetTurn(r) {
   
 
     // ok now find the best move
-    let friendlyRobots = {}
-    let enemyRobots = {}
+    friendlyRobots = {}
+    enemyRobots = {}
 
     // look around
     for (let otherRobot of r.getVisibleRobots()) {   	
@@ -90,10 +92,21 @@ export function prophetTurn(r) {
 	**************************************
 
     */
+    if (Object.keys(enemyRobots).length>0)
+    {
+    let attackTarget=findAttack(r);
+    if (attackTarget!=null)
+    {
+        r.log("found to attack!!!!!!!!!!!!!!!!!!!!!!!! "+ attackTarget)
+        return r.attack(attackTarget.x - r.me.x, attackTarget.y - r.me.y)
+    
+}
+}
     
     if(targetMine==null)
     {
-	targetMine = idToMine[Math.floor(Math.random() * Object.keys(idToMine).length)]; //fix this later this is going to random
+	//targetMine = idToMine[Math.floor(Math.random() * Object.keys(idToMine).length)]; //fix this later this is going to random
+   targetMine = idToMine[0];
     }
     let curLocation = r.me.x.toString() + "," + r.me.y.toString()
     // r.log('curloc: ' + curLocation)
@@ -127,8 +140,24 @@ function kite(r){
 }
 //figure out which target to attack
 function findAttack(r){
-    let attackable=enemyRobots.filter()
-    let attackTarget=Object.keys(enemyRobots).reduce(function(a,b){ 
+    var visible = r.getVisibleRobots()
+   
+    let attackable=visible.filter((function(enemy){
+                if (! r.isVisible(enemy)){
+                    return false
+                }
+                var dist = (enemy.x-r.me.x)**2 + (enemy.y-r.me.y)**2
+                if (enemy.team !== r.me.team
+                    && SPECS.UNITS[SPECS.PROPHET].ATTACK_RADIUS[0] <= dist
+                    && dist <= SPECS.UNITS[SPECS.PROPHET].ATTACK_RADIUS[1] ){
+                return true
+                }
+                return false
+            })
+            )
+
+    let attackTarget=attackable.reduce(function(a,b){ 
+    
     if (a.health<b.health)
     {
     return a
@@ -164,6 +193,7 @@ function findAttack(r){
     }
     return b
     });
+
     return attackTarget
 
 
