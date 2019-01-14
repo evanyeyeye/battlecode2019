@@ -83,7 +83,7 @@ function calculateNumPilgrims(r, pathfinding = false) {
         merged = Object.assign({}, kMineManhattan, fMineManhattan)
     for (const [id, distance] of Object.entries(merged))
         num += distance * 2 / 10 + 1  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
-    return num
+    return num / numFriendlyCastles
 }
 
 var kMineID = {}  // maps mine id to its location
@@ -95,7 +95,7 @@ var fMineManhattan = {}
 var kMineDistance = {}  // maps mine id to distance from this castle
 var fMineDistance = {}
 
-var kMinePilgrim = {}  // maps mine ids to number pilgrims mining there
+var kMinePilgrim = {}  // maps mine ids to number pilgrims mining there, assigning adds 10, subtract/add 1 per turn based on mining
 var fMinePilgrim = {}
 
 var totalMines = 0  // total number of mines
@@ -111,6 +111,7 @@ var pilgrimCounter = 0
 var crusaderCounter = 0
 
 var recievedMessages = {}
+var numFriendlyCastles = 1
 
 export function castleTurn(r) {
     if (r.me.turn === 1) {
@@ -122,27 +123,24 @@ export function castleTurn(r) {
         
         numKMines = Object.keys(kMineID).length
         numFMines = Object.keys(fMineID).length
-        r.log("There are " + numMines + " mines")
+        r.log("There are " + totalMines + " mines")
 
         idealNumPilgrims = calculateNumPilgrims(r, false) / 2  // based on this being the only castle, split map with opponent
 
-        r.castleTalk(1)
+        r.castleTalk(1)  // let other castles know you exist
     }
 
     if (r.me.turn <= 2) {
         // find out how many friendly castles there are, may receive messages on either turn 1 or turn 2
         for (const robot of r.getVisibleRobots()) {
-            if (robot.team === r.me.team && robot.unit === SPECS.CASTLE) {
-                r.log("I got a message of " + robot.castle_talk + " from " + robot.id)
-                recievedMessages[robot.id] = robot.castle_talk
+            const message = robot.castle_talk
+            if (robot.team === r.me.team && robot.id !== r.me.id && message !== 0) {  // any friendly robot currently broadcasting is a castle
+                r.log("I got a message of " + message + " from " + robot.id)
+                recievedMessages[robot.id] = message
+                numFriendlyCastles += 1
             }
         }
     }
-    if (r.me.turn === 3) {
-        r.log("This team has " + Object.keys(recievedMessages).length + " castle(s)")  // PROBABLY TEMP WAY TO DO THIS 
-    }
-
-    // r.log("The round is: " + r.me.turn)
 
     // start calculating mine distances, 1 per turn, id of turn-1
     if (r.me.turn <= totalMines) {  // a lot of this is terrible
@@ -160,6 +158,8 @@ export function castleTurn(r) {
         r.log("Finished calculating fuel distances")
         idealNumPilgrims = calculateNumPilgrims(r, true) / 2  // update with newly calculated pathfinding distances
     }
+
+    // ---------- START BUILDING STUFF ----------
 
     // build pilgrims
     if (pilgrimCounter < 1 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {

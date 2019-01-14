@@ -61,6 +61,8 @@ export function pilgrimTurn(r) {
         }
     }
 
+    // ---------- MOVING BACK TO BASE ----------
+
     // edit this so that if does make sense go for other resource
     // return to church/castle if full
     if (r.me.karbonite == SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
@@ -78,6 +80,8 @@ export function pilgrimTurn(r) {
         }
     }
 
+    // ---------- MOVING TO A MINE OR MINING THERE ----------
+
     // look at mines
     // updateMines(r)  // since this only changes with base castle location, moved up to that part of the code
 	let targetMine = closestSafeMine(r)
@@ -88,6 +92,7 @@ export function pilgrimTurn(r) {
     // check if on top of mine
     if ( (occupiedLoc.has(curLocation) || (targetMine != null && getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0)) && r.fuel >= SPECS.MINE_FUEL_COST) {
         // r.log("i'm actually trying to mine at " + targetMine[0] + ", " + targetMine[1])
+        r.castleTalk(2)  // each turn, let castles know you're here mining
         return r.mine()
     }
 
