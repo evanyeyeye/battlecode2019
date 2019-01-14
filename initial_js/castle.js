@@ -82,7 +82,11 @@ function calculateNumPilgrims(r, pathfinding = false) {
     else
         merged = Object.assign({}, kMineManhattan, fMineManhattan)
     for (const [id, distance] of Object.entries(merged))
-        num += distance * 2 / 10 + 1  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
+        if (distance<20){
+
+          // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
+        num ++;
+    }
     return num
 }
 
@@ -124,7 +128,7 @@ export function castleTurn(r) {
         numFMines = Object.keys(fMineID).length
         r.log("There are " + numMines + " mines")
 
-        idealNumPilgrims = calculateNumPilgrims(r, false) / 2  // based on this being the only castle, split map with opponent
+        idealNumPilgrims = calculateNumPilgrims(r, false) // based on this being the only castle, split map with opponent
 
         r.castleTalk(1)
     }
@@ -158,11 +162,11 @@ export function castleTurn(r) {
 
     else if (r.me.turn === totalMines + 1) {
         r.log("Finished calculating fuel distances")
-        idealNumPilgrims = calculateNumPilgrims(r, true) / 2  // update with newly calculated pathfinding distances
+        idealNumPilgrims = calculateNumPilgrims(r, true) // update with newly calculated pathfinding distances
     }
 
     // build pilgrims
-    if (pilgrimCounter < 1 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {
+    if (pilgrimCounter < idealNumPilgrims+2 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Built Pilgrim")
@@ -171,7 +175,7 @@ export function castleTurn(r) {
         }
     }
 
-    /*
+
     if (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
@@ -180,7 +184,7 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
         }
     }
-    */
+
 
     // // build crusaders
     // if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL && crusaderCounter * 300 < r.me.turn) {
