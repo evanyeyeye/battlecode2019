@@ -7,7 +7,7 @@ var curMine=null
 var checkedMine={}
 var idToMine={};
 var baseLocation=null;
-
+var targetMine = null
 const KARBONITE =  0
 const FUEL = 1
 
@@ -24,8 +24,10 @@ imBad[[0, -1]] = 7
 
 export function prophetTurn(r) {
     if (r.me.turn == 1) {
+
         r.log("I am a prophet")
         iDMines(r)
+
         // find the closest castle, probably built from there
         for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
@@ -88,9 +90,11 @@ export function prophetTurn(r) {
 	**************************************
 
     */
-
-  
-	let targetMine = idToMine[Math.floor(Math.random() * Object.keys(iDMines).length)]; //fix this later this is going to random
+    
+    if(targetMine==null)
+    {
+	targetMine = idToMine[Math.floor(Math.random() * Object.keys(idToMine).length)]; //fix this later this is going to random
+    }
     let curLocation = r.me.x.toString() + "," + r.me.y.toString()
     // r.log('curloc: ' + curLocation)
     // for (let i of occupiedLoc) { r.log(i); }
@@ -121,7 +125,46 @@ function kite(r){
 
 
 }
+//figure out which target to attack
 function findAttack(r){
+    let attackable=enemyRobots.filter()
+    let attackTarget=Object.keys(enemyRobots).reduce(function(a,b){ 
+    if (a.health<b.health)
+    {
+    return a
+    }
+    if (a.health==b.health)
+    {
+        if (((a.karbonite*5+a.fuel)-(b.karbonite*5+b.fuel))>99)
+        {
+            return a
+        }
+        if (((a.karbonite*5+a.fuel)-(b.karbonite*5+b.fuel))<-99)
+        {
+            return b
+        }
+        if (SPECS.UNITS[a.unit].CONSTRUCTION_KARBONITE>SPECS.UNITS[b.unit].CONSTRUCTION_KARBONITE)
+        {
+            return a
+        }
+        if (SPECS.UNITS[a.unit].CONSTRUCTION_KARBONITE==SPECS.UNITS[b.unit].CONSTRUCTION_KARBONITE)
+        {
+            if (getManhattanDistance(a.x,a.y,r.me.x,r.me.y)<getManhattanDistance(r.me.x,r.me.y,b,x,b.y))
+            {
+                return a;
+            }
+            else{
+                return b;
+            }
+        }
+        else{
+            return b
+        }
+
+    }
+    return b
+    });
+    return attackTarget
 
 
 }

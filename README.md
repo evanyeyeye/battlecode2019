@@ -13,5 +13,6 @@
 * Bullet prophet try to attack crusader who are blind
 * Bullet use gravitational energy and enemy attack unit to create vector and decide where to run
 * Bullet search around mines. Predict where enemy go for mines
+* Bullet current attack bad vs preacher
 
 
