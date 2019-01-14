@@ -289,13 +289,13 @@ function tryMoveRotate(r, dir) {
     x1 = x + dir1[0]
     y1 = y + dir1[1]
     if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir[0], dir1[1])
+        return r.move(dir1[0], dir1[1])
     }
     dir1 = rotate(dir, -1)
     x1 = x + dir1[0]
     y1 = y + dir1[1]
     if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir[0], dir1[1])
+        return r.move(dir1[0], dir1[1])
     }
     return 
 }
