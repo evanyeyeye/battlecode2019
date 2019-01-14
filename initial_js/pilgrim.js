@@ -47,14 +47,14 @@ export function pilgrimTurn(r) {
 
     // look around
     for (let otherRobot of r.getVisibleRobots()) {
-        let distance = getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
+        const distance = getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         if (otherRobot.team == r.me.team) {
             // set closest friendly castle or church as base
             if ( (otherRobot.unit==SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || (getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) < distance) )) {
                 baseLocation = [otherRobot.x, otherRobot.y]
+                updateMines(r)  // refresh mines based on distance to base castle location
             }
             friendlyRobots[otherRobot.id] = distance
-            updateMines(r)  // refresh mines based on distance to base castle location
         }
         else {
             enemyRobots[otherRobot.id] = distance
@@ -108,14 +108,14 @@ export function pilgrimTurn(r) {
 }
 
 function isEmpty(r, x, y) {
-    let passableMap = r.map;
-    let visibleRobotMap = r.getVisibleRobotMap();
+    const passableMap = r.map;
+    const visibleRobotMap = r.getVisibleRobotMap();
     return passableMap[y][x] && visibleRobotMap[y][x] == 0;
 }
 
 function notEmpty(r, x, y) {
-    let passableMap = r.map;
-    let visibleRobotMap = r.getVisibleRobotMap();
+    const passableMap = r.map;
+    const visibleRobotMap = r.getVisibleRobotMap();
     return passableMap[y][x] && visibleRobotMap[y][x] > 0;  // passable, but visibly has a robot id
 }
 
