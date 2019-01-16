@@ -53,12 +53,14 @@ export function prophetTurn(r) {
 
         let distance = getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         if (otherRobot.team == r.me.team) {
-            // set closest friendly castle or church as base
-            if ( (otherRobot.unit==SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || (getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) < distance) )) {
+            // set closest friendly castle or church as base 
+            //|| otherRobot.unit == SPECS.CHURCH
+            if ((otherRobot.unit==SPECS.CASTLE)) {
                 baseLocation = [otherRobot.x, otherRobot.y]
                 //r.log("based location is "+baseLocation)
             }	
             friendlyRobots[otherRobot.id] = distance
+            r.log('base location is '+baseLocation)
             updateMines(r)  // refresh mines based on distance to base castle location
         }
         else {
@@ -94,6 +96,14 @@ export function prophetTurn(r) {
 	**************************************
 
     */
+    let kiteAction=kite(r)
+    
+    if (kiteAction!=null){
+    r.log(kiteAction)
+
+    }
+
+
     if (Object.keys(enemyRobots).length>0)
     {
     let attackTarget=findAttack(r);
@@ -135,6 +145,84 @@ export function prophetTurn(r) {
 //decide which direction to go when kiting, or it can just not kite
 function kite(r){
 	let visibleRobotMap = r.getVisibleRobotMap();
+    let enemyCount=0;
+    let friendCount=0;
+    let enemyVector=[0,0]; //first dx second dy
+    for (let bot of visibleRobotMap){
+        if (bot.team == r.me.team) {
+            if (bot.unit==SPECS.UNITS[SPECS.PROPHET])
+            {
+                enemyVector[0]+=(r.me.x-bot.x)
+                enemyVector[1]+=(r.me.y-bot.y)
+                enemyCount++;
+            }
+            if (bot.unit==SPECS.UNITS[SPECS.PREACHER])
+            {
+                enemyVector[0]+=(r.me.x-bot.x)
+                enemyVector[1]+=(r.me.y-bot.y)
+                enemyCount+=2;
+            }
+             if (bot.unit==SPECS.UNITS[SPECS.CRUSADER])
+            {
+                enemyVector[0]+=(r.me.x-bot.x)
+                enemyVector[1]+=(r.me.y-bot.y)
+                enemyCount+=1;
+            }
+           
+          
+        }
+        else {
+            if (bot.unit==SPECS.UNITS[SPECS.PROPHET])
+            {
+                friendCount++;
+            }
+            if (bot.unit==SPECS.UNITS[SPECS.PREACHER])
+            {
+                friendCount+=2;
+            }
+             if (bot.unit==SPECS.UNITS[SPECS.CRUSADER])
+            {
+                friendCount+=1;
+            }
+           
+        }
+        if (friendCount>=enemyCount){
+            return null;
+        }
+        else{
+            let toGoX=enemyVector[0]/Math.abs(enemyVector[0]);
+            let toGoY=enemyVector[1]/Math.abs(enemyVector[1]);
+           //not optimized to kite just some somewhere
+            if (isEmpty(r, r.me.x+toGoX, r.me.y+toGoY))
+            {
+                return r.move(toGoX, toGoY) 
+            }
+            if (isEmpty(r, r.me.x+toGoX, r.me.y+toGoY))
+            {
+                return r.move(toGoX, toGoY) 
+            }
+            if (Math.abs(enemyVector[0])>Math.abs(enemyVector[1]))
+            {
+                if (isEmpty(r, r.me.x+toGoX, r.me.y))
+            {
+                return r.move(toGoX, 0) 
+            }
+            }
+            else{
+                if (isEmpty(r, r.me.x, r.me.y+toGoY))
+            {
+               return  r.move(0, toGoY) 
+            }
+            }
+
+
+
+        }
+      
+
+
+    }
+    return null
 	
 
 
@@ -159,7 +247,9 @@ function findAttack(r){
             )
     robotXForLambda=r.me.x;
     robotYForLambda=r.me.y;
-
+    if (Object.keys(attackable).length==0){
+        return null
+    }
     let attackTarget=attackable.reduce(function(a,b){ 
     
     if (a.health<b.health)
@@ -203,9 +293,15 @@ function findAttack(r){
 
 }
 function isEmpty(r, x, y) {
+    try {
     let passableMap = r.map;
     let visibleRobotMap = r.getVisibleRobotMap();
     return passableMap[y][x] && visibleRobotMap[y][x] == 0;
+    }
+    catch(e){
+
+        return false;
+    }
 }
 
 function notEmpty(r, x, y) {
