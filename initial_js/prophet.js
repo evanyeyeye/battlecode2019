@@ -255,7 +255,9 @@ function findAttack(r){
         return null
     }
     let attackTarget=attackable.reduce(function(a,b){ 
-    
+    if (a.health==null){
+        return b
+    }
     if (a.health<b.health)
     {
     return a
