@@ -31,7 +31,7 @@ function iDMines(r) {  // deterministically label mines, build manhattan distanc
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
-                allCounter++
+                allCounter++  // ids should start at 1 for easy messaging
                 allMineID[allCounter] = i.toString()+','+ j.toString()
                 allMinePilgrim[allCounter] = 0
                 allMineManhattan[allCounter] = getManhattanDistance(r.me.x, r.me.y, i, j)
@@ -181,12 +181,6 @@ export function castleTurn(r) {
         }
     }
 
-    // r.log(allMinePilgrim)
-    if (r.me.turn % 50 === 0) {
-        r.log("activity numbers, total: " + totalActivity)
-        r.log(allMinePilgrim)
-    }
-
     let danger = false
     let allyCount = 0
     let enemyCount = 0
@@ -197,7 +191,7 @@ export function castleTurn(r) {
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
         if (message !== 0) {  // actual message
-            if (robot.team === r.me.team && robot.id !== r.me.id) {  // other robot
+            if (robot.team === r.me.team && robot.id !== r.me.id) {  // other friendly robot
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
                 if (r.me.turn <= 2 && message === 255) {  // probably another castle telling us it exists
@@ -229,6 +223,11 @@ export function castleTurn(r) {
         }
     }
 
+    // r.log(allMinePilgrim)
+    if (r.me.turn % 50 === 0) {
+        r.log("activity numbers, total: " + totalActivity)
+        r.log(allMinePilgrim)
+    }
 
     // ---------- START BUILDING STUFF ----------
 
@@ -250,7 +249,7 @@ export function castleTurn(r) {
         }
     }
 
-  
+    /*
     if (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
@@ -271,6 +270,7 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
         }
     }
+    */
 
     return
 }

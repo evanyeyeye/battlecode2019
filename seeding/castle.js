@@ -181,12 +181,6 @@ export function castleTurn(r) {
         }
     }
 
-    // r.log(allMinePilgrim)
-    if (r.me.turn % 50 === 0) {
-        r.log("activity numbers, total: " + totalActivity)
-        r.log(allMinePilgrim)
-    }
-
     let danger = false
     let allyCount = 0
     let enemyCount = 0
@@ -197,7 +191,7 @@ export function castleTurn(r) {
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
         if (message !== 0) {  // actual message
-            if (robot.team === r.me.team && robot.id !== r.me.id) {  // other robot
+            if (robot.team === r.me.team && robot.id !== r.me.id) {  // other friendly robot
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
                 if (r.me.turn <= 2 && message === 255) {  // probably another castle telling us it exists
@@ -229,6 +223,11 @@ export function castleTurn(r) {
         }
     }
 
+    // r.log(allMinePilgrim)
+    if (r.me.turn % 50 === 0) {
+        r.log("activity numbers, total: " + totalActivity)
+        r.log(allMinePilgrim)
+    }
 
     // ---------- START BUILDING STUFF ----------
 
