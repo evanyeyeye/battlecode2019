@@ -106,6 +106,15 @@ function nextMineID(r, pathfinding = false) {  // uses resource-blind ids
     return null
 }
 
+function generateMeme(target) {  // super sketchy communication
+    let message = ""
+    message += target[0]
+    message += "9"
+    if (target[1] < 10) message += "0"
+    message += target[1]
+    return message
+}
+
 var allMineID = {}  // using this instead now, avoid complication of fuel v karbonite. maps id to location
 
 var allMineManhattan = {}  // maps mine ids to manhattan distance from this castle
@@ -123,6 +132,7 @@ var idealNumPilgrims = 0
 var numTeamCastles = 0  // number of castles on our team. For now, split mines and pilgrim production
 
 var pilgrimCounter = 0
+var prophetCounter = 0
 var crusaderCounter = 0
 
 var recievedMessages = {}
@@ -170,10 +180,19 @@ export function castleTurn(r) {
             // TEMP REMOVAL?
         }
     }
+
+    // r.log(allMinePilgrim)
     if (r.me.turn % 50 === 0) {
         r.log("activity numbers")
         r.log(allMinePilgrim)
     }
+
+    let danger = false
+    let allyCount = 0
+    let enemyCount = 0
+    let enemyDistance = {}
+    let enemyLocation = {}
+    let closestEnemy = -1
 
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
@@ -195,13 +214,26 @@ export function castleTurn(r) {
                     // r.log("acknowledged a pilgrim")
                 }
             }
+        } else if (robot.team === r.me.team) {
+            allyCount += 1
+        } else if (robot.team !== r.me.team) {
+            enemyCount += 1
+            enemyDistance[robot.id] = getManhattanDistance(r.me.x, r.me.y, robot.x, robot.y)
+            enemyLocation[robot.id] = [r.me.x, r.me.y]
+            if (closestEnemy === -1 || enemyDistance[robot.id] < enemyDistance[closestEnemy]) {
+                closestEnemy = robot.id
+            }
+            if (enemyCount > allyCount) {
+                danger = true
+            }
         }
     }
+
 
     // ---------- START BUILDING STUFF ----------
 
     // build pilgrims
-    if (r.me.turn > 1 && pilgrimCounter < idealNumPilgrims && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+    if (!danger && r.me.turn > 1 && pilgrimCounter < idealNumPilgrims && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to
@@ -229,14 +261,16 @@ export function castleTurn(r) {
     }
    
 
-    // // build crusaders
-    // if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL && crusaderCounter * 300 < r.me.turn) {
-    //     var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-    //     if (buildDirection != null) {
-    //         r.log("Built Crusader")
-    //         return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
-    //         crusaderCounter++
-    //     }
-    // }
+    // build crusaders
+    if (danger && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
+        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+        if (buildDirection != null) {
+            r.log("Built Crusader")
+            r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
+            crusaderCounter++
+            return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
+        }
+    }
+
     return
 }
