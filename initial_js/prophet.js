@@ -61,7 +61,7 @@ export function prophetTurn(r) {
             }	
             friendlyRobots[otherRobot.id] = distance
             r.log('base location is '+baseLocation)
-            updateMines(r)  // refresh mines based on distance to base castle location
+           // updateMines(r)  // refresh mines based on distance to base castle location
         }
         else {
             enemyRobots[otherRobot.id] = distance
@@ -99,7 +99,7 @@ export function prophetTurn(r) {
     let kiteAction=kite(r)
     
     if (kiteAction!=null){
-    r.log(kiteAction)
+    r.log("kites did something??????????????????????? "+ kiteAction)
 
     }
 
@@ -117,8 +117,8 @@ export function prophetTurn(r) {
     
     if(targetMine==null)
     {
-	//targetMine = idToMine[Math.floor(Math.random() * Object.keys(idToMine).length)]; //fix this later this is going to random
-   targetMine = idToMine[0];
+	targetMine = idToMine[Math.floor(Math.random() * Object.keys(idToMine).length)]; //fix this later this is going to random
+  // targetMine = idToMine[0];
     }
     let curLocation = r.me.x.toString() + "," + r.me.y.toString()
     // r.log('curloc: ' + curLocation)
