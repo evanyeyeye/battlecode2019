@@ -27,16 +27,14 @@ function findBuildDirection(r, x, y) {
 }
 
 function iDMines(r) {  // deterministically label mines, build manhattan distances for early use
-    let kCounter = 0  // counts number of karbonite mines
-    let fCounter = 0  // counts number of fuel mines
     let allCounter = 0
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
+                allCounter++
                 allMineID[allCounter] = i.toString()+','+ j.toString()
                 allMinePilgrim[allCounter] = 0
                 allMineManhattan[allCounter] = getManhattanDistance(r.me.x, r.me.y, i, j)
-                allCounter++
             }
         }
     }
@@ -160,9 +158,9 @@ export function castleTurn(r) {
 
     mine_range = Math.max(mine_range, r.map.length + r.me.turn / 20)
 
-    // start calculating mine distances, 1 per turn, id of turn-1
+    // start calculating mine distances, 1 per turn, id of turn
     if (r.me.turn <= totalMines) {  // a lot of this is terrible
-        let id = r.me.turn - 1
+        let id = r.me.turn
         allMineDistance[id] = calculateMineDistance(r, id)
     }
 
@@ -173,17 +171,19 @@ export function castleTurn(r) {
     }
 
     // ---------- REGULAR BOOKKEEPING AND COMMUNICATIONS ----------
+    let totalActivity = 0
     for (let [id, value] of Object.entries(allMinePilgrim)) {  // regularly subtract "heat" value of number of pilgrims at a mine
         if (value > 0) {
             // r.log(value)
             allMinePilgrim[id] -= 1
             // TEMP REMOVAL?
+            totalActivity += allMinePilgrim[id]
         }
     }
 
     // r.log(allMinePilgrim)
     if (r.me.turn % 50 === 0) {
-        r.log("activity numbers")
+        r.log("activity numbers, total: " + totalActivity)
         r.log(allMinePilgrim)
     }
 
@@ -206,7 +206,7 @@ export function castleTurn(r) {
                     idealNumPilgrims = calculateNumPilgrims(r)
                 }
                 else if (message >= 100) {  // castle is indicating that it sent a pilgrim to this mine
-                    allMinePilgrim[message - 100] += 15
+                    allMinePilgrim[message - 100] += 10
                     // r.log("acknowledged another castle")
                 }
                 else {  // pilgrim is already there and mining

@@ -163,9 +163,9 @@ function iDMines(r) {  // deterministically label mines
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]){
                 // r.log("Pilgrim: Mine at " + [i, j] + " is " + counter)
+                counter++
                 allMineID[counter] = i.toString() +',' + j.toString()
                 mineToID[i.toString() + ',' + j.toString()] = counter
-                counter++
             }
         }
     }
