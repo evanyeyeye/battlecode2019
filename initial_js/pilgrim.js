@@ -32,7 +32,7 @@ export function pilgrimTurn(r) {
                 // recieve message
                 castleTargetMineID = otherRobot.signal
                 r.log("Pilgrim received a target mine: " + castleTargetMineID)
-                r.castleTalk(castleTargetMineID + 100)  // acknowledge being sent to this mine
+                // r.castleTalk(castleTargetMineID + 100)  // acknowledge being sent to this mine, castle handles this now
             }
         }
     }
