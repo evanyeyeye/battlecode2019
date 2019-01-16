@@ -68,10 +68,12 @@ function calculateNumMines(r, distance_threshhold){
 function calculateNumPilgrims(r) {
     let num = 0
     for (const entry of allMineSorted.slice(0, totalMines / numFriendlyCastles / 2)) {  // take only a portion of the closest mines
-        num += entry[1] * 2 / 10 + 1  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
+        if (entry[1] < mine_range) {
+            num += Math.floor(entry[1] * 2 / 10 + 1)  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
+        }
     }
-    r.log("im going to try to make " + num/5 + " pilgrims")
-    return num / 2  // why does manhattan give bigger numbers than pathfinding distance, makes no sense
+    r.log("im going to try to make " + num + " pilgrims")
+    return num  // why does manhattan give bigger numbers than pathfinding distance, makes no sense
 }
 
 function updateSortedMines(r, pathfinding = false) {
@@ -98,7 +100,7 @@ function nextMineID(r, pathfinding = false) {  // uses resource-blind ids
         const id = entry[0]  // idk how to make this neater
         const distance = entry[1]
         // r.log("ID of " + id + " has activity of " + allMinePilgrim[id])
-        if (allMinePilgrim[id] === 0  && distance < 25 ) // no pilgrim activity here yet, temp way to cutoff distance
+        if (allMinePilgrim[id] === 0  && distance < mine_range ) // no pilgrim activity here yet, temp way to cutoff distance
             return id
     }
     return null
@@ -126,6 +128,8 @@ var crusaderCounter = 0
 var recievedMessages = {}
 var numFriendlyCastles = 1
 
+var mine_range = 30
+
 export function castleTurn(r) {
     if (r.me.turn === 1) {
         r.log("I am a Castle")
@@ -141,7 +145,10 @@ export function castleTurn(r) {
         idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
 
         r.castleTalk(255)  // let other castles know you exist
+
     }
+
+    mine_range = Math.max(mine_range, r.map.length + r.me.turn / 20)
 
     // start calculating mine distances, 1 per turn, id of turn-1
     if (r.me.turn <= totalMines) {  // a lot of this is terrible
@@ -160,9 +167,13 @@ export function castleTurn(r) {
         if (value > 0) {
             // r.log(value)
             allMinePilgrim[id] -= 1
+            // TEMP REMOVAL?
         }
     }
-    // r.log(allMinePilgrim)
+    if (r.me.turn % 50 === 0) {
+        r.log("activity numbers")
+        r.log(allMinePilgrim)
+    }
 
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
@@ -176,7 +187,7 @@ export function castleTurn(r) {
                     idealNumPilgrims = calculateNumPilgrims(r)
                 }
                 else if (message >= 100) {  // castle is indicating that it sent a pilgrim to this mine
-                    allMinePilgrim[message - 100] += 10
+                    allMinePilgrim[message - 100] += 15
                     // r.log("acknowledged another castle")
                 }
                 else {  // pilgrim is already there and mining
