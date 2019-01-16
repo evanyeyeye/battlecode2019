@@ -1,4 +1,7 @@
-*.bc19
 /.idea
 *.iml
 /initial_js_test
+*.bc19
+upload.sh
+update.sh
+compiled_bot*.js
