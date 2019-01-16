@@ -300,5 +300,16 @@ function tryMoveRotate(r, dir) {
     if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
         return r.move(dir1[0], dir1[1])
     }
+    if (dir[0] == 0 || dir[1] == 0)  // can only move r^2 of 4
+        if (isEmpty(r, x + 2*dir[0], y + 2*dir[1])) {
+            r.log("gonna double move")
+            return r.move(2*dir[0], 2*dir[1])
+        }
+    /*
+    else if (isEmpty(r, x - dir[0], y - dir[1])) {
+        r.log("gonna back up")
+        return r.move(-dir[0], -dir[1])
+    }
+    */
     return 
 }
