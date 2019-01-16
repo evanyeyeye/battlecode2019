@@ -120,6 +120,7 @@ var idealNumPilgrims = 0
 var numTeamCastles = 0  // number of castles on our team. For now, split mines and pilgrim production
 
 var pilgrimCounter = 0
+var prophetCounter = 0
 var crusaderCounter = 0
 
 var recievedMessages = {}
@@ -170,21 +171,34 @@ export function castleTurn(r) {
         if (value > 0)
             allMinePilgrim[id] -= 1
     }
+    
+    let danger = false
+    let allyCount = 0
+    let enemyCount = 0
+    let enemyDistance = {}
+    let closestEnemy = -1
 
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
         if (robot.team === r.me.team && robot.id !== r.me.id) {
-             if (message >= 100)  // pilgrim is indicating that it is being sent to this mine
+            if (message >= 100)  // pilgrim is indicating that it is being sent to this mine
                 allMinePilgrim[message - 100] += 20
             else  // pilgrim is already there and mining
                 allMinePilgrim[message] += 1
+            if (robot.unit == SPECS.CRUSADER) {
+                allyCount += 1
+            } 
+        } else if (robot.team !== r.me.team) {
+            enemyCount += 1
+            enemyDistance[robot.id] = getManhattanDistance(r.me.x, r.me.y, robot.x, robot.y)
         }
     }
+
 
     // ---------- START BUILDING STUFF ----------
 
     // build pilgrims
-    if (pilgrimCounter < idealNumPilgrims && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+    if (!danger && pilgrimCounter < idealNumPilgrims && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to

@@ -31,6 +31,9 @@ export function pilgrimTurn(r) {
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
                 castleTargetMineID = otherRobot.signal
+                if (castleTargetMineID >= 1000) {
+                    continue
+                }
                 r.log("Pilgrim received a target mine: " + castleTargetMineID)
                 r.castleTalk(castleTargetMineID + 100)  // acknowledge being sent to this mine
             }
