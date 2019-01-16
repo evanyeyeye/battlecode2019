@@ -190,7 +190,7 @@ function kite(r){
             }
            
         }
-        if (friendCount>=enemyCount){
+        if (friendCount>=enemyCount+1){
             return null;
         }
         else{
