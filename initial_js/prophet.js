@@ -120,6 +120,10 @@ export function prophetTurn(r) {
 	targetMine = idToMine[Math.floor(Math.random() * Object.keys(idToMine).length)]; //fix this later this is going to random
   // targetMine = idToMine[0];
     }
+   if ((Math.abs(targetMine[0]-r.me.x)+Math.abs(targetMine[1]-r.me.y))<15){
+    targetMine = idToMine[Math.floor(Math.random() * Object.keys(idToMine).length)]; //fix this later this is going to random
+  // targetMine = idToMine[0];
+   }
     let curLocation = r.me.x.toString() + "," + r.me.y.toString()
     // r.log('curloc: ' + curLocation)
     // for (let i of occupiedLoc) { r.log(i); }
