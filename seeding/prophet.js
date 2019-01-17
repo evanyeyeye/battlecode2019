@@ -1,4 +1,10 @@
 import {SPECS} from 'battlecode'
+import utils from './utils.js'
+
+
+const KARBONITE =  0
+const FUEL = 1
+
 var karboniteMines = {}  // maps mine locations to distance from base castle location
 var fuelMines = {}
 var mineID = {}  // maps location of mine to its ID
@@ -8,28 +14,16 @@ var checkedMine={}
 var idToMine={};
 var baseLocation=null;
 var targetMine = null
-const KARBONITE =  0
-const FUEL = 1
 var friendlyRobots = {}
 var enemyRobots = {}
 var robotXForLambda=null;
 var robotYForLambda=null;
 
-var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
-var imBad = {}
-imBad[[-1, -1]] = 0
-imBad[[-1, 0]] = 1
-imBad[[-1, 1]] = 2
-imBad[[0, 1]] = 3
-imBad[[1, 1]] = 4
-imBad[[1, 0]] = 5
-imBad[[1, -1]] = 6
-imBad[[0, -1]] = 7
 
 export function prophetTurn(r) {
     if (r.me.turn == 1) {
 
-        r.log("I am a prophet")
+        r.log("I am a Prophet")
         iDMines(r)
 
         // find the closest castle, probably built from there
@@ -41,9 +35,6 @@ export function prophetTurn(r) {
         }
     }
 
-   
-  
-
     // ok now find the best move
     friendlyRobots = {}
     enemyRobots = {}
@@ -51,7 +42,7 @@ export function prophetTurn(r) {
     // look around
     for (let otherRobot of r.getVisibleRobots()) {   	
 
-        let distance = getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
+        let distance = utils.getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         if (otherRobot.team == r.me.team) {
             // set closest friendly castle or church as base 
             //|| otherRobot.unit == SPECS.CHURCH
@@ -73,7 +64,7 @@ export function prophetTurn(r) {
     if (r.me.karbonite == SPECS.UNITS[SPECS.PROPHET].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PROPHET].FUEL_CAPACITY) {
         // r.log("Carrying resources back to " + baseLocation)
 
-        if(getSquaredDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) <= 2) {
+        if(utils.getSquaredDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) <= 2) {
             // close enough to give the collected resources
             return r.give(baseLocation[0] - r.me.x, baseLocation[1] - r.me.y, r.me.karbonite, r.me.fuel)
         }
@@ -84,7 +75,7 @@ export function prophetTurn(r) {
 
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
          
-            return tryMoveRotate(r, test)
+            return utils.tryMoveRotate(r, test)
        
         }
     }
@@ -96,7 +87,8 @@ export function prophetTurn(r) {
 	**************************************
 
     */
-    let kiteAction=kite(r)
+    let kiteAction=null
+    // let kiteAction=kite(r)
     
     if (kiteAction!=null){
     r.log("kites did something??????????????????????? "+ kiteAction)
@@ -139,7 +131,7 @@ export function prophetTurn(r) {
         r.log([r.me.x,r.me.y])
         if (test!=null)
         {
-        return tryMoveRotate(r, test)
+        return utils.tryMoveRotate(r, test)
     }
     }
 
@@ -148,12 +140,13 @@ export function prophetTurn(r) {
 
 //decide which direction to go when kiting, or it can just not kite
 function kite(r){
-	let visibleRobotMap = r.getVisibleRobotMap();
+	let visibleRobotMap = r.getVisibleRobots();
     let enemyCount=0;
     let friendCount=0;
     let enemyVector=[0,0]; //first dx second dy
     for (let bot of visibleRobotMap){
-        if (bot.team == r.me.team) {
+        // r.log(bot)
+        if (bot.team != r.me.team) {
             if (bot.unit==SPECS.UNITS[SPECS.PROPHET])
             {
                 enemyVector[0]+=(r.me.x-bot.x)
@@ -197,41 +190,32 @@ function kite(r){
             let toGoX=enemyVector[0]/Math.abs(enemyVector[0]);
             let toGoY=enemyVector[1]/Math.abs(enemyVector[1]);
            //not optimized to kite just some somewhere
-            if (isEmpty(r, r.me.x+toGoX, r.me.y+toGoY))
+            if (utils.isEmpty(r, r.me.x+toGoX, r.me.y+toGoY))
             {
                 return r.move(toGoX, toGoY) 
             }
-            if (isEmpty(r, r.me.x+toGoX, r.me.y+toGoY))
+            if (utils.isEmpty(r, r.me.x+toGoX, r.me.y+toGoY))
             {
                 return r.move(toGoX, toGoY) 
             }
             if (Math.abs(enemyVector[0])>Math.abs(enemyVector[1]))
             {
-                if (isEmpty(r, r.me.x+toGoX, r.me.y))
+                if (utils.isEmpty(r, r.me.x+toGoX, r.me.y))
             {
                 return r.move(toGoX, 0) 
             }
             }
             else{
-                if (isEmpty(r, r.me.x, r.me.y+toGoY))
+                if (utils.isEmpty(r, r.me.x, r.me.y+toGoY))
             {
                return  r.move(0, toGoY) 
             }
             }
-
-
-
         }
-      
-
-
     }
     return null
-	
-
-
-
 }
+
 //figure out which target to attack
 function findAttack(r){
     var visible = r.getVisibleRobots()
@@ -278,7 +262,7 @@ function findAttack(r){
         }
         if (SPECS.UNITS[a.unit].CONSTRUCTION_KARBONITE==SPECS.UNITS[b.unit].CONSTRUCTION_KARBONITE)
         {
-            if (getManhattanDistance(a.x,a.y,robotXForLambda,robotYForLambda)<getManhattanDistance(robotXForLambda,robotYForLambda,b,x,b.y))
+            if (utils.getManhattanDistance(a.x,a.y,robotXForLambda,robotYForLambda)<utils.getManhattanDistance(robotXForLambda,robotYForLambda,b,x,b.y))
             {
                 return a;
             }
@@ -298,51 +282,20 @@ function findAttack(r){
 
 
 }
-function isEmpty(r, x, y) {
-    try {
-    let passableMap = r.map;
-    let visibleRobotMap = r.getVisibleRobotMap();
-    return passableMap[y][x] && visibleRobotMap[y][x] == 0;
-    }
-    catch(e){
 
-        return false;
-    }
-}
 
-function notEmpty(r, x, y) {
-    let passableMap = r.map;
-    let visibleRobotMap = r.getVisibleRobotMap();
-    return passableMap[y][x] && visibleRobotMap[y][x] > 0;  // passable, but visibly has a robot id
-}
 // update mine locations based on distance from 
 function updateMines(r) {
     for (let j = 0; j<r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i]) {
-                karboniteMines[[i, j]] = getManhattanDistance(i, j, baseLocation[0], baseLocation[1])  // confirm this ordering, idk
+                karboniteMines[[i, j]] = utils.getManhattanDistance(i, j, baseLocation[0], baseLocation[1])  // confirm this ordering, idk
             }
             if (r.fuel_map[j][i]) {
-                fuelMines[[i, j]] = getManhattanDistance(i, j, baseLocation[0], baseLocation[1])
+                fuelMines[[i, j]] = utils.getManhattanDistance(i, j, baseLocation[0], baseLocation[1])
             }
         }
     }
-}
-function getSquaredDistance(x1, y1, x2, y2) {
-    return (x2 - x1)**2 + (y2 - y1)**2
-}
-
-function getManhattanDistance(x1, y1, x2, y2) {
-return Math.abs(x2 - x1) + Math.abs(y2 - y1)
-}
-
-function enemyInRange(r, enemy, l) {
-    if (enemy.unit == SPECS.CRUSADER || enemy.unit == SPECS.PROPHET || enemy.unit == SPECS.PREACHER) {
-        if (getSquaredDistance(enemy.x, enemy.y, l[0], l[1]) < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]) {
-            return true;    
-        }
-    }
-    return false;
 }
 
 function iDMines(r) {  // deterministically label mines
@@ -358,48 +311,4 @@ function iDMines(r) {  // deterministically label mines
             }
         }
     }
-}
-
-function inRange(r, enemy, l) {
-    // not sure if location is x or y
-
-    if (enemy.unit == SPECS.PROPHET || enemy.unit == SPECS.PROPHET || enemy.unit == SPECS.PREACHER) {
-        if (getSquaredDistance(enemy.x, enemy.y, l[0], l[1]) < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]) {
-            return true
-        }
-    }
-    return false
-
-}
-
-function rotate(dir, n) {
-    return directions[(imBad[dir] + n + 8) % 8]
-}
-
-// I am lazy I will make this a for loop later
-function tryMoveRotate(r, dir) {
-    if (JSON.stringify(dir) === "[0,0]")
-        return
-    let x = r.me.x
-    let y = r.me.y
-    let visible = r.getVisibleRobotMap()
-    let passable = r.getPassableMap()
-    let x1 = x + dir[0]
-    let y1 = y + dir[1]
-    if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir[0], dir[1])
-    }
-    let dir1 = rotate(dir, 1)
-    x1 = x + dir[0]
-    y1 = y + dir1[1]
-    if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir[0], dir1[1])
-    }
-    dir1 = rotate(dir, -1)
-    x1 = x + dir[0]
-    y1 = y + dir1[1]
-    if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir[0], dir1[1])
-    }
-    return 
 }

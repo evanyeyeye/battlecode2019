@@ -1,4 +1,6 @@
 import {SPECS} from 'battlecode'
+import utils from './utils.js'
+
 
 const MINE = 0
 const SCOUT = 1
@@ -21,6 +23,7 @@ var allMineID = {}  // maps mine ID to its STRING location
 var mineToID = {}  // maps string location to id, convenience
 
 var castleTargetMineID = null // the target mine that the castle gives
+
 
 export function pilgrimTurn(r) {
     if (r.me.turn == 1) {
@@ -55,10 +58,10 @@ export function pilgrimTurn(r) {
 
     // look around
     for (let otherRobot of r.getVisibleRobots()) {
-        const distance = getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
+        const distance = utils.getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         if (otherRobot.team == r.me.team) {
             // set closest friendly castle or church as base
-            if ( (otherRobot.unit==SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || distance < (getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1])) )) {
+            if ( (otherRobot.unit==SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || distance < (utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1])) )) {
                 baseLocation = [otherRobot.x, otherRobot.y]
                 updateMines(r)  // refresh mines based on distance to base castle location
             }
@@ -75,7 +78,7 @@ export function pilgrimTurn(r) {
     // return to church/castle if full
     if (r.me.karbonite == SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
         // r.log("Carrying resources back to " + baseLocation)
-        if(getSquaredDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) <= 2) {
+        if(utils.getSquaredDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) <= 2) {
             // close enough to give the collected resources
             return r.give(baseLocation[0] - r.me.x, baseLocation[1] - r.me.y, r.me.karbonite, r.me.fuel)
         }
@@ -84,7 +87,7 @@ export function pilgrimTurn(r) {
         let pf = r.pm.getPathField(baseLocation)
         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-            return tryMoveRotate(r, test)
+            return utils.tryMoveRotate(r, test)
         }
     }
 
@@ -104,7 +107,7 @@ export function pilgrimTurn(r) {
     // for (let i of occupiedLoc) { r.log(i); }
 
     // check if on top of mine
-    if ( (occupiedLoc.has(curLocation) || (targetMine != null && getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0)) && r.fuel >= SPECS.MINE_FUEL_COST) {
+    if ( (occupiedLoc.has(curLocation) || (targetMine != null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0)) && r.fuel >= SPECS.MINE_FUEL_COST) {
         // r.log("i'm actually trying to mine at " + targetMine[0] + ", " + targetMine[1])
         r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // each turn, let castles know you're here mining
         return r.mine()
@@ -120,41 +123,10 @@ export function pilgrimTurn(r) {
     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
         // r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-        return tryMoveRotate(r, test)
+        return utils.tryMoveRotate(r, test)
     }
 
     return
-}
-
-function isEmpty(r, x, y) {
-    if (x >= 0 && x < r.map[0].length && y >= 0 && y < r.map.length) {
-        const passableMap = r.map;
-        const visibleRobotMap = r.getVisibleRobotMap();
-        return passableMap[y][x] && visibleRobotMap[y][x] == 0;
-    }
-}
-
-function notEmpty(r, x, y) {
-    const passableMap = r.map;
-    const visibleRobotMap = r.getVisibleRobotMap();
-    return passableMap[y][x] && visibleRobotMap[y][x] > 0;  // passable, but visibly has a robot id
-}
-
-function getSquaredDistance(x1, y1, x2, y2) {
-    return (x2 - x1)**2 + (y2 - y1)**2
-}
-
-function getManhattanDistance(x1, y1, x2, y2) {
-return Math.abs(x2 - x1) + Math.abs(y2 - y1)
-}
-
-function enemyInRange(r, enemy, l) {
-    if (enemy.unit == SPECS.CRUSADER || enemy.unit == SPECS.PROPHET || enemy.unit == SPECS.PREACHER) {
-        if (getSquaredDistance(enemy.x, enemy.y, l[0], l[1]) < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]) {
-            return true;    
-        }
-    }
-    return false;
 }
 
 function iDMines(r) {  // deterministically label mines
@@ -176,10 +148,10 @@ function updateMines(r) {
     for (let j = 0; j<r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i]) {
-                karboniteMines[[i, j]] = getManhattanDistance(i, j, baseLocation[0], baseLocation[1])  // confirm this ordering, idk
+                karboniteMines[[i, j]] = utils.getManhattanDistance(i, j, baseLocation[0], baseLocation[1])  // confirm this ordering, idk
             }
             if (r.fuel_map[j][i]) {
-                fuelMines[[i, j]] = getManhattanDistance(i, j, baseLocation[0], baseLocation[1])
+                fuelMines[[i, j]] = utils.getManhattanDistance(i, j, baseLocation[0], baseLocation[1])
             }
         }
     }
@@ -192,13 +164,13 @@ function checkMine(r) {
     let visible = r.getVisibleRobots()
     for (let curMine in merged) {
         let tempMine = curMine.split(",").map((n) => parseInt(n))
-        if (notEmpty(r, tempMine[0], tempMine[1])) {
+        if (utils.isOccupied(r, tempMine[0], tempMine[1])) {
             if (!occupiedLoc.has(tempMine.toString())){
                 occupiedLoc.add(tempMine.toString());
             }      
         }
       
-        if (isEmpty(r, tempMine[0], tempMine[1])) {
+        if (utils.isEmpty(r, tempMine[0], tempMine[1])) {
              if (occupiedLoc.has(tempMine.toString())) {
                 // r.log('the mine at ' + curMine + ' is no longer occupied')
                 occupiedLoc.delete(tempMine.toString());
@@ -206,9 +178,9 @@ function checkMine(r) {
         }
         // || unsafeLoc.has(curMine) not sure if you check unsafe loc or not
         // only do it if something can possibly be attacked by things in vision
-        if (getSquaredDistance(r.me.x,r.me.y,tempMine[0], tempMine[1]) ** 0.5 < 18){
+        if (utils.getSquaredDistance(r.me.x,r.me.y,tempMine[0], tempMine[1]) ** 0.5 < 18){
             for (let robot in visible){
-                if (robot.team != r.me.team && enemyInRange(r, robot, tempMine)){
+                if (robot.team != r.me.team && utils.isEnemyInRange(r, robot, tempMine)){
                     unsafeLoc.add(tempMine.toString());
                     break;
                 }
@@ -245,71 +217,7 @@ function closestSafeMine(r) {
     return target.split(",").map((n) => parseInt(n))
 }
 
+// TODO: build churches
 function findBuildLocation(r) {
-    // for building churches
-}
-
-function inRange(r, enemy, l) {
-    // not sure if location is x or y
-
-    if (enemy.unit == SPECS.CRUSADER || enemy.unit == SPECS.PROPHET || enemy.unit == SPECS.PREACHER) {
-        if (getSquaredDistance(enemy.x, enemy.y, l[0], l[1]) < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]) {
-            return true
-        }
-    }
-    return false
-
-}
-
-// sorry this is my terrible code I'll make it as beautiful as Larry later
-var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
-var imBad = {}
-imBad[[-1, -1]] = 0
-imBad[[-1, 0]] = 1
-imBad[[-1, 1]] = 2
-imBad[[0, 1]] = 3
-imBad[[1, 1]] = 4
-imBad[[1, 0]] = 5
-imBad[[1, -1]] = 6
-imBad[[0, -1]] = 7
-
-function rotate(dir, n) {
-    return directions[(imBad[dir] + n + 8) % 8]
-}
-
-// I am lazy I will make this a for loop later
-function tryMoveRotate(r, dir) {
-    let x = r.me.x
-    let y = r.me.y
-    let visible = r.getVisibleRobotMap()
-    let passable = r.getPassableMap()
-    let x1 = x + dir[0]
-    let y1 = y + dir[1]
-    if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir[0], dir[1])
-    }
-    let dir1 = rotate(dir, 1)
-    x1 = x + dir1[0]
-    y1 = y + dir1[1]
-    if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir1[0], dir1[1])
-    }
-    dir1 = rotate(dir, -1)
-    x1 = x + dir1[0]
-    y1 = y + dir1[1]
-    if (x1 >= 0 && x1 < passable.length && y1 >= 0 && y1 < passable[0].length && passable[y1][x1] && visible[y1][x1] == 0) {
-        return r.move(dir1[0], dir1[1])
-    }
-    if (dir[0] == 0 || dir[1] == 0)  // can only move r^2 of 4
-        if (isEmpty(r, x + 2*dir[0], y + 2*dir[1])) {
-            r.log("gonna double move")
-            return r.move(2*dir[0], 2*dir[1])
-        }
-    /*
-    else if (isEmpty(r, x - dir[0], y - dir[1])) {
-        r.log("gonna back up")
-        return r.move(-dir[0], -dir[1])
-    }
-    */
-    return 
+    return
 }
