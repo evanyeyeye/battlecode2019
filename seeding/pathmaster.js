@@ -117,18 +117,22 @@ export class PathMaster {
     getPathField(target, includeCastle = false) {
         let x = target[0]
         let y = target[1]
+        // /*  // TEMP
         if (!this.pathFieldCache[y][x]) {
             // this.r.log("Generating path field")
             this.pathFieldCache[y][x] = this.generatePathField(target, includeCastle)
         }
         return this.pathFieldCache[y][x]
+        // /  // TEMP
+        // return this.generatePathField(target, includeCastle)  // TEMP
     }
 
-    isPassable(x, y, includeCastle = false) {
+    isPassable(x, y, includeCastle = false) {  // include castle/church lets them be counted as valid
         if (includeCastle)
             return this.map[y][x]
         let robot = this.r.getRobot(this.r.getVisibleRobotMap()[y][x])
         if(robot == null || (robot.unit != SPECS.CASTLE && robot.unit != SPECS.CHURCH))  // no castle or church there
+        // if(robot === null || this.r.me.id === robot.id)  // TEMP
             return this.map[y][x]
         return false
     }

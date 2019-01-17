@@ -82,6 +82,8 @@ export function castleTurn(r) {
     let enemyLocation = {}
     let closestEnemy = -1
 
+    let minesToIncrement = new Set()  // xD
+
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
         if (message !== 0) {  // actual message
@@ -98,8 +100,9 @@ export function castleTurn(r) {
                     // r.log("acknowledged another castle")
                 }
                 else {  // pilgrim is already there and mining
-                    allMinePilgrim[message] += 1
+                    // allMinePilgrim[message] += 1
                     // r.log("acknowledged a pilgrim")
+                    minesToIncrement.add(message)
                 }
             }
         } else if (robot.team === r.me.team) {
@@ -116,6 +119,9 @@ export function castleTurn(r) {
             }
         }
     }
+
+    for (let m of minesToIncrement)  // only want to increment once per recieved message. This way, always have 1 pilgrim near mine
+    	allMinePilgrim[m] += 1
 
     // r.log(allMinePilgrim)
     if (r.me.turn % 50 === 0) {
@@ -143,7 +149,7 @@ export function castleTurn(r) {
         }
     }
 
-  
+  	/*  // TEMP
     if (!danger && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
@@ -164,7 +170,7 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
         }
     }
-
+	*/  // TEMP
     return
 }
 

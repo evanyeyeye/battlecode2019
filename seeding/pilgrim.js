@@ -106,10 +106,14 @@ export function pilgrimTurn(r) {
     // r.log('curloc: ' + curLocation)
     // for (let i of occupiedLoc) { r.log(i); }
 
+    if (targetMine != null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) <= 2) {
+        r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // when close to mine, let castle update activity
+    }
+
     // check if on top of mine
     if ( (occupiedLoc.has(curLocation) || (targetMine != null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0)) && r.fuel >= SPECS.MINE_FUEL_COST) {
         // r.log("i'm actually trying to mine at " + targetMine[0] + ", " + targetMine[1])
-        r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // each turn, let castles know you're here mining
+        // r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // each turn, let castles know you're here mining
         return r.mine()
     }
 
