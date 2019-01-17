@@ -8,6 +8,7 @@ import {preacherTurn} from './preacher.js'
 import {reverseDirection, PathMaster} from './pathmaster.js'
 import {PathField} from './pathfield.js'
 
+
 class MyRobot extends BCAbstractRobot {
 
     constructor() {
