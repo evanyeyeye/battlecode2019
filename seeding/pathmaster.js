@@ -1,16 +1,6 @@
-import {PathField} from './pathfield.js'
 import {SPECS} from 'battlecode'
-
-function generateMatrix(width, height) {
-    let matrix = []
-    for (let y = 0; y < height; y++) {
-        matrix[y] = []
-        for (let x = 0; x < width; x++) { 
-            matrix[y][x] = null
-        }    
-    }
-    return matrix
-}
+import {PathField} from './pathfield.js'
+import utils from './utils.js'
 
 // dictionary keys automatically becoming strings
 var reverse = {}
@@ -80,7 +70,7 @@ export class PathMaster {
     constructor(r, map) {
         this.r = r // for debugging
         this.map = map // this map is getPassableMap()
-        this.pathFieldCache = generateMatrix(this.map[0].length, this.map.length)
+        this.pathFieldCache = utils.generateMatrix(this.map[0].length, this.map.length)
     }
 
     generatePathField(target, includeCastle = false) {
@@ -114,7 +104,7 @@ export class PathMaster {
         return pf
     }
 
-    getPathField(target, includeCastle = false) {
+    getPathField(target, includeCastle=false) {
         let x = target[0]
         let y = target[1]
         // /*  // TEMP
@@ -127,7 +117,7 @@ export class PathMaster {
         // return this.generatePathField(target, includeCastle)  // TEMP
     }
 
-    isPassable(x, y, includeCastle = false) {  // include castle/church lets them be counted as valid
+    isPassable(x, y, includeCastle=false) {  // include castle/church lets them be counted as valid
         if (includeCastle)
             return this.map[y][x]
         let robot = this.r.getRobot(this.r.getVisibleRobotMap()[y][x])

@@ -74,8 +74,8 @@ export default {
 
     // checks to see if an enemy unit can attack and is within range of loc
     isEnemyInRange: function (enemy, loc) {
-        const isAttackingUnit = utils.attackingUnits.has(enemy.unit)
-        const isWithinRange = utils.getSquaredDistance(enemy.x, enemy.y, loc[0], loc[1]) < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]
+        const isAttackingUnit = this.attackingUnits.has(enemy.unit)
+        const isWithinRange = this.getSquaredDistance(enemy.x, enemy.y, loc[0], loc[1]) < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]
         return isAttackingUnit && isWithinRange
     },
 
@@ -99,6 +99,17 @@ export default {
         if (!this.squaredCache.has(dy))
             this.squaredCache.set(dy, dy * dy)
         return this.squaredCache.get(dx) + this.squaredCache.get(dy)
+    },
+
+    generateMatrix: function (width, height) {
+        const matrix = []
+        for (let y = 0; y < height; y++) {
+            matrix[y] = []
+            for (let x = 0; x < width; x++) { 
+                matrix[y][x] = null
+            }    
+        }
+        return matrix
     }
 
 }   
