@@ -82,7 +82,7 @@ export function castleTurn(r) {
     let enemyLocation = {}
     let closestEnemy = -1
 
-    let minesToIncrement = new Set()  // xD
+    let minesToIncrement = new Set()  // we want steady numbers
 
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
