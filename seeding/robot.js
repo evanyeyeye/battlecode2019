@@ -7,6 +7,7 @@ import {prophetTurn} from './prophet.js'
 import {preacherTurn} from './preacher.js'
 import {reverseDirection, PathMaster} from './pathmaster.js'
 import {PathField} from './pathfield.js'
+import {AStar} from './astar.js'
 
 
 class MyRobot extends BCAbstractRobot {
@@ -21,6 +22,7 @@ class MyRobot extends BCAbstractRobot {
         self.step++
         if (self.step == 1) {
             self.pm = new PathMaster(self, self.map)
+            self.am = new AStar(self, self.map)
         }
         switch (self.me.unit) {
             case SPECS.CASTLE:
