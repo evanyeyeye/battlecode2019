@@ -24,7 +24,7 @@ var crusaderCounter = 0
 var recievedMessages = {}
 var numFriendlyCastles = 1
 
-var mine_range = 30
+var mine_range = 25
 
 export function castleTurn(r) {
     // r.log(typeof utils.utils.isEmpty)
@@ -47,7 +47,7 @@ export function castleTurn(r) {
 
     }
 
-    mine_range = Math.max(mine_range, r.map.length + r.me.turn / 20)
+   // mine_range = Math.max(mine_range, r.map.length + r.me.turn / 20)
 
     // start calculating mine distances, 1 per turn, id of turn
     if (r.me.turn <= mineStatus.size) {  // a lot of this is terrible
@@ -128,7 +128,7 @@ export function castleTurn(r) {
     // ---------- START BUILDING STUFF ----------
 
     // build pilgrims
-    if (!danger && r.me.turn > 1 && pilgrimCounter < idealNumPilgrims && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+    if (!danger && r.me.turn > 1 && pilgrimCounter < (Math.floor(idealNumPilgrims/1.5)+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to
@@ -145,7 +145,7 @@ export function castleTurn(r) {
         }
     }
 
-  	/*  // TEMP
+
     if (!danger && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
@@ -155,7 +155,7 @@ export function castleTurn(r) {
         }
     }
    
-
+/*
     // build crusaders
     if (danger && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -166,7 +166,7 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
         }
     }
-	*/  // TEMP
+	*/
     return
 }
 
@@ -224,7 +224,7 @@ function calculateNumPilgrims(r) {
     // r.log(sortedMines)
     for (const entry of sortedMines.slice(0, mineStatus.size / numFriendlyCastles / 2)) {  // take only a portion of the closest mines
         if (entry[1] < mine_range) {
-            num += Math.floor(entry[1] * 2 / 10 + 1)  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
+            num ++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
         }
     }
     r.log("im going to try to make " + num + " pilgrims")
