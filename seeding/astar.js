@@ -159,9 +159,8 @@ export class AStar {
         for (const dir of directions) {
             const x = node.x + dir[0]
             const y = node.y + dir[1]
-            if (x == target.x && y == target.y) {
+            if (x == target[0] && y == target[1]) {  // ignore robots on target so we dont stop
                 if (this.isPassable(x, y)) {
-                // if (utils.isEmpty(this.r, x, y)) {  // this takes into account robots
                     children.push([x, y])
                 }
             }
@@ -205,7 +204,7 @@ export class AStar {
         return [dx, dy]
     }
 
-    isPassable(x, y) {  // include castle/church lets them be counted as valid
+    isPassable(x, y) {
         return this.r.map[y][x]
     }
 }

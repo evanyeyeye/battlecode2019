@@ -58,7 +58,7 @@ export default {
             return false
         const passableMap = r.getPassableMap();
         const visibleRobotMap = r.getVisibleRobotMap();
-        return passableMap[y][x] && visibleRobotMap[y][x] === 0
+        return passableMap[y][x] && visibleRobotMap[y][x] <= 0
     },
 
     // checks the square is passable and is occupied
