@@ -84,24 +84,20 @@ class PriorityQueue {
 
 
 const four = [[2, 0], [-2, 0], [0, 2], [0, -2]]
-const nine = [[3, 0], [-3, 0], [0, 3], [0, -3], [2, 2], [-2, 2], [2, -2], [-2, -2], [1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]]
+const five = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]]
+const eight = [[2, 2], [-2, 2], [2, -2], [-2, -2]]
+const nine = [[3, 0], [-3, 0], [0, 3], [0, -3]]
 
 // taken from last year python a*
 class Node {
 	constructor(x, y, parent, g, h, multiple = 1) {
 		this.x = x
 		this.y = y
-		// this.parent = null
         this.parent = parent
 		this.f = g + h  // cost to minimize
         this.g = g
         this.h = h
 		this.multiple = multiple  // idk what this is for
-        /*
-		if (parent !== null) {  // why is this like this
-			this.parent = parent
-		}
-        */
 	}
 
     lessThan(other) {
@@ -116,7 +112,7 @@ export class AStar {
 		this.map = map
 	}
 
-    findPath(target) {  // array targets, returns a node object
+    findPath(target, radius = 2, fast = false) {  // array targets, returns a node object. Radius = max squared movement radius. Fast = ignore squared cost
         const fringe = new PriorityQueue((a,b) => a.lessThan(b))
         const closed = new Set()
         const source = new Node(this.r.me.x, this.r.me.y, null, 0, utils.getManhattanDistance(this.r.me.x, this.r.me.y, target[0], target[1]))
@@ -128,14 +124,18 @@ export class AStar {
                 continue
             closed.add(strLoc)
             if (v.x == target[0] && v.y == target[1]) {  // we found the target
-                this.r.log("size of searched nodes is around " + closed.size + fringe.size())
+                // this.r.log("size of searched nodes is around " + closed.size + fringe.size())
                 return v
             }
-            for (const nextLoc of this.getChildren(v, target, 2)) {
+            for (const nextLoc of this.getChildren(v, target, radius)) {  // need to add node saving for variable radius to actually work
                 if (!closed.has(nextLoc.toString())) {
+                    const dx = nextLoc[0] - v[0]  // terrible, optimize later
+                    const dy = nextLoc[1] - v[1]
                     let dg = 1
-                    if (nextLoc[0] - v.x != 0 && nextLoc[1] - v.y != 0)
-                        dg = 2
+                    if (fast)
+                        dg = dx*dx + dy*dy  // even worse!
+                    else
+                        dg = dx + dy
                     const a  = new Node(nextLoc[0], nextLoc[1], v, v.g + dg, utils.getManhattanDistance(nextLoc[0], nextLoc[1], target[0], target[1]))  // need to modify g if moving with radius > 2
                     fringe.push(a)
                 }
@@ -146,15 +146,15 @@ export class AStar {
 
     // find squares you can move to from a node, return array of arrays
     getChildren(node, target, radius = 2) {  // i don't think radius like this works with a*
-        let directions = utils.directions
-        /*
+        let directions = utils.directionsWithDiagonalPriority
         if (radius >= 4) {
             directions = directions.concat(four)
         }
         if (radius >= 9) {
+            directions = directions.concat(five)
+            directions = directions.concat(eight)
             directions = directions.concat(nine)
         }
-        */
         let children = []
         for (const dir of directions) {
             const x = node.x + dir[0]
@@ -175,30 +175,10 @@ export class AStar {
 
     // return array of dx, dy to advance. Should implement some basic caching + recalculating or something
     nextDirection(node) {
-        /*
-        let p = node.parent
-        while (p !== null && p.x !== this.r.me.x && p.y !== this.r.me.y) {  // probably terrible, but end up at the next node
-            node = p
-            p = p.parent
-        }
-        if (p !== null) {  // idk what im doing
-            const dx = node.x - this.r.me.x
-            const dy = node.y - this.r.me.y
-            return [dx, dy]
-        }
-        return null
-        */
-        this.r.log("I am at " + this.r.me.x + "," + this.r.me.y)
+        // this.r.log("I am at " + this.r.me.x + "," + this.r.me.y)
         while (node.parent != null && (node.parent.x !== this.r.me.x || node.parent.y !== this.r.me.y)) {
-            // this.r.log("Node at " + node.x + "," + node.y)
             node = node.parent
         }
-        /*
-        this.r.log("I am at " + this.r.me.x + "," + this.r.me.y)
-        this.r.log("the parent node is at " + node.parent.x + "," + node.parent.y)
-        if(this.r.me.x === node.parent.x && this.r.me.y === node.parent.y)
-            this.r.log("pathfinding success part 2")
-        */
         const dx = node.x - this.r.me.x
         const dy = node.y - this.r.me.y
         return [dx, dy]
