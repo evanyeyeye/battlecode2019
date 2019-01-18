@@ -84,27 +84,27 @@ export function pilgrimTurn(r) {
         }
 
         // return to church/castle
-        /*
+        
         let pf = r.pm.getPathField(baseLocation)
         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
             return utils.tryMoveRotate(r, test)
         }
-        */
+        
         // broken a*
         
-        let node = r.am.findPath(baseLocation)
-        if (node === null) {
-            r.log("A*: no path found")
-            return
-        }
-        if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
-            const test = r.am.nextDirection(node)
-            r.log("A*: direction received is " + test)
-            if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
-                return r.move(test[0], test[1])
-            // return utils.tryMoveRotate(r, test)
-        }
+        // let node = r.am.findPath(baseLocation)
+        // if (node === null) {
+        //     r.log("A*: no path found")
+        //     return
+        // }
+        // if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
+        //     const test = r.am.nextDirection(node)
+        //     r.log("A*: direction received is " + test)
+        //     if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
+        //         return r.move(test[0], test[1])
+        //     // return utils.tryMoveRotate(r, test)
+        // }
         
     }
 
@@ -140,28 +140,28 @@ export function pilgrimTurn(r) {
 	}
 
     // path to location
-    /*
+    
 	let pf = r.pm.getPathField(targetMine)
     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
         // r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
         return utils.tryMoveRotate(r, test)
     }
-    */
+    
     // broken a*
     
-    let node = r.am.findPath(targetMine)
-    if (node === null){
-        r.log("A*: no path to " + targetMine + " found")
-        return
-    }
-    if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
-        const test = r.am.nextDirection(node)
-        r.log("A*: direction received is " + test)
-        if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
-            return r.move(test[0], test[1])
-        // return utils.tryMoveRotate(r, test)
-    }
+    // let node = r.am.findPath(targetMine)
+    // if (node === null){
+    //     r.log("A*: no path to " + targetMine + " found")
+    //     return
+    // }
+    // if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
+    //     const test = r.am.nextDirection(node)
+    //     r.log("A*: direction received is " + test)
+    //     if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
+    //         return r.move(test[0], test[1])
+    //     // return utils.tryMoveRotate(r, test)
+    // }
     
     return
 }

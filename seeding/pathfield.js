@@ -1,15 +1,5 @@
+import utils from './utils.js'
 
-// generate a matrix
-function generateMatrix(width, height) {
-    let matrix = []
-    for (let y = 0; y < height; y++) {
-        matrix[y] = []
-        for (let x = 0; x < width; x++) { 
-            matrix[y][x] = null
-        }    
-    }
-    return matrix
-}
 
 // stores direction to move in, distance to target?
 class PathPoint {
@@ -32,7 +22,7 @@ export class PathField {
         this.r = r  // for debugging
         this.map = map  // this map is getPassableMap()
         this.target = target
-        this.field = generateMatrix(this.map[0].length, this.map.length)
+        this.field = utils.generateMatrix(this.map[0].length, this.map.length)
     }
 
     isPointValid(x, y) {

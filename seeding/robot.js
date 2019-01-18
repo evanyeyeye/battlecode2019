@@ -5,8 +5,7 @@ import {pilgrimTurn} from './pilgrim.js'
 import {crusaderTurn} from './crusader.js'
 import {prophetTurn} from './prophet.js'
 import {preacherTurn} from './preacher.js'
-import {reverseDirection, PathMaster} from './pathmaster.js'
-import {PathField} from './pathfield.js'
+import {PathMaster} from './pathmaster.js'
 import {AStar} from './astar.js'
 
 

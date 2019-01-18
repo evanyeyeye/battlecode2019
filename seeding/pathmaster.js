@@ -2,40 +2,6 @@ import {SPECS} from 'battlecode'
 import {PathField} from './pathfield.js'
 import utils from './utils.js'
 
-// dictionary keys automatically becoming strings
-var reverse = {}
-reverse[[-1, -1]] = [1, 1]
-reverse[[-1, 0]] = [1, 0]
-reverse[[-1, 1]] = [1, -1]
-reverse[[0, -1]] = [0, 1]
-reverse[[0, 0]] = [0, 0]
-reverse[[0, 1]] = [0, -1]
-reverse[[1, -1]] = [-1, 1]
-reverse[[1, 0]] = [-1, 0]
-reverse[[1, 1]] = [-1, -1]
-
-export function reverseDirection(dir) {
-    return reverse[dir]
-}
-
-// var directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
-var directions = [[-1, -1],  [-1, 1], [1, 1], [1, -1], [1, 0], [0, 1], [-1, 0], [0, -1]]
-
-var cost = {}
-cost[[-1, -1]] = [1, 1]
-cost[[-1, 0]] = [1, 0]
-cost[[-1, 1]] = [1, 1]
-cost[[0, -1]] = [0, 1]
-cost[[0, 0]] = [0, 0]
-cost[[0, 1]] = [0, 1]
-cost[[1, -1]] =[1, 1]
-cost[[1, 0]] = [1, 0]
-cost[[1, 1]] = [1, 1]
-
-var squares = {}
-for (let i = 0; i < 65; i++) {
-    squares[i] = i * i
-}
 
 class BFSLocation {
 
@@ -52,11 +18,11 @@ class BFSLocation {
     add(nextDir) {
         let dx = nextDir[0]
         let dy = nextDir[1]
-        // return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(dir), this.xdist + cost[dir][1], this.ydist + cost[dir][0])
+        // return new BFSLocation(this.x + dx, this.y + dy, utils.reverseDirection(dir), this.xdist + cost[dir][1], this.ydist + cost[dir][0])
         if (!nextDir.includes(0))  // diagonal direction
-            return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(nextDir), this.dist + 2)
+            return new BFSLocation(this.x + dx, this.y + dy, utils.reverseDirection(nextDir), this.dist + 2)
 
-        return new BFSLocation(this.x + dx, this.y + dy, reverseDirection(nextDir), this.dist + 1)
+        return new BFSLocation(this.x + dx, this.y + dy, utils.reverseDirection(nextDir), this.dist + 1)
     }
     /*
     dist() {
@@ -73,7 +39,7 @@ export class PathMaster {
         this.pathFieldCache = utils.generateMatrix(this.map[0].length, this.map.length)
     }
 
-    generatePathField(target, includeCastle = false) {
+    generatePathField(target, includeCastle=false) {
         let pf = new PathField(this.r, this.map, target)
 
         let queue = []
@@ -90,7 +56,7 @@ export class PathMaster {
             } 
             else {
                 pf.setPoint(cur.x, cur.y, cur.direction, cur.dist)  // set this as a point
-                for (let dir of directions) {  // search out
+                for (let dir of utils.directionsWithDiagonalPriority) {  // search out
                     let poss = cur.add(dir)
                     if (pf.isPointValid(poss.x, poss.y) && this.isPassable(poss.x, poss.y, includeCastle)) {  // valid point
                         if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist) {  // point is either not seen before, or can be reached faster

@@ -8,6 +8,8 @@ export default {
     // counterclockwise order starting from northwest
     directions: [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]],
 
+    directionsWithDiagonalPriority: [[-1, -1], [-1, 1], [1, 1], [1, -1], [1, 0], [0, 1], [-1, 0], [0, -1]],
+
     directionToIndex: {
         "-1,-1": 0,
         "-1,0": 1,
@@ -16,12 +18,28 @@ export default {
         "1,1": 4,
         "1,0": 5,
         "1,-1": 6,
-        "0,-1": 7,
+        "0,-1": 7
     },
 
     // rotate dir counterclockwise n times, use negative n for clockwise
-    rotate: function (dir, n) {
+    rotateDirection: function (dir, n) {
         return this.directions[(this.directionToIndex[dir] + n + 8) % 8]
+    },
+
+    directionToReverse: {
+        "-1,-1": [1, 1],
+        "-1,0": [1, 0],
+        "-1,1": [1, -1],
+        "0,1": [0, -1],
+        "1,1": [-1, -1],
+        "1,0": [-1, 0],
+        "1,-1": [-1, 1],
+        "0,-1": [0, 1],
+        "0,0": [0, 0]
+    },
+
+    reverseDirection: function (dir) {
+        return this.directionToReverse[dir]
     },
 
     // try to move in dir
@@ -34,7 +52,7 @@ export default {
         const x = r.me.x
         const y = r.me.y
         for (const n of [0, 1, -1]) {
-            const tryDir = this.rotate(dir, n) 
+            const tryDir = this.rotateDirection(dir, n) 
             const tryX = x + tryDir[0]
             const tryY = y + tryDir[1]
             if (this.isEmpty(r, tryX, tryY))
