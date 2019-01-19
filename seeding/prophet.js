@@ -1,6 +1,9 @@
 import {SPECS} from 'battlecode'
 import utils from './utils.js'
-
+const action_attack_mine="00"  //mine or attack depends on unit
+const action_zone_scout="01" //basically hanging out around the mine
+const action_change_attack_mine="10" //change fro mcurrent action to attack
+const action_change_zone_scout="11" //change from current action zonescout
 
 const KARBONITE =  0
 const FUEL = 1

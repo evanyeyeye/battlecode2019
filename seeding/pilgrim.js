@@ -8,7 +8,8 @@ const BUILD = 2
 const action_attack_mine="00"  //mine or attack depends on unit
 const action_zone_scout="01" //zone or scout depends on the unit
 const action_change_attack_mine="10" //change fro mcurrent action to attack
-const action_change_zone_scout="11" //change from current action zonescout
+const action_change_zone_build="11" //change from current action zonescout
+const action_building_church="999"
 
 const KARBONITE = 0
 const FUEL = 1
@@ -25,6 +26,8 @@ var baseLocation = null  // castle or church to return resources to
 var priorityResource=0;
 var allMineID = {}  // maps mine ID to its STRING location
 var mineToID = {}  // maps string location to id, convenience
+var curAction =null; //curent action
+var bestChurchLoc=null
 
 var castleTargetMineID = null // the target mine that the castle gives
 
@@ -37,24 +40,42 @@ export function pilgrimTurn(r) {
         for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
-                castleTargetMineID = decode(otherRobot.signal,16)[0]//first id being encoded
+                let decodedMsg=decode(otherRobot.signal,16)
+                castleTargetMineID = decodedMsg[0] //first id being encoded
+                curAction=decodedMsg[1]
                 if (castleTargetMineID >= 900) {
                     continue
                 }
                 r.log("Pilgrim received a target mine: " + castleTargetMineID)
                 // r.castleTalk(castleTargetMineID + 100)  // acknowledge being sent to this mine, castle handles this now
+                r.log("Pilgrim received building a target mine near: "+castleTargetMineID)
             }
         }
     }
+
+    //check if someone else already made church near me
+    if (curAction==action_building_church)
+        {
+           let seechurch=false;
+        for (let otherRobot of r.getVisibleRobots()) {  
+            if (otherRobot.team == r.me.team&&(otherRobot.unit==SPECS.CHURCH||otherRobot.unit==SPECS.CASTLE)&&utils.getSquaredDistance(r.me.x,r.me.y,otherRobot.x,otherRobot.y)<49){
+                curAction=action_attack_mine
+                seechurch=true
+            }            
+            }
+              if (seechurch==false){
+                bestChurchLoc=findBestChurchLoc(r)
+                curAction=action_building_church
+              }
+        }
+
 
     let state = MINE  // idk if this is going to be useful
     if (priorityResource == -1)
         priorityResource = Math.floor(Math.random() * 2)
 
     // no reason to float karbonite?
-    if (r.karbonite > 2*SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > fuelThreshold) {
-        state = BUILD  // not actually used right now
-    }
+  
 
     // ok now find the best move
     let friendlyRobots = {}
@@ -128,12 +149,29 @@ export function pilgrimTurn(r) {
 
     if (targetMine != null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) <= 2) {
         r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // when close to mine, let castle update activity
+    
+        
     }
+
 
     // check if on top of mine
     if ( (occupiedLoc.has(curLocation) || (targetMine != null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) == 0)) && r.fuel >= SPECS.MINE_FUEL_COST) {
         // r.log("i'm actually trying to mine at " + targetMine[0] + ", " + targetMine[1])
         // r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // each turn, let castles know you're here mining
+        
+        let seechurch=false;
+        for (let otherRobot of r.getVisibleRobots()) {  
+            if (otherRobot.team == r.me.team&&(otherRobot.unit==SPECS.CHURCH||otherRobot.unit==SPECS.CASTLE)&&utils.getSquaredDistance(r.me.x,r.me.y,otherRobot.x,otherRobot.y)<49){
+                curAction=action_attack_mine
+                seechurch=true
+            }            
+            }
+              if (seechurch==false){
+                bestChurchLoc=findBestChurchLoc(r)
+                curAction=action_building_church
+              }
+
+        
         return r.mine()
     }
 
@@ -197,7 +235,11 @@ function decode(message,signallen){
     let mineID2=parseInt(binary.substring(bitsToGive+2,bitsToGive+2+bitsToGive),2);   
     return [mineID,mineID2,action]
 }
-
+//find where to build the church
+function findBestChurchLoc(r)
+{
+    return
+}
 // update mine locations based on distance from 
 function updateMines(r) {
     for (let j = 0; j<r.karbonite_map.length; j++) {
