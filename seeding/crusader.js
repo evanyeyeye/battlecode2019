@@ -56,4 +56,6 @@ function moveParallel(r, cx, cy, tx, ty) {
 function movePerpendicular(r, cx, cy, tx, ty) {
     const dy = tx - cx
     const dx = ty - cy
+    const bx = cx - r.me.x
+    const by = cy - r.me.y
 }

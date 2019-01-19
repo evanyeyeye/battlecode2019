@@ -208,7 +208,7 @@ export class AStar {
             return this.map[y][x]
         }
         else if (robotID === -1) {  // we can't see here
-            if (this.heatMap[y][x] !== null && 0 < this.heatMap[y][x][1] < 20) {  // we saw before a unit that could move
+            if (this.heatMap[y][x] !== null && 0 < this.heatMap[y][x][1] < 100) {  // we saw before a unit that could move
                 this.heatMap[y][x] --  // decrement activity
                 return false
             }
@@ -220,13 +220,13 @@ export class AStar {
 
         else {  // we can see a robot here
             if (this.r.getRobot(robotID).unit == SPECS.CASTLE || this.r.getRobot(robotID).unit == SPECS.CHURCH) {  // normally avoid castles
-                this.heatMap[y][x] = [robotID, 20]  // permanently avoid 20
+                this.heatMap[y][x] = [robotID, 100]  // permanently avoid 100
                 return false
             }
 
             if (this.heatMap[y][x] !== null && robotID === this.heatMap[y][x][0]) {  // we saw the same robot here before
                 // this.r.log("I'm seeing the same robot at " + x + "," + y + ". id is: " + robotID)
-                if (this.heatMap[y][x][1] < 10)
+                if (this.heatMap[y][x][1] < 100)
                     this.heatMap[y][x][1] += 10  // lets not move back for a while
                 return false
             }
