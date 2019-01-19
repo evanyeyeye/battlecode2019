@@ -174,7 +174,7 @@ export function pilgrimTurn(r) {
                             temp_min+=temp_distance
                         }
                         //r.log(temp_min)
-                        if (temp_min<cur_min){
+                        if (temp_min<=cur_min){
                             cur_min=temp_min
                             cur_best=posibleDirection
                         }
