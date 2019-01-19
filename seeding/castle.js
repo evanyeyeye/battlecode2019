@@ -137,14 +137,14 @@ export function castleTurn(r) {
     }
 
 
-    // if (!danger && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
-    //     var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-    //     if (buildDirection != null) {
-    //         r.log("Built Prophet")
+    if (danger && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
+        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+        if (buildDirection != null) {
+            r.log("Built Prophet")
           
-    //         return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
-    //     }
-    // }
+            return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+        }
+    }
    
 /*
     // build crusaders
@@ -158,6 +158,8 @@ export function castleTurn(r) {
         }
     }
 	*/
+
+    
     return
 }
 
