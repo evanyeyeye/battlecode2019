@@ -3,6 +3,7 @@ import utils from './utils.js'
 
 const KARBONITE =  0
 const FUEL = 1
+
 const action_attack_mine="00"  //mine or attack depends on unit
 const action_zone_scout="01" //zone or scout depends on the unit
 const action_change_attack_mine="10" //change fro mcurrent action to attack
