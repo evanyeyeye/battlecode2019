@@ -132,7 +132,7 @@ export function castleTurn(r) {
     // ---------- START BUILDING STUFF ----------
 
     // build pilgrims
-    if (!danger && r.me.turn > 1 && pilgrimCounter < (Math.floor(idealNumPilgrims/1.5)+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+    if (!danger && r.me.turn > 1 && pilgrimCounter < (Math.ceil(idealNumPilgrims/1)+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to
@@ -140,7 +140,9 @@ export function castleTurn(r) {
             if (mineID !== null){
                 r.log("Built Pilgrim, trying to send it to " + mineID)
                 // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
-                r.signal(encodeSignal(mineID,action_attack_mine,16))  // tell the pilgrim which mine to go to, dictionary keys are strings
+                let signalToSend=encodeSignal(mineID,0,action_attack_mine,16)                
+                r.log(signalToSend)
+                r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                 r.castleTalk(parseInt(mineID) + 100)  // let other castles know
                 mineStatus.get(parseInt(mineID)).activity += 10  // update yourself
                 pilgrimCounter++
@@ -189,7 +191,7 @@ function findBuildDirection(r, x, y) {
 function encodeSignal(mineID,mineID2,action,signallen){
     let encoded_mine=mineID.toString(2);
     let encoded_mine2=mineID2.toString(2);
-    let totalMines=sortedMines.length // decide how many bits to give to mines
+    let totalMines=mineStatus.size // decide how many bits to give to mines
     let bitsToGive=Math.ceil(Math.log2(totalMines)) // how many bits to give
     let message=""   
     //fill up the empty spots 
