@@ -2,9 +2,9 @@ import {SPECS} from 'battlecode'
 import utils from './utils.js'
 import comms from './comms.js'
 
-const KARBONITE =  0
-const FUEL = 1
 
+// const KARBONITE =  0
+// const FUEL = 1
 
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
@@ -15,7 +15,6 @@ const sortedMines = []  // sorted array of mineIDs ascending by distance
 
 const castleLocations = {}  // team: array of 1-3 locations
 
-var numMines = 0  // numMines is number of close mines
 var idealNumPilgrims = 0
 var numTeamCastles = 0  // number of castles on our team. For now, split mines and pilgrim production
 
@@ -24,29 +23,26 @@ var prophetCounter = 0
 var crusaderCounter = 0
 
 var recievedMessages = {}
-var numFriendlyCastles = 1
 
 var mine_range = 20
 
 export function castleTurn(r) {
 
     if (r.me.turn === 1) {
-
         r.log("I am a Castle")
 
         initializeMines(r)  // populates mineStatus and sortedMines
-
-        numMines = calculateNumMines(r, 25);  // this calculates number of mines within range
-
-        r.log("There are " + mineStatus.size + " mines")
+        r.log("There are " + mineStatus.size + " mines")        
 
         idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
-
+        
         r.castleTalk(comms.CASTLE_GREETING)  // let other castles know you exist
-
     }
 
-    // if (r.me.)
+    if (r.me.turn == 2) {
+        findCastleLocations(r)  // populates castleLocations
+    }
+
     // mine_range = Math.max(mine_range, r.map.length + r.me.turn / 20)
 
     // ---------- REGULAR BOOKKEEPING AND COMMUNICATIONS ----------
@@ -76,8 +72,6 @@ export function castleTurn(r) {
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
                 if (r.me.turn <= 2 && message === comms.CASTLE_GREETING) {  // probably another castle telling us it exists
-                    numFriendlyCastles += 1
-                    r.log("UPDATE friendly castles to " + numFriendlyCastles)
                     idealNumPilgrims = calculateNumPilgrims(r)
                 }
                 else if (message >= 100) {  // castle is indicating that it sent a pilgrim to this mine
@@ -206,15 +200,15 @@ function initializeMines(r) {  // deterministically label mines, store distances
     })
 }
 
-// returns number of mines within a certain range of the castle
-function calculateNumMines(r, range) {
-    let closeMineCount = 0
-    for (const mineID of sortedMines) {
-        if (mineStatus.get(mineID).distance < range)
-            closeMineCount++
-        else break
+// finds other allied castles, then uses symmetry to find enemy castles
+function findCastleLocations(r) {
+    for (const robot of r.getVisibleRobots()) {
+        r.log("" + robot.team)
+        const message = robot.castle_talk
+        if (message === comms.CASTLE_GREETING) {
+            // r.log("" + robot.team)
+        }
     }
-    return closeMineCount
 }
 
 // returns conservative estimate of number of pilgrims we need to have to mine at every mine
@@ -223,8 +217,8 @@ function calculateNumMines(r, range) {
 function calculateNumPilgrims(r) {
     let num = 0
   //  r.log("sortedmines"+sortedMines)
-    for (const entry of sortedMines) {  // take only a portion of the closest mines
-        const mine = mineStatus.get(entry)
+    for (const mineID of sortedMines) {  // take only a portion of the closest mines
+        const mine = mineStatus.get(mineID)
         if (mine.distance < mine_range) {
            // r.log("distance is "+mine.distance)
             num ++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
