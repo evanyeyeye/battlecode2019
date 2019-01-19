@@ -28,7 +28,7 @@ var crusaderCounter = 0
 var recievedMessages = {}
 var numFriendlyCastles = 1
 
-var mine_range = 25
+var mine_range = 20
 
 export function castleTurn(r) {
 
@@ -119,14 +119,25 @@ export function castleTurn(r) {
 
     // build pilgrims
     if (!danger && r.me.turn > 1 && pilgrimCounter < idealNumPilgrims+2 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+        if (r.me.turn <50||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
+        { 
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to
             const mineID = nextMineID(r, (r.me.turn >= mineStatus.size + 1))
             if (mineID !== null){
+
                 r.log("Built Pilgrim, trying to send it to " + mineID)
                 // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
-                let signalToSend=encodeSignal(mineID,0,action_attack_mine,16)                
+                let signalToSend=encodeSignal(mineID,0,action_attack_mine,16)  
+                if (pilgrimCounter>=idealNumPilgrims)
+                {
+               signalToSend=encodeSignal(mineID,0,action_change_zone_build ,16)  
+               r.log("going for a church at "+mineID)
+                }
+                
+               
+                           
                 r.log(signalToSend)
                 r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                 r.castleTalk(parseInt(mineID) + 100)  // let other castles know
@@ -136,15 +147,18 @@ export function castleTurn(r) {
             }
         }
     }
+    }
 
 
     if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
+          if (r.me.turn <50||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
          var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
          if (buildDirection != null) {
             r.log("Built Prophet")
           
              return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
          }
+     }
      }
    
 /*
@@ -239,9 +253,11 @@ function calculateNumMines(r, range) {
 // Theres usually different ratios of mines i think, but for every 2-mine grouping it would be distance * 2 / 10 + 2 i think
 function calculateNumPilgrims(r) {
     let num = 0
-    // r.log(sortedMines)
-    for (const entry of sortedMines.slice(0,20)) {  // take only a portion of the closest mines
-        if (entry[1] < mine_range) {
+  //  r.log("sortedmines"+sortedMines)
+    for (const entry of sortedMines) {  // take only a portion of the closest mines
+        const mine = mineStatus.get(entry)
+        if (mine.distance < mine_range) {
+           // r.log("distance is "+mine.distance)
             num ++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
         }
     }

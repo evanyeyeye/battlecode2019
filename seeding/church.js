@@ -46,17 +46,14 @@ export function churchTurn(r) {
     let enemyLocation = {}
     let closestEnemy = -1
     let minesToIncrement = new Set()  // we want steady numbers
-    for (const robot of r.getVisibleRobots()) {           
-              
-            
-        if (robot.team === r.me.team&& robot.id !== r.me.id) {
+    for (const robot of r.getVisibleRobots()) { 
+    	if (robot.team === r.me.team&& robot.id !== r.me.id) {
         	if (robot.unit!=SPECS.UNITS[SPECS.PILGRIM])
         	{
             allyCount += 1
        		}
        		else{
        		pilgrimCounter++;
-
        		}
         }
          else if (robot.team !== r.me.team) {
@@ -77,6 +74,8 @@ export function churchTurn(r) {
 
     // build pilgrims
     if (!danger && r.me.turn > 1 && pilgrimCounter < idealNumPilgrims+1 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+		if (r.me.turn <50||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
+        {       
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to
@@ -92,16 +91,19 @@ export function churchTurn(r) {
                 return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
             }
         }
+        }
     }
 
 
     if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
+        if (r.me.turn <50||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
          var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
          if (buildDirection != null) {
             r.log("Built Prophet")
           
              return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
          }
+     }
      }
    
 /*
