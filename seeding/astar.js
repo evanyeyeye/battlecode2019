@@ -116,29 +116,31 @@ export class AStar {
             if (v.x == target[0] && v.y == target[1]) {  // we found the target
                 return v
             }
-            for (const nextLoc of this.getChildren(v, target, radius)) {
-                const dx = nextLoc[0] - v.x  // terrible, optimize later
-                const dy = nextLoc[1] - v.y
-                let dg = 1
-                if (fast)
-                    dg = Math.abs(dx) + Math.abs(dy)  // worse
-                else
-                    dg = dx*dx + dy*dy  // even worse!
-                const d = utils.getManhattanDistance(nextLoc[0], nextLoc[1], target[0], target[1])
-                if (nodeMap[nextLoc[1]][nextLoc[0]] === null) {  // node has not been visited
-                    // this.r.log("making a new node")
-                    const a = new Node(nextLoc[0], nextLoc[1], v, v.g + dg, d)
-                    nodeMap[nextLoc[1]][nextLoc[0]] = a
-                    fringe.push(a)
-                }
-                else {
-                    if (nodeMap[nextLoc[1]][nextLoc[0]].f > (v.g + dg + d)) {  // node has not been visited or we have a cheaper way
-                        const a = nodeMap[nextLoc[1]][nextLoc[0]]
-                        a.parent = v
-                        a.g = v.g + dg
-                        a.h = d
-                        a.f = a.g + a.h
+            for (const [dx, dy] of this.getDirections(v, radius, fast)) {
+                const x = v.x + dx
+                const y = v.y + dy
+                if (utils.isEmpty(this.r, x, y) || (x == target[0] && y == target[1] && this.isPassable(x, y))) {  // either empty, or passable and is target
+                    let dg = 1
+                    if (fast)
+                        dg = Math.abs(dx) + Math.abs(dy)  // bad
+                    else
+                        dg = dx*dx + dy*dy  // even worse!
+                    const d = utils.getManhattanDistance(x, y, target[0], target[1])
+                    if (nodeMap[y][x] === null) {  // node has not been visited
+                        // this.r.log("making a new node")
+                        const a = new Node(x, y, v, v.g + dg, d)
+                        nodeMap[y][x] = a
                         fringe.push(a)
+                    }
+                    else {
+                        if (nodeMap[y][x].f > (v.g + dg + d)) {  // node has not been visited or we have a cheaper way
+                            const a = nodeMap[y][x]
+                            a.parent = v
+                            a.g = v.g + dg
+                            a.h = d
+                            a.f = a.g + a.h
+                            fringe.push(a)
+                        }
                     }
                 }
             }
@@ -147,33 +149,30 @@ export class AStar {
         return null
     }
 
-    // find squares you can move to from a node, return array of arrays
-    getChildren(node, target, radius = 2) {  // i don't think radius like this works with a*
+    // get directions depending on radius, ordered with radius and fast. returns array of arrays
+    getDirections(node, radius, fast) {
         let directions = utils.directionsWithDiagonalPriority
-        if (radius >= 4)
-            directions = four.concat(directions)
-        if (radius >= 5)
-            directions = five.concat(directions)
-        if (radius >= 8)
-            directions = eight.concat(directions)
-        if (radius >= 9)
-            directions = nine.concat(directions)
-        let children = []
-        for (const dir of directions) {
-            const x = node.x + dir[0]
-            const y = node.y + dir[1]
-            if (x == target[0] && y == target[1]) {  // ignore robots on target so we dont stop
-                if (this.isPassable(x, y)) {
-                    children.push([x, y])
-                }
-            }
-            else {
-                if (utils.isEmpty(this.r, x, y)) {  // this takes into account robots
-                    children.push([x, y])
-                }
-            }
+        if (fast) {
+            if (radius >= 4)
+                directions = four.concat(directions)
+            if (radius >= 5)
+                directions = five.concat(directions)
+            if (radius >= 8)
+                directions = eight.concat(directions)
+            if (radius >= 9)
+                directions = nine.concat(directions)
         }
-        return children
+        else {
+            if (radius >= 4)
+                directions = directions.concat(four)
+            if (radius >= 5)
+                directions = directions.concat(five)
+            if (radius >= 8)
+                directions = directions.concat(eight)
+            if (radius >= 9)
+                directions = directions.concat(nine)
+        }
+        return directions
     }
 
     // return array of dx, dy to advance. Should implement some basic caching + recalculating or something
