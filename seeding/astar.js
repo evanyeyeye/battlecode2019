@@ -14,19 +14,15 @@ class PriorityQueue {
         this._heap = []
         this._comparator = comparator
     }
-
     size() {
         return this._heap.length
     }
-
     isEmpty() {
         return this.size() == 0
     }
-
     peek() {
         return this._heap[top]
     }
-
     push(...values) {  // "..." basically means indefinite arguments
         values.forEach(value => {
             this._heap.push(value);
@@ -34,7 +30,6 @@ class PriorityQueue {
         })
         return this.size()
     }
-
     pop() {
         const poppedValue = this.peek()
         const bottom = this.size() - 1
@@ -45,22 +40,18 @@ class PriorityQueue {
         this._siftDown()
         return poppedValue
     }
-
     replace(value) {
         const replacedValue = this.peek()
         this._heap[top] = value
         this._siftDown()
         return replacedValue
     }
-
     _greater(i, j) {
         return this._comparator(this._heap[i], this._heap[j])
     }
-
     _swap(i, j) {
         [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]]
     }
-
     _siftUp() {
         let node = this.size() - 1
         while (node > top && this._greater(node, parent(node))) {  // not sorted as heap
@@ -68,7 +59,6 @@ class PriorityQueue {
             node = parent(node)  // move up
         }
     }
-
     _siftDown() {
         let node = top
         while (
@@ -90,14 +80,13 @@ const nine = [[3, 0], [-3, 0], [0, 3], [0, -3]]
 
 // taken from last year python a*
 class Node {
-	constructor(x, y, parent, g, h, multiple = 1) {
+	constructor(x, y, parent, g, h) {
 		this.x = x
 		this.y = y
         this.parent = parent
 		this.f = g + h  // cost to minimize
         this.g = g
         this.h = h
-		this.multiple = multiple  // idk what this is for
 	}
 
     lessThan(other) {
@@ -113,33 +102,76 @@ export class AStar {
 	}
 
     findPath(target, radius = 2, fast = false) {  // array targets, returns a node object. Radius = max squared movement radius. Fast = ignore squared cost
+        const nodeMap = utils.generateMatrix(this.map[0].length, this.map.length)  // holds null or nodes, for updating cost/parent of nodes
+
         const fringe = new PriorityQueue((a,b) => a.lessThan(b))
-        const closed = new Set()
+        // const closed = new Set()
         const source = new Node(this.r.me.x, this.r.me.y, null, 0, utils.getManhattanDistance(this.r.me.x, this.r.me.y, target[0], target[1]))
         fringe.push(source)
+
+        nodeMap[source.y][source.x] = source
         while (fringe.size() > 0) {
             const v = fringe.pop()
-            const strLoc = [v.x, v.y].toString()
-            if (closed.has(strLoc))
+
+            // const strLoc = [v.x, v.y].toString()
+            // if (closed.has(strLoc))
+            //     continue
+            // closed.add(strLoc)
+            // if (v.x == target[0] && v.y == target[1]) {  // we found the target
+            //     // this.r.log("size of searched nodes is around " + closed.size + fringe.size())
+            //     return v
+            // }
+            // for (const nextLoc of this.getChildren(v, target, radius)) {  // need to add node saving for variable radius to actually work
+            //     if (!closed.has(nextLoc.toString())) {
+            //         const dx = nextLoc[0] - v.x  // terrible, optimize later
+            //         const dy = nextLoc[1] - v.y
+            //         let dg = 1
+            //         if (fast)
+            //             dg = dx*dx + dy*dy  // even worse!
+            //         else
+            //             dg = dx + dy
+            //         const a  = new Node(nextLoc[0], nextLoc[1], v, v.g + dg, utils.getManhattanDistance(nextLoc[0], nextLoc[1], target[0], target[1]))  // need to modify g if moving with radius > 2
+            //         fringe.push(a)
+            //     }
+            // }
+            
+            if (nodeMap[v.y][v.x] && nodeMap[v.y][v.x].f > v.f)  // already have a lower cost way to get here
                 continue
-            closed.add(strLoc)
+            // nodeMap[v.y][v.x] = v
             if (v.x == target[0] && v.y == target[1]) {  // we found the target
-                // this.r.log("size of searched nodes is around " + closed.size + fringe.size())
                 return v
             }
-            for (const nextLoc of this.getChildren(v, target, radius)) {  // need to add node saving for variable radius to actually work
-                if (!closed.has(nextLoc.toString())) {
-                    const dx = nextLoc[0] - v[0]  // terrible, optimize later
-                    const dy = nextLoc[1] - v[1]
-                    let dg = 1
-                    if (fast)
-                        dg = dx*dx + dy*dy  // even worse!
-                    else
-                        dg = dx + dy
-                    const a  = new Node(nextLoc[0], nextLoc[1], v, v.g + dg, utils.getManhattanDistance(nextLoc[0], nextLoc[1], target[0], target[1]))  // need to modify g if moving with radius > 2
+            for (const nextLoc of this.getChildren(v, target, radius)) {
+                const dx = nextLoc[0] - v.x  // terrible, optimize later
+                const dy = nextLoc[1] - v.y
+                let dg = 1
+                if (fast)
+                    dg = dx*dx + dy*dy  // even worse!
+                else
+                    dg = Math.abs(dx) + Math.abs(dy)
+                const d = utils.getManhattanDistance(nextLoc[0], nextLoc[1], target[0], target[1])
+                if (nodeMap[nextLoc[1]][nextLoc[0]] === null) {  // node has not been visited
+                    // this.r.log("making a new node")
+                    // this.r.log(nodeMap)
+                    const a = new Node(nextLoc[0], nextLoc[1], v, v.g + dg, d)
+                    // this.r.log("v.g " + v.g + " a.f: " + a.f + " d: " + d + " dg: " + dg + " dx: " + dx + " v.x " + v.x + " nextLoc: " + nextLoc)
+                    nodeMap[nextLoc[1]][nextLoc[0]] = a
                     fringe.push(a)
                 }
+                else {
+                    // this.r.log("THERE IS A NODE THERE, f of: " + nodeMap[nextLoc[1]][nextLoc[0]].f)
+                    if (nodeMap[nextLoc[1]][nextLoc[0]].f > (v.g + dg + d)) {  // node has not been visited or we have a cheaper way
+                        // this.r.log("ACTUALLY REPLACING A NODE")
+                        const a = nodeMap[nextLoc[1]][nextLoc[0]]
+                        a.parent = v
+                        a.g = v.g + dg
+                        a.h = d
+                        a.f = a.g + a.h
+                        fringe.push(a)
+                    }
+                }
             }
+
         }
         return null
     }
