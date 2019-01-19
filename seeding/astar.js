@@ -99,9 +99,16 @@ export class AStar {
 	constructor(r, map) {
 		this.r = r
 		this.map = map
+        this.heatMap = utils.generateMatrix(this.map[0].length, this.map.length)  // activity is back! null if nothing, else is [robotid, activity of that id]
+
+        // future:
+        // caching
+        // fix edge case where u see a robot on other side of thin wall, move away, come back, etc. light caching of robot positions outside vision range
+        // support for fast moving to castle?
+        // edge case double move to castle across wall
 	}
 
-    findPath(target, radius = 2, fast = false) {  // array targets, returns a node object. Radius = max squared movement radius. Fast = ignore squared cost
+    findPath(target, radius = SPECS.UNITS[this.r.unit].SPEED, fast = false) {  // array targets, returns a node object. Radius = max squared movement radius. Fast = ignore squared cost
         const nodeMap = utils.generateMatrix(this.map[0].length, this.map.length)  // holds null or nodes, for updating cost/parent of nodes
 
         const fringe = new PriorityQueue((a,b) => a.lessThan(b))
@@ -119,25 +126,24 @@ export class AStar {
             for (const [dx, dy] of this.getDirections(v, radius, fast)) {
                 const x = v.x + dx
                 const y = v.y + dy
-                if (utils.isEmpty(this.r, x, y) || (x == target[0] && y == target[1] && this.isPassable(x, y))) {  // either empty, or passable and is target
-                    let dg = 1
+                if (this.probablyIsEmpty(x, y) || (x == target[0] && y == target[1] && this.isPassable(x, y))) {  // either empty, or passable and is target
+                    let dg = 1  // additional cost to move to the next tile
                     if (fast)
                         dg = Math.abs(dx) + Math.abs(dy)  // bad
                     else
                         dg = dx*dx + dy*dy  // even worse!
-                    const d = utils.getManhattanDistance(x, y, target[0], target[1])
+                    const h = utils.getManhattanDistance(x, y, target[0], target[1])  // distance from target
                     if (nodeMap[y][x] === null) {  // node has not been visited
-                        // this.r.log("making a new node")
-                        const a = new Node(x, y, v, v.g + dg, d)
+                        const a = new Node(x, y, v, v.g + dg, h)
                         nodeMap[y][x] = a
                         fringe.push(a)
                     }
                     else {
-                        if (nodeMap[y][x].f > (v.g + dg + d)) {  // node has not been visited or we have a cheaper way
+                        if (nodeMap[y][x].f > (v.g + dg + h)) {  // we have a cheaper way
                             const a = nodeMap[y][x]
                             a.parent = v
                             a.g = v.g + dg
-                            a.h = d
+                            a.h = h
                             a.f = a.g + a.h
                             fringe.push(a)
                         }
@@ -187,6 +193,48 @@ export class AStar {
     }
 
     isPassable(x, y) {
-        return this.r.map[y][x]
+        if (x < 0 || x >= this.map[0].length || y < 0 || y >= this.map.length)
+            return false
+        return this.map[y][x]
+    }
+
+    // really messy! uses heatmap to estimate about robots out of range
+    probablyIsEmpty(x, y) {
+        if (x < 0 || x >= this.map[0].length || y < 0 || y >= this.map.length)  // out of bounds
+            return false
+        const robotID = this.r.getVisibleRobotMap()[y][x]
+        if (robotID === 0) {  // there is no robot here
+            this.heatMap[y][x] = null
+            return this.map[y][x]
+        }
+        else if (robotID === -1) {  // we can't see here
+            if (this.heatMap[y][x] !== null && 0 < this.heatMap[y][x][1] < 100) {  // we saw before a unit that could move
+                this.heatMap[y][x] --  // decrement activity
+                return false
+            }
+            else {
+                this.heatMap[y][x] = null  // reset the location
+                return this.map[y][x]
+            }
+        }
+
+        else {  // we can see a robot here
+            if (this.r.getRobot(robotID).unit == SPECS.CASTLE || this.r.getRobot(robotID).unit == SPECS.CHURCH) {  // normally avoid castles
+                this.heatMap[y][x] = [robotID, 100]  // permanently avoid 100
+                return false
+            }
+
+            if (this.heatMap[y][x] !== null && robotID === this.heatMap[y][x][0]) {  // we saw the same robot here before
+                // this.r.log("I'm seeing the same robot at " + x + "," + y + ". id is: " + robotID)
+                if (this.heatMap[y][x][1] < 100)
+                    this.heatMap[y][x][1] += 10  // lets not move back for a while
+                return false
+            }
+
+            // there is a robot here, and we haven't seen it before
+            // this.r.log("there is a new robot here, before: " + this.heatMap[y][x] + " new: " + robotID)
+            this.heatMap[y][x] = [robotID, 1]
+            return this.map[y][x]  // even if we can see it, its our first time. lets try to move there anyway
+        }
     }
 }
