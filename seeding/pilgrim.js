@@ -159,8 +159,8 @@ export function pilgrimTurn(r) {
                 //find best location
                 if (churchDirections.length>0)
                 {
-                    r.log(churchDirections)
-                    r.log(nearmines)
+                    //r.log(churchDirections)
+                    //r.log(nearmines)
                     let cur_best=null
                     let cur_min=9999
                     let temp_min=0
@@ -168,17 +168,23 @@ export function pilgrimTurn(r) {
                     {
                         temp_min=0
                         for (let locations_mine of nearmines){
-                            temp_min+=utils.getManhattanDistance(r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],locations_mine[0],locations_mine[1])
+                            //r.log([r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],locations_mine[0],locations_mine[1]])
+                            let temp_distance = utils.getManhattanDistance(r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],parseInt(locations_mine[0],10),parseInt(locations_mine[1],10))
+                           // r.log(temp_distance)
+                            temp_min+=temp_distance
                         }
-                        r.log(temp_min)
+                        //r.log(temp_min)
                         if (temp_min<cur_min){
                             cur_min=temp_min
                             cur_best=posibleDirection
                         }
                     }
                     r.log(cur_best)
-                    r.log("church is built !!!!!! nice job")
-                    return r.buildUnit(SPECS.CHURCH, cur_best[0], cur_best[1])
+                    if (r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
+                    {
+                        r.log("church is built !!!!!! nice job")
+                        return r.buildUnit(SPECS.CHURCH, cur_best[0], cur_best[1])
+                    }
                 }
 
 
