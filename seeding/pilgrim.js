@@ -53,21 +53,7 @@ export function pilgrimTurn(r) {
         }
     }
 
-    //check if someone else already made church near me
-    if (curAction==action_building_church)
-        {
-           let seechurch=false;
-        for (let otherRobot of r.getVisibleRobots()) {  
-            if (otherRobot.team == r.me.team&&(otherRobot.unit==SPECS.CHURCH||otherRobot.unit==SPECS.CASTLE)&&utils.getSquaredDistance(r.me.x,r.me.y,otherRobot.x,otherRobot.y)<49){
-                curAction=action_attack_mine
-                seechurch=true
-            }            
-            }
-              if (seechurch==false){
-                bestChurchLoc=findBestChurchLoc(r)
-                curAction=action_building_church
-              }
-        }
+    
 
 
     let state = MINE  // idk if this is going to be useful
@@ -110,11 +96,11 @@ export function pilgrimTurn(r) {
 
         // return to church/castle
         
-        // let pf = r.pm.getPathField(baseLocation)
-        // if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
-        //     let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-        //     return utils.tryMoveRotate(r, test)
-        // }
+         let pf = r.pm.getPathField(baseLocation)
+         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
+             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
+             return utils.tryMoveRotate(r, test)
+         }
         
         // broken a*
         
@@ -166,10 +152,37 @@ export function pilgrimTurn(r) {
                 seechurch=true
             }            
             }
+            //don't see church near me so finding the right place to build mines to minimize movment
               if (seechurch==false){
-                bestChurchLoc=findBestChurchLoc(r)
-                curAction=action_building_church
-              }
+                let churchDirections=findBuildDirections(r,r.me.x,r.me.y)               
+                let nearmines=findNearMine(r,6)
+                //find best location
+                if (churchDirections.length>0)
+                {
+                    r.log(churchDirections)
+                    r.log(nearmines)
+                    let cur_best=null
+                    let cur_min=9999
+                    let temp_min=0
+                    for (let posibleDirection of churchDirections)
+                    {
+                        temp_min=0
+                        for (let locations_mine of nearmines){
+                            temp_min+=utils.getManhattanDistance(r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],locations_mine[0],locations_mine[1])
+                        }
+                        r.log(temp_min)
+                        if (temp_min<cur_min){
+                            cur_min=temp_min
+                            cur_best=posibleDirection
+                        }
+                    }
+                    r.log(cur_best)
+                    r.log("church is built !!!!!! nice job")
+                    return r.buildUnit(SPECS.CHURCH, cur_best[0], cur_best[1])
+                }
+
+
+                }
 
         
         return r.mine()
@@ -235,11 +248,7 @@ function decode(message,signallen){
     let mineID2=parseInt(binary.substring(bitsToGive+2,bitsToGive+2+bitsToGive),2);   
     return [mineID,mineID2,action]
 }
-//find where to build the church
-function findBestChurchLoc(r)
-{
-    return
-}
+
 // update mine locations based on distance from 
 function updateMines(r) {
     for (let j = 0; j<r.karbonite_map.length; j++) {
@@ -286,6 +295,8 @@ function checkMine(r) {
     }
 }
 
+
+
 // check where the closest safe mine is 
 function closestSafeMine(r) {
 	checkMine(r)  // update the status of mines
@@ -313,8 +324,26 @@ function closestSafeMine(r) {
     }
     return target.split(",").map((n) => parseInt(n))
 }
+function findNearMine(r,min_dis){
+    let mineList=[]
+    let merged = Object.assign({},karboniteMines, fuelMines);
+    for (const [location, distance] of Object.entries(merged)) {
+        if (distance < min_dis) {
+           mineList.push(location)
+            
+        }
+    }
+    return mineList
 
-// TODO: build churches
-function findBuildLocation(r) {
-    return
+
 }
+function findBuildDirections(r, x, y) {
+    let buildingDirections=[]
+    for (const dir of utils.directions) {
+        if (utils.isEmpty(r, x + dir[0], y + dir[1])) {
+            buildingDirections.push(dir)
+        }
+    }
+    return buildingDirections
+}
+
