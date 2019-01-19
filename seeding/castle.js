@@ -200,13 +200,10 @@ function encodeSignal(mineID,mineID2,action,signallen){
     return encoded
 }
 
-function initializeMines(r) {  // deterministically label mines, build manhattan distances for early use
-=======
 // populate mineStatus: deterministically label mines, store location & distance from castle
 // populate sortedMines: sort mineIDs by distance
 function initializeMines(r) {  // deterministically label mines, store distances from castle
     const pf = r.pm.getPathField([r.me.x, r.me.y])  // generate pathfield from castle location
->>>>>>> 0c1267fd866a2625a78f9ef4a472852d43506ce0
     let mineID = 0
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
