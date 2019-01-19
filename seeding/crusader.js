@@ -53,9 +53,24 @@ function moveParallel(r, cx, cy, tx, ty) {
 
 }
 
-function movePerpendicular(r, cx, cy, tx, ty) {
-    const dy = tx - cx
-    const dx = ty - cy
-    const bx = cx - r.me.x
+function movePerpendicular(r, cx, cy, tx, ty, scale = 5) {
+    const px = tx - cx  // parallel change
+    const py = ty - cy
+    const bx = cx - r.me.x  // offset from base
     const by = cy - r.me.y
+    const dist = utils.getManhattanDistance(cx, cy, tx, ty)
+    let dx = 0
+    let dy = 0
+    if (by > 0) {
+        dx = -py
+        dy = px
+    }
+    else {
+        dx = py
+        dy = -px
+    }
+    if (px < 0) {
+        dx = -dx
+        dy = -dy
+    }
 }
