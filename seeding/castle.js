@@ -7,7 +7,7 @@ const FUEL = 1
 const action_attack_mine="00"  //mine or attack depends on unit
 const action_zone_scout="01" //zone or scout depends on the unit
 const action_change_attack_mine="10" //change fro mcurrent action to attack
-const action_change_zone_scout="11" //change from current action zonescout
+const action_change_zone_build="11" //change from current action zonescout
 
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
@@ -91,7 +91,8 @@ export function castleTurn(r) {
                     minesToIncrement.add(message)
                 }
             }
-        } else if (robot.team === r.me.team) {
+        } 
+         if (robot.team === r.me.team) {
             allyCount += 1
         } else if (robot.team !== r.me.team) {
             enemyCount += 1
@@ -117,7 +118,7 @@ export function castleTurn(r) {
     // ---------- START BUILDING STUFF ----------
 
     // build pilgrims
-    if (!danger && r.me.turn > 1 && pilgrimCounter < (Math.ceil(idealNumPilgrims/1)+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+    if (!danger && r.me.turn > 1 && pilgrimCounter < idealNumPilgrims+2 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to
@@ -137,14 +138,14 @@ export function castleTurn(r) {
     }
 
 
-    // if (!danger && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
-    //     var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-    //     if (buildDirection != null) {
-    //         r.log("Built Prophet")
+    if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
+         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+         if (buildDirection != null) {
+            r.log("Built Prophet")
           
-    //         return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
-    //     }
-    // }
+             return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+         }
+     }
    
 /*
     // build crusaders
@@ -239,7 +240,7 @@ function calculateNumMines(r, range) {
 function calculateNumPilgrims(r) {
     let num = 0
     // r.log(sortedMines)
-    for (const entry of sortedMines.slice(0, mineStatus.size / numFriendlyCastles / 2)) {  // take only a portion of the closest mines
+    for (const entry of sortedMines.slice(0,20)) {  // take only a portion of the closest mines
         if (entry[1] < mine_range) {
             num ++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
         }
