@@ -105,39 +105,14 @@ export class AStar {
         const nodeMap = utils.generateMatrix(this.map[0].length, this.map.length)  // holds null or nodes, for updating cost/parent of nodes
 
         const fringe = new PriorityQueue((a,b) => a.lessThan(b))
-        // const closed = new Set()
         const source = new Node(this.r.me.x, this.r.me.y, null, 0, utils.getManhattanDistance(this.r.me.x, this.r.me.y, target[0], target[1]))
         fringe.push(source)
 
         nodeMap[source.y][source.x] = source
         while (fringe.size() > 0) {
             const v = fringe.pop()
-
-            // const strLoc = [v.x, v.y].toString()
-            // if (closed.has(strLoc))
-            //     continue
-            // closed.add(strLoc)
-            // if (v.x == target[0] && v.y == target[1]) {  // we found the target
-            //     // this.r.log("size of searched nodes is around " + closed.size + fringe.size())
-            //     return v
-            // }
-            // for (const nextLoc of this.getChildren(v, target, radius)) {  // need to add node saving for variable radius to actually work
-            //     if (!closed.has(nextLoc.toString())) {
-            //         const dx = nextLoc[0] - v.x  // terrible, optimize later
-            //         const dy = nextLoc[1] - v.y
-            //         let dg = 1
-            //         if (fast)
-            //             dg = dx*dx + dy*dy  // even worse!
-            //         else
-            //             dg = dx + dy
-            //         const a  = new Node(nextLoc[0], nextLoc[1], v, v.g + dg, utils.getManhattanDistance(nextLoc[0], nextLoc[1], target[0], target[1]))  // need to modify g if moving with radius > 2
-            //         fringe.push(a)
-            //     }
-            // }
-            
             if (nodeMap[v.y][v.x] && nodeMap[v.y][v.x].f > v.f)  // already have a lower cost way to get here
                 continue
-            // nodeMap[v.y][v.x] = v
             if (v.x == target[0] && v.y == target[1]) {  // we found the target
                 return v
             }
@@ -146,22 +121,18 @@ export class AStar {
                 const dy = nextLoc[1] - v.y
                 let dg = 1
                 if (fast)
-                    dg = dx*dx + dy*dy  // even worse!
+                    dg = Math.abs(dx) + Math.abs(dy)  // worse
                 else
-                    dg = Math.abs(dx) + Math.abs(dy)
+                    dg = dx*dx + dy*dy  // even worse!
                 const d = utils.getManhattanDistance(nextLoc[0], nextLoc[1], target[0], target[1])
                 if (nodeMap[nextLoc[1]][nextLoc[0]] === null) {  // node has not been visited
                     // this.r.log("making a new node")
-                    // this.r.log(nodeMap)
                     const a = new Node(nextLoc[0], nextLoc[1], v, v.g + dg, d)
-                    // this.r.log("v.g " + v.g + " a.f: " + a.f + " d: " + d + " dg: " + dg + " dx: " + dx + " v.x " + v.x + " nextLoc: " + nextLoc)
                     nodeMap[nextLoc[1]][nextLoc[0]] = a
                     fringe.push(a)
                 }
                 else {
-                    // this.r.log("THERE IS A NODE THERE, f of: " + nodeMap[nextLoc[1]][nextLoc[0]].f)
                     if (nodeMap[nextLoc[1]][nextLoc[0]].f > (v.g + dg + d)) {  // node has not been visited or we have a cheaper way
-                        // this.r.log("ACTUALLY REPLACING A NODE")
                         const a = nodeMap[nextLoc[1]][nextLoc[0]]
                         a.parent = v
                         a.g = v.g + dg
@@ -179,14 +150,14 @@ export class AStar {
     // find squares you can move to from a node, return array of arrays
     getChildren(node, target, radius = 2) {  // i don't think radius like this works with a*
         let directions = utils.directionsWithDiagonalPriority
-        if (radius >= 4) {
-            directions = directions.concat(four)
-        }
-        if (radius >= 9) {
-            directions = directions.concat(five)
-            directions = directions.concat(eight)
-            directions = directions.concat(nine)
-        }
+        if (radius >= 4)
+            directions = four.concat(directions)
+        if (radius >= 5)
+            directions = five.concat(directions)
+        if (radius >= 8)
+            directions = eight.concat(directions)
+        if (radius >= 9)
+            directions = nine.concat(directions)
         let children = []
         for (const dir of directions) {
             const x = node.x + dir[0]

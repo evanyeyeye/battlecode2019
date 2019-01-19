@@ -93,7 +93,7 @@ export function pilgrimTurn(r) {
         
         // broken a*
         
-        let node = r.am.findPath(baseLocation)
+        let node = r.am.findPath(baseLocation, 4, true)
         if (node === null) {
             r.log("A*: no path found")
             return
@@ -149,7 +149,7 @@ export function pilgrimTurn(r) {
     
     // broken a*
     
-    let node = r.am.findPath(targetMine)
+    let node = r.am.findPath(targetMine, 4, true)
     if (node === null){
         r.log("A*: no path to " + targetMine + " found")
         return
