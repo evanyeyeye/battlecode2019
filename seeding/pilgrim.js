@@ -37,7 +37,7 @@ export function pilgrimTurn(r) {
         for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
-                castleTargetMineID = decode(otherRobot.signal,16)
+                castleTargetMineID = decode(otherRobot.signal,16)[0]//first id being encoded
                 if (castleTargetMineID >= 900) {
                     continue
                 }
@@ -189,7 +189,7 @@ function decode(message,signallen){
     for (let i=0; i<signallen- binarylen;i++){
         binary="0"+binary
     }     
-    let totalMines=64 // decide how many bits to give to mines
+    let totalMines=Object.keys(allMineID).length // decide how many bits to give to mines
     let bitsToGive=Math.ceil(Math.log2(totalMines)) // how many bits to give
     let firstMine=binary.substring(0,bitsToGive)    
     let action=binary.substring(bitsToGive,bitsToGive+2)  

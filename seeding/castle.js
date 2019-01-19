@@ -117,7 +117,7 @@ export function castleTurn(r) {
     // ---------- START BUILDING STUFF ----------
 
     // build pilgrims
-    if (!danger && r.me.turn > 1 && pilgrimCounter < (Math.floor(idealNumPilgrims/1.5)+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+    if (!danger && r.me.turn > 1 && pilgrimCounter < (Math.ceil(idealNumPilgrims/1)+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to
@@ -125,7 +125,9 @@ export function castleTurn(r) {
             if (mineID !== null){
                 r.log("Built Pilgrim, trying to send it to " + mineID)
                 // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
-                r.signal(encodeSignal(mineID,action_attack_mine,16))  // tell the pilgrim which mine to go to, dictionary keys are strings
+                let signalToSend=encodeSignal(mineID,0,action_attack_mine,16)                
+                r.log(signalToSend)
+                r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                 r.castleTalk(parseInt(mineID) + 100)  // let other castles know
                 mineStatus.get(parseInt(mineID)).activity += 10  // update yourself
                 pilgrimCounter++
@@ -169,10 +171,42 @@ function findBuildDirection(r, x, y) {
     return null
 }
 
+<<<<<<< HEAD
+//encode message for signaling
+//action is a number. 
+function encodeSignal(mineID,mineID2,action,signallen){
+    let encoded_mine=mineID.toString(2);
+    let encoded_mine2=mineID2.toString(2);
+    let totalMines=mineStatus.size // decide how many bits to give to mines
+    let bitsToGive=Math.ceil(Math.log2(totalMines)) // how many bits to give
+    let message=""   
+    //fill up the empty spots 
+    for (let i=0; i<bitsToGive- encoded_mine.length ;i++){
+        message+="0"
+    }   
+    message+=encoded_mine    
+    message+=action
+    //fill up the empty spots 
+    for (let i=0; i<bitsToGive- encoded_mine2.length ;i++){
+        message+="0"
+    }  
+    message+=encoded_mine2
+    let msglen=message.length
+    //fill up the empty spots
+    for (let i=0; i<signallen -msglen ;i++){
+        message+="0"
+    }    
+    let encoded = parseInt(message, 2);
+    return encoded
+}
+
+function initializeMines(r) {  // deterministically label mines, build manhattan distances for early use
+=======
 // populate mineStatus: deterministically label mines, store location & distance from castle
 // populate sortedMines: sort mineIDs by distance
 function initializeMines(r) {  // deterministically label mines, store distances from castle
     const pf = r.pm.getPathField([r.me.x, r.me.y])  // generate pathfield from castle location
+>>>>>>> 0c1267fd866a2625a78f9ef4a472852d43506ce0
     let mineID = 0
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
