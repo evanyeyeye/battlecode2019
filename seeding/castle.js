@@ -117,21 +117,20 @@ export function castleTurn(r) {
     // ---------- START BUILDING STUFF ----------
 
     // build pilgrims
-    if (!danger && r.me.turn > 1 && pilgrimCounter < idealNumPilgrims && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
-        //if (r.me.turn <50||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
+    if (!danger && r.me.turn > 1 && pilgrimCounter < (idealNumPilgrims+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+        if (r.me.turn <15||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
         { 
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to
-            const mineID = nextMineID(r, (r.me.turn >= mineStatus.size + 1))
+            const mineID = nextMineID(r)
+            r.log(mineID)
             if (mineID !== null){
 
                 r.log("Built Pilgrim, trying to send it to " + mineID)
                 // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
+
                 let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
-              
-                
-               
                            
                 r.log(signalToSend)
                 r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
@@ -144,7 +143,7 @@ export function castleTurn(r) {
     }
     }
 
-/*
+
     if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
           if (r.me.turn <50||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
          var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -155,7 +154,7 @@ export function castleTurn(r) {
          }
      }
      }
-     */
+     
    
 /*
     // build crusaders
@@ -240,7 +239,7 @@ function nextMineID(r) {  // uses resource-blind ids
     for (const mineID of sortedMines) {
         const mine = mineStatus.get(mineID)
         // r.log("ID of " + id + " has activity of " + mine.activity)
-        if (mine.activity === 0 && mine.distance < mine_range) // no pilgrim activity here yet, temp way to cutoff distance
+        if (mine.activity === 0) // no pilgrim activity here yet, temp way to cutoff distance
             return mineID
     }
     return null
