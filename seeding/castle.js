@@ -3,6 +3,10 @@ import utils from './utils.js'
 
 const KARBONITE =  0
 const FUEL = 1
+const action_attack_mine="00"  //mine or attack depends on unit
+const action_zone_scout="01" //zone or scout depends on the unit
+const action_change_attack_mine="10" //change fro mcurrent action to attack
+const action_change_zone_scout="11" //change from current action zonescout
 
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
@@ -32,8 +36,8 @@ export function castleTurn(r) {
         r.log("I am a Castle")
 
         initializeMines(r)  // populates mineStatus and sortedMines
-        
-        numMines = calculateNumMines(r, 20);  // this calculates number of mines within range
+
+        numMines = calculateNumMines(r, 25);  // this calculates number of mines within range
 
         r.log("There are " + mineStatus.size + " mines")
 
@@ -120,7 +124,7 @@ export function castleTurn(r) {
             if (mineID !== null){
                 r.log("Built Pilgrim, trying to send it to " + mineID)
                 // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
-                r.signal(parseInt(mineID), 2)  // tell the pilgrim which mine to go to, dictionary keys are strings
+                r.signal(encodeSignal(mineID,action_attack_mine,16))  // tell the pilgrim which mine to go to, dictionary keys are strings
                 r.castleTalk(parseInt(mineID) + 100)  // let other castles know
                 mineStatus.get(parseInt(mineID)).activity += 10  // update yourself
                 pilgrimCounter++
@@ -222,4 +226,32 @@ function nextMineID(r) {  // uses resource-blind ids
             return mineID
     }
     return null
+}
+
+//encode message for signaling
+//action is a number. 
+function encodeSignal(mineID,mineID2,action,signallen){
+    let encoded_mine=mineID.toString(2);
+    let encoded_mine2=mineID2.toString(2);
+    let totalMines=sortedMines.length // decide how many bits to give to mines
+    let bitsToGive=Math.ceil(Math.log2(totalMines)) // how many bits to give
+    let message=""   
+    //fill up the empty spots 
+    for (let i=0; i<bitsToGive- encoded_mine.length ;i++){
+        message+="0"
+    }   
+    message+=encoded_mine    
+    message+=action
+    //fill up the empty spots 
+    for (let i=0; i<bitsToGive- encoded_mine2.length ;i++){
+        message+="0"
+    }  
+    message+=encoded_mine2
+    let msglen=message.length
+    //fill up the empty spots
+    for (let i=0; i<signallen -msglen ;i++){
+        message+="0"
+    }    
+    let encoded = parseInt(message, 2);
+    return encoded
 }

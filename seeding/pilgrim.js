@@ -5,6 +5,10 @@ import utils from './utils.js'
 const MINE = 0
 const SCOUT = 1
 const BUILD = 2
+const action_attack_mine="00"  //mine or attack depends on unit
+const action_zone_scout="01" //zone or scout depends on the unit
+const action_change_attack_mine="10" //change fro mcurrent action to attack
+const action_change_zone_scout="11" //change from current action zonescout
 
 const KARBONITE = 0
 const FUEL = 1
@@ -33,7 +37,7 @@ export function pilgrimTurn(r) {
         for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
-                castleTargetMineID = otherRobot.signal
+                castleTargetMineID = decode(otherRobot.signal,16)
                 if (castleTargetMineID >= 900) {
                     continue
                 }
@@ -93,7 +97,7 @@ export function pilgrimTurn(r) {
         
         // broken a*
         
-        let node = r.am.findPath(baseLocation, 4, true)
+        let node = r.am.findPath(baseLocation, 4, false)
         if (node === null) {
             r.log("A*: no path found")
             return
@@ -149,7 +153,7 @@ export function pilgrimTurn(r) {
     
     // broken a*
     
-    let node = r.am.findPath(targetMine, 4, true)
+    let node = r.am.findPath(targetMine, 4, false)
     if (node === null){
         r.log("A*: no path to " + targetMine + " found")
         return
@@ -176,6 +180,22 @@ function iDMines(r) {  // deterministically label mines
             }
         }
     }
+}
+//used to decode mine the 
+//returns a list with mine1,mine2,action in order
+function decode(message,signallen){
+    let binary=message.toString(2);       
+    let binarylen= binary.length
+    for (let i=0; i<signallen- binarylen;i++){
+        binary="0"+binary
+    }     
+    let totalMines=64 // decide how many bits to give to mines
+    let bitsToGive=Math.ceil(Math.log2(totalMines)) // how many bits to give
+    let firstMine=binary.substring(0,bitsToGive)    
+    let action=binary.substring(bitsToGive,bitsToGive+2)  
+    let mineID = parseInt(firstMine, 2);
+    let mineID2=parseInt(binary.substring(bitsToGive+2,bitsToGive+2+bitsToGive),2);   
+    return [mineID,mineID2,action]
 }
 
 // update mine locations based on distance from 
