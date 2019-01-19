@@ -104,7 +104,7 @@ export class PathField {
         return this.field[y][x].direction
     }
 
-    getDistanceFromTarget(x, y) {
+    getDistanceAtPoint(x, y) {
         return this.field[y][x].dist
     }
 

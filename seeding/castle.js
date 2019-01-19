@@ -10,12 +10,11 @@ const action_change_zone_scout="11" //change from current action zonescout
 
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
-// manhattan: manhattan distance from this castle to mine
 // distance: pathfield distance from this castle to mine (ideal)
 // activity: heuristic for pilgrims at mine, assigning adds 10, subtract/add 1 per turn based on mining
-var mineStatus = new Map()
+const mineStatus = new Map()
 
-var sortedMines = []
+const sortedMines = []  // sorted array of mineIDs ascending by distance
 
 var numMines = 0  // numMines is number of close mines
 var idealNumPilgrims = 0
@@ -31,15 +30,12 @@ var numFriendlyCastles = 1
 var mine_range = 25
 
 export function castleTurn(r) {
-    // r.log(typeof utils.utils.isEmpty)
-    // r.log(utils.hello)
 
     if (r.me.turn === 1) {
+
         r.log("I am a Castle")
 
-        initializeMines(r)  // this calculate total mines, and manhattan distances from each
-        // r.log(allMineID)
-        updateSortedMines(r)  // update the MineSorted arrays
+        initializeMines(r)  // populates mineStatus and sortedMines
 
         numMines = calculateNumMines(r, 25);  // this calculates number of mines within range
 
@@ -52,18 +48,6 @@ export function castleTurn(r) {
     }
 
    // mine_range = Math.max(mine_range, r.map.length + r.me.turn / 20)
-
-    // start calculating mine distances, 1 per turn, id of turn
-    if (r.me.turn <= mineStatus.size) {  // a lot of this is terrible
-        const mineID = r.me.turn
-        mineStatus.get(mineID).distance = calculateMineDistance(r, mineID)
-    }
-
-    else if (r.me.turn === mineStatus.size + 1) {
-        r.log("Finished calculating mine distances")
-        updateSortedMines(r)
-        idealNumPilgrims = calculateNumPilgrims(r) // update with newly calculated pathfinding distances in sortedMines
-    }
 
     // ---------- REGULAR BOOKKEEPING AND COMMUNICATIONS ----------
     let totalActivity = 0
@@ -152,14 +136,14 @@ export function castleTurn(r) {
     }
 
 
-    if (!danger && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
-        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-        if (buildDirection != null) {
-            r.log("Built Prophet")
+    // if (!danger && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL) {
+    //     var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+    //     if (buildDirection != null) {
+    //         r.log("Built Prophet")
           
-            return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
-        }
-    }
+    //         return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+    //     }
+    // }
    
 /*
     // build crusaders
@@ -186,6 +170,7 @@ function findBuildDirection(r, x, y) {
     return null
 }
 
+<<<<<<< HEAD
 //encode message for signaling
 //action is a number. 
 function encodeSignal(mineID,mineID2,action,signallen){
@@ -215,37 +200,38 @@ function encodeSignal(mineID,mineID2,action,signallen){
 }
 
 function initializeMines(r) {  // deterministically label mines, build manhattan distances for early use
+=======
+// populate mineStatus: deterministically label mines, store location & distance from castle
+// populate sortedMines: sort mineIDs by distance
+function initializeMines(r) {  // deterministically label mines, store distances from castle
+    const pf = r.pm.getPathField([r.me.x, r.me.y])  // generate pathfield from castle location
+>>>>>>> 0c1267fd866a2625a78f9ef4a472852d43506ce0
     let mineID = 0
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
                 mineStatus.set(++mineID, {
                     loc: [i, j],
-                    manhattan: utils.getManhattanDistance(r.me.x, r.me.y, i, j),
+                    distance: pf.getDistanceAtPoint(i, j),
                     activity: 0
                 })
-                sortedMines.push([mineID, mineStatus.get(mineID).manhattan])
+                sortedMines.push(mineID)
             }
         }
     }
-    // r.log(sortedMines)
-}
-
-// find distance between this castle and mine of a specific id and resource
-function calculateMineDistance(r, id) {  // uses resource-specific ids
-    // r.log(mineStatus.get(id))
-    const mineLoc = mineStatus.get(id).loc
-    const pf = r.pm.getPathField(mineLoc, true)
-    return pf.getDistanceFromTarget(r.me.x, r.me.y)
+    // sort by distance from least to greatest
+    sortedMines.sort((a, b) => {
+        return mineStatus.get(a).distance - mineStatus.get(b).distance
+    })
 }
 
 // returns number of mines within a certain range of the castle
 function calculateNumMines(r, range) {
     let closeMineCount = 0
-    for (const [mineID, mine] of mineStatus.entries()) {
-        if (mine.hasOwnProperty("distance") && mine.distance < range) {
+    for (const mineID of sortedMines) {
+        if (mineStatus.get(mineID).distance < range)
             closeMineCount++
-        }
+        else break
     }
     return closeMineCount
 }
@@ -262,39 +248,44 @@ function calculateNumPilgrims(r) {
         }
     }
     r.log("im going to try to make " + num + " pilgrims")
-    return num  // why does manhattan give bigger numbers than pathfinding distance, makes no sense
-}
-
-function updateSortedMines(r) {
-    // updates the sortedMines arrays based on either manhattan or pathfinding distance
-    sortedMines.forEach((mine, index) => {
-        const mineID = mine[0]
-        if (mineStatus.get(mineID).hasOwnProperty("distance"))
-            mine[1] = mineStatus.get(mineID).distance
-    })
-    sortedMines.sort((a, b) => {
-        return a[1] - b[1]  // sort least to greatest
-    })
-    r.log(sortedMines)
+    return num
 }
 
 function nextMineID(r) {  // uses resource-blind ids
     // use sortedMines with mineStatus to decide the next mine to send a pilgrim toward
-    for (const entry of sortedMines) {  // entry is id, distance
-        const mineID = entry[0]  // idk how to make this neater
-        const distance = entry[1]
-        // r.log("ID of " + id + " has activity of " + mineStatus.get(id).activity)
-        if (mineStatus.get(mineID).activity === 0 && distance < mine_range) // no pilgrim activity here yet, temp way to cutoff distance
+    for (const mineID of sortedMines) {
+        const mine = mineStatus.get(mineID)
+        // r.log("ID of " + id + " has activity of " + mine.activity)
+        if (mine.activity === 0 && mine.distance < mine_range) // no pilgrim activity here yet, temp way to cutoff distance
             return mineID
     }
     return null
 }
 
-function generateMeme(target) {  // super sketchy communication
-    let message = ""
-    message += target[0]
-    message += "9"
-    if (target[1] < 10) message += "0"
-    message += target[1]
-    return message
+//encode message for signaling
+//action is a number. 
+function encodeSignal(mineID,mineID2,action,signallen){
+    let encoded_mine=mineID.toString(2);
+    let encoded_mine2=mineID2.toString(2);
+    let totalMines=sortedMines.length // decide how many bits to give to mines
+    let bitsToGive=Math.ceil(Math.log2(totalMines)) // how many bits to give
+    let message=""   
+    //fill up the empty spots 
+    for (let i=0; i<bitsToGive- encoded_mine.length ;i++){
+        message+="0"
+    }   
+    message+=encoded_mine    
+    message+=action
+    //fill up the empty spots 
+    for (let i=0; i<bitsToGive- encoded_mine2.length ;i++){
+        message+="0"
+    }  
+    message+=encoded_mine2
+    let msglen=message.length
+    //fill up the empty spots
+    for (let i=0; i<signallen -msglen ;i++){
+        message+="0"
+    }    
+    let encoded = parseInt(message, 2);
+    return encoded
 }
