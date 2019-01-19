@@ -1,20 +1,15 @@
 import {SPECS} from 'battlecode'
 import utils from './utils.js'
+import comms from './comms.js'
 
 const KARBONITE =  0
 const FUEL = 1
-
-const action_attack_mine="00"  //mine or attack depends on unit
-const action_zone_scout="01" //zone or scout depends on the unit
-const action_change_attack_mine="10" //change fro mcurrent action to attack
-const action_change_zone_build="11" //change from current action zonescout
 
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
 // distance: pathfield distance from this castle to mine (ideal)
 // activity: heuristic for pilgrims at mine, assigning adds 10, subtract/add 1 per turn based on mining
 const mineStatus = new Map()
-
 const sortedMines = []  // sorted array of mineIDs ascending by distance
 
 var numMines = 0  // numMines is number of close mines
@@ -83,7 +78,7 @@ export function churchTurn(r) {
             if (mineID !== null){
                 r.log("Built Pilgrim, trying to send it to " + mineID)
                 // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
-                let signalToSend=encodeSignal(mineID,0,action_attack_mine,16)                
+                let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
                 r.log(signalToSend)
                 r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                 r.castleTalk(parseInt(mineID) + 100)  // let other castles know
@@ -129,34 +124,6 @@ function findBuildDirection(r, x, y) {
         }
     }
     return null
-}
-
-//encode message for signaling
-//action is a number. 
-function encodeSignal(mineID,mineID2,action,signallen){
-    let encoded_mine=mineID.toString(2);
-    let encoded_mine2=mineID2.toString(2);
-    let totalMines=mineStatus.size // decide how many bits to give to mines
-    let bitsToGive=Math.ceil(Math.log2(totalMines)) // how many bits to give
-    let message=""   
-    //fill up the empty spots 
-    for (let i=0; i<bitsToGive- encoded_mine.length ;i++){
-        message+="0"
-    }   
-    message+=encoded_mine    
-    message+=action
-    //fill up the empty spots 
-    for (let i=0; i<bitsToGive- encoded_mine2.length ;i++){
-        message+="0"
-    }  
-    message+=encoded_mine2
-    let msglen=message.length
-    //fill up the empty spots
-    for (let i=0; i<signallen -msglen ;i++){
-        message+="0"
-    }    
-    let encoded = parseInt(message, 2);
-    return encoded
 }
 
 // populate mineStatus: deterministically label mines, store location & distance from castle
