@@ -121,8 +121,8 @@ export function pilgrimTurn(r) {
 
     // look at mines
     // updateMines(r)  // since this only changes with base castle location, moved up to that part of the code
-    r.log(allMineID)
-    r.log(castleTargetMineID)
+    // r.log(allMineID)
+    // r.log(castleTargetMineID)
     let targetMine = allMineID[castleTargetMineID].split(",").map((n) => parseInt(n))
 
     if (targetMine === null)
