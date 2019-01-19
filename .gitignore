@@ -6,3 +6,4 @@ upload.sh
 update.sh
 compiled_bot*.js
 test.js
+log
