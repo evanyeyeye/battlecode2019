@@ -3,6 +3,10 @@ import utils from './utils.js'
 
 const KARBONITE =  0
 const FUEL = 1
+const action_attack_mine="00"  //mine or attack depends on unit
+const action_zone_scout="01" //zone or scout depends on the unit
+const action_change_attack_mine="10" //change fro mcurrent action to attack
+const action_change_zone_scout="11" //change from current action zonescout
 
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
@@ -37,7 +41,7 @@ export function castleTurn(r) {
         // r.log(allMineID)
         updateSortedMines(r)  // update the MineSorted arrays
 
-        numMines = calculateNumMines(r, 20);  // this calculates number of mines within range
+        numMines = calculateNumMines(r, 25);  // this calculates number of mines within range
 
         r.log("There are " + mineStatus.size + " mines")
 
@@ -178,6 +182,34 @@ function findBuildDirection(r, x, y) {
         }
     }
     return null
+}
+
+//encode message for signaling
+//action is a number. 
+function encodeSignal(mineID,mineID2,action,signallen){
+    let encoded_mine=mineID.toString(2);
+    let encoded_mine2=mineID2.toString(2);
+    let totalMines=sortedMines.length // decide how many bits to give to mines
+    let bitsToGive=Math.ceil(Math.log2(totalMines)) // how many bits to give
+    let message=""   
+    //fill up the empty spots 
+    for (let i=0; i<bitsToGive- encoded_mine.length ;i++){
+        message+="0"
+    }   
+    message+=encoded_mine    
+    message+=action
+    //fill up the empty spots 
+    for (let i=0; i<bitsToGive- encoded_mine2.length ;i++){
+        message+="0"
+    }  
+    message+=encoded_mine2
+    let msglen=message.length
+    //fill up the empty spots
+    for (let i=0; i<signallen -msglen ;i++){
+        message+="0"
+    }    
+    let encoded = parseInt(message, 2);
+    return encoded
 }
 
 function initializeMines(r) {  // deterministically label mines, build manhattan distances for early use
