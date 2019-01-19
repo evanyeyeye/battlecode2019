@@ -169,7 +169,7 @@ export function pilgrimTurn(r) {
                         temp_min=0
                         for (let locations_mine of nearmines){
                             const tempLocation=locations_mine.split(",")
-                           // r.log([r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],tempLocation[0],tempLocation[1]])
+                            r.log([r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],tempLocation[0],tempLocation[1]])
                             let temp_distance = utils.getManhattanDistance(r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],parseInt(tempLocation[0],10),parseInt(tempLocation[1],10))
                            // r.log(temp_distance)
                             temp_min+=temp_distance
