@@ -78,7 +78,7 @@ export function castleTurn(r) {
     let enemyLocation = {}
     let closestEnemy = -1
     let danger_prophet = false
-    let danger_crusader =true
+    let danger_crusader =false
     let preacher_count=0
 
     let minesToIncrement = new Set()  // we want steady numbers
@@ -170,10 +170,7 @@ export function castleTurn(r) {
         r.castleTalk(initialActivityQueue.shift())
     }
 
-    if (r.me.turn >= 4 && r.castle_talk === 0 && initialActivityQueue.length > 0) {
-        r.log("HOLD THE FUCKING")
-        r.castleTalk(initialActivityQueue.shift())
-    }
+
 
 
 
@@ -269,6 +266,7 @@ function receiveCastleLocations(r) {
 function findCastleLocations(r) {
     for (const [castleID, castleLoc] of castleLocationBuilder.entries()) {
         r.log(castleID + " " + castleLoc)
+      
         castleStatus[r.me.team].push({
             loc: [castleLoc[0], castleLoc[1]],
             distance: castlePathField.getDistanceAtPoint(castleLoc[0], castleLoc[1])
