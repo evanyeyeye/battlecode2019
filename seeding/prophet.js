@@ -34,7 +34,7 @@ export function prophetTurn(r) {
         for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
-                let message = otherRobot.signal()
+                let message = otherRobot.signal
                 let decoded = comms.decodeSignal(message)
                 if (decoded[2] == comms.ALL_IN)
                 {
@@ -48,7 +48,7 @@ export function prophetTurn(r) {
         for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
-                let message = otherRobot.signal()
+                let message = otherRobot.signal
                 let decoded = comms.decodeSignal(message)
                 if (decoded[2] == comms.ALL_IN)
                 {
@@ -56,7 +56,7 @@ export function prophetTurn(r) {
                 }
             }
             else if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.PROPHET && r.isRadioing(otherRobot)){
-                let message = otherRobot.signal()
+                let message = otherRobot.signal
                 let decoded = comms.decodeSignal(message)
 
                 if (decoded[2] == comms.KILLED)
