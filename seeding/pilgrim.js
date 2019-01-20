@@ -198,8 +198,7 @@ export function pilgrimTurn(r) {
         
         return r.mine()
     }
-
-    // no available mines?
+  
 	if (targetMine == null) {
 		targetMine = baseLocation
 	}
@@ -317,7 +316,7 @@ function closestSafeMine(r) {
     if (target == null) {
         return null
     }
-    
+
     return target.split(",").map((n) => parseInt(n))
 }
 function findNearMine(r,min_dis){
