@@ -17,6 +17,8 @@ const sortedMines = []  // sorted array of mineIDs ascending by distance
 // loc: [x, y] location of castle
 // distance: pathfield distance from this castle to the other castle
 const castleStatus = {0: [], 1: []}
+const castleLocationBuilder = new Map()
+const initialActivityQueue = []
 
 var castlePathField = null
 
@@ -35,10 +37,24 @@ export function castleTurn(r) {
 
     if (r.me.turn === 1) {
         r.log("I am a Castle")
-        initializeCastle(r)
+        initializeCastle(r)    
+        receiveCastleLocations(r)  // receive (first iteration)
+        r.castleTalk(comms.CASTLE_GREETING)  // send greetings to other castles 
     }
 
-    if (r.me.turn == 2) {
+    if (r.me.turn === 2) {
+        // r.log(r.getVisibleRobots()[0].castle_talk)
+        receiveCastleLocations(r)  // receive (second iteration)
+        r.castleTalk(r.me.x)  // send x coordinates to other castles      
+    }
+
+    if (r.me.turn === 3) {
+        receiveCastleLocations(r)  // receive (third iteration)
+        r.castleTalk(r.me.y)  // send y coordinates to other castles
+    }
+
+    if (r.me.turn === 4) {
+        receiveCastleLocations(r)  // receive (fourth iteration)
         findCastleLocations(r)  // populates castleStatus
         r.log(castleStatus)
     }
@@ -71,18 +87,15 @@ export function castleTurn(r) {
             if (robot.team === r.me.team && robot.id !== r.me.id) {  // other friendly robot
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
-                if (r.me.turn <= 2 && message === comms.CASTLE_GREETING) {  // probably another castle telling us it exists
-                    idealNumPilgrims = calculateNumPilgrims(r)
-                }
-                else if (message >= 100) {  // castle is indicating that it sent a pilgrim to this mine
+                if (message != comms.CASTLE_GREETING && message >= 100) {  // castle is indicating that it sent a pilgrim to this mine
                     mineStatus.get(message - 100).activity += 10
                     // r.log("acknowledged another castle")
                 }
-                else {  // pilgrim is already there and mining
+                else if (!(r.me.turn <= 3 && castleLocationBuilder.has(robot.id))) {  // pilgrim is already there and mining
                     // mineStatus.get(message).activity += 1
                     // r.log("acknowledged a pilgrim")
                     minesToIncrement.add(message)
-                }
+                } 
             }
         } 
          if (robot.team === r.me.team) {
@@ -128,7 +141,11 @@ export function castleTurn(r) {
                            
                 r.log(signalToSend)
                 r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
-                r.castleTalk(parseInt(mineID) + 100)  // let other castles know
+                
+                if (r.me.turn <= 3)
+                    initialActivityQueue.push(parseInt(mineID) + 100)
+                else r.castleTalk(parseInt(mineID) + 100)  // let other castles know
+
                 mineStatus.get(parseInt(mineID)).activity += 10  // update yourself
                 pilgrimCounter++
                 return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
@@ -137,6 +154,10 @@ export function castleTurn(r) {
     }
     }
 
+    if (r.me.turn >= 4 && r.castle_talk === 0 && initialActivityQueue.length > 0) {
+        r.log("HOLD THE FUCKING")
+        r.castleTalk(initialActivityQueue.shift())
+    }
 
     if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
           if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
@@ -185,8 +206,6 @@ function initializeCastle(r) {
     r.log("There are " + mineStatus.size + " mines")
     // determine number of pilgrims to build
     idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
-    // let other castles know you exist
-    r.castleTalk(comms.CASTLE_GREETING)
 }
 
 // populate mineStatus: deterministically label mines, store location & distance from castle
@@ -211,22 +230,30 @@ function initializeMines(r) {
     })
 }
 
+// receive x coordinates on turn 2
+// receive y coordinates on turn 3
+function receiveCastleLocations(r) {
+    for (const robot of r.getVisibleRobots()) {
+        const message = robot.castle_talk
+        if (message === comms.CASTLE_GREETING)
+            castleLocationBuilder.set(robot.id, [])
+        else if (castleLocationBuilder.has(robot.id) && castleLocationBuilder.get(robot.id).length < 2)
+            castleLocationBuilder.get(robot.id).push(message)
+    }
+}
+
 // finds other allied castles, then uses symmetry to find enemy castles
 function findCastleLocations(r) {
-    for (const robot of r.getVisibleRobots()) {
-        r.log("" + robot.team)
-        const message = robot.castle_talk
-        if (message === comms.CASTLE_GREETING) {
-            castleStatus[r.team].push({
-                loc: [robot.x, robot.y],
-                distance: castlePathField.getDistanceAtPoint(robot.x, robot.y)
-            })
-            const enemyCastleLoc = reflectLocation(r, [robot.x, robot.y])
-            castleStatus[r.enemyTeam].push({
-                loc: [enemyCastleLoc[0], enemyCastleLoc[1]],
-                distance: castlePathField.getDistanceAtPoint(enemyCastleLoc[0], enemyCastleLoc[1])
-            })
-        }
+    for (const [castleID, castleLoc] of castleLocationBuilder.entries()) {
+        castleStatus[r.me.team].push({
+            loc: [castleLoc[0], castleLoc[1]],
+            distance: castlePathField.getDistanceAtPoint(castleLoc[0], castleLoc[1])
+        })
+        const enemyCastleLoc = utils.reflectLocation(r, [castleLoc[0], castleLoc[1]])
+        castleStatus[r.enemyTeam].push({
+            loc: [enemyCastleLoc[0], enemyCastleLoc[1]],
+            distance: castlePathField.getDistanceAtPoint(enemyCastleLoc[0], enemyCastleLoc[1])
+        })
     }
 }
 
@@ -257,6 +284,7 @@ function nextMineID(r) {  // uses resource-blind ids
     }
     return null
 }
+
 //shuffle a random direction to check
 function shuffledDirection() {
     let directions=utils.directions

@@ -9,10 +9,10 @@ export default {
     // true => horizontal symmetry
     // false => vertical symmetry
     findSymmetry: function (r) {
-        const passibleMap = r.getPassableMap()
+        const passableMap = r.getPassableMap()
         for (let j = 0; j < Math.floor(passableMap.length / 2); j++) {
             for (let i = 0; i < passableMap[0].length; i++) {
-                if (passableMap[j][i] !== passableMap[passibleMap.length-j-1][i])
+                if (passableMap[j][i] !== passableMap[passableMap.length-j-1][i])
                     return false
             }
         }
