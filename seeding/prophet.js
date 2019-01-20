@@ -20,6 +20,8 @@ var enemyRobots = {}
 var robotXForLambda=null;
 var robotYForLambda=null;
 var prevmove=null
+var state=null // the current plan ocne receive all in from castle go all in
+var targetCastle=[]
 
 
 export function prophetTurn(r) {
@@ -33,6 +35,11 @@ export function prophetTurn(r) {
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
                 let message = otherRobot.signal()
+                let decoded = comms.decodeSignal(message)
+                if (decoded[2] == comms.ALL_IN)
+                {
+                    targetCastle.push([decoded[0],decoded[1]])
+                }
             }
         }
     }
@@ -91,7 +98,7 @@ export function prophetTurn(r) {
     */
     let kiteAction=null
     // let kiteAction=kite(r)
-    
+
     if (kiteAction!=null){
     r.log("kites did something??????????????????????? "+ kiteAction)
     }
@@ -107,7 +114,27 @@ export function prophetTurn(r) {
     
 }
 }
-    
+//found targte location to go all in
+
+
+    if (targetCastle.length>0){        
+        let pf = r.pm.getPathField(targetCastle[0])  // this keeps the reversal
+        if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
+            // r.log("I want to move to " + targetMine)
+            let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
+            r.log([r.me.x,r.me.y])
+            if (test!=null)
+            {
+            return utils.tryMoveRotate(r, test)
+            }
+    }
+
+        
+    }
+
+
+
+
     /* geng geng geng geng geng geng geng geng geng geng geng geng
     */
     let move=gang(r)
