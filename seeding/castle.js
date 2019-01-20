@@ -3,9 +3,6 @@ import utils from './utils.js'
 import comms from './comms.js'
 
 
-// const KARBONITE =  0
-// const FUEL = 1
-
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
 // distance: pathfield distance from this castle to mine
@@ -21,6 +18,8 @@ const castleLocationBuilder = new Map()
 const initialActivityQueue = []
 
 var castlePathField = null
+
+var processedCastleTalk = new Set()
 
 var idealNumPilgrims = 0
 var numTeamCastles = 0  // number of castles on our team. For now, split mines and pilgrim production
@@ -43,9 +42,8 @@ export function castleTurn(r) {
     }
 
     if (r.me.turn === 2) {
-        // r.log(r.getVisibleRobots()[0].castle_talk)
         receiveCastleLocations(r)  // receive (second iteration)
-        r.castleTalk(r.me.x)  // send x coordinates to other castles      
+        r.castleTalk(r.me.x)  // send x coordinates to other castles
     }
 
     if (r.me.turn === 3) {
@@ -56,7 +54,8 @@ export function castleTurn(r) {
     if (r.me.turn === 4) {
         receiveCastleLocations(r)  // receive (fourth iteration)
         findCastleLocations(r)  // populates castleStatus
-        r.log("CASTLE LOCATIONS: " + castleStatus)
+        r.log("CASTLE LOCATIONS: ")
+        r.log(castleStatus)
     }
 
     // mine_range = Math.max(mine_range, r.map.length + r.me.turn / 20)
@@ -83,7 +82,7 @@ export function castleTurn(r) {
 
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
-        if (message !== 0) {  // actual message
+        if (message !== 0 && !processedCastleTalk.has(robot.id)) {  // actual unused message
             if (robot.team === r.me.team && robot.id !== r.me.id) {  // other friendly robot
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
@@ -238,20 +237,26 @@ function initializeMines(r) {
 function receiveCastleLocations(r) {
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
-        if (message === comms.CASTLE_GREETING)
+        if (message === comms.CASTLE_GREETING) {
             castleLocationBuilder.set(robot.id, [])
-        else if (castleLocationBuilder.has(robot.id) && castleLocationBuilder.get(robot.id).length < 2)
+            processedCastleTalk.add(robot.id)
+        }
+        else if (castleLocationBuilder.has(robot.id) && castleLocationBuilder.get(robot.id).length < 2) {
             castleLocationBuilder.get(robot.id).push(message)
+            processedCastleTalk.add(robot.id)
+        }
     }
 }
 
 // finds other allied castles, then uses symmetry to find enemy castles
 function findCastleLocations(r) {
     for (const [castleID, castleLoc] of castleLocationBuilder.entries()) {
+        r.log(castleID + " " + castleLoc)
         castleStatus[r.me.team].push({
             loc: [castleLoc[0], castleLoc[1]],
             distance: castlePathField.getDistanceAtPoint(castleLoc[0], castleLoc[1])
         })
+        r.log(castleStatus[r.me.team])
         const enemyCastleLoc = utils.reflectLocation(r, [castleLoc[0], castleLoc[1]])
         castleStatus[r.enemyTeam].push({
             loc: [enemyCastleLoc[0], enemyCastleLoc[1]],

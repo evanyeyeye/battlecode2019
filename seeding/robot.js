@@ -22,7 +22,7 @@ class MyRobot extends BCAbstractRobot {
         if (self.step == 1) {
             self.pm = new PathMaster(self, self.map)
             self.am = new AStar(self, self.map)
-            self.enemyTeam = self.team ^ 1
+            self.enemyTeam = self.me.team ^ 1
             self.mapSymmetry = utils.findSymmetry(self)
         }
         switch (self.me.unit) {
