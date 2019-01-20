@@ -140,7 +140,15 @@ export default {
     isStandable: function(r, x, y) {
         if (x < 0 || x >= r.map[0].length || y < 0 || y >= r.map.length)
             return false
-        return r.getPassableMap()[y][x] && r.getVisibleRobotMap()[y][x] <= 0 && !r.getKarboniteMap()[y][x] && !r.getFuelMap()[y][x]
+        if (r.getPassableMap()[y][x] && r.getVisibleRobotMap()[y][x] <= 0 && !r.getKarboniteMap()[y][x] && !r.getFuelMap()[y][x]) {
+            for (const dir of this.directions) {
+                const possibleRobot = r.getVisibleRobotMap()[y + dir[1]][x + dir[0]]
+                if (possibleRobot > 0 && (r.getRobot(possibleRobot).unit === SPECS.CHURCH || r.getRobot(possibleRobot) === SPECS.CASTLE) )
+                    return false
+            }
+            return true
+        }
+        return false
     },
 
     // checks the square is passable and is occupied
