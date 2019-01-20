@@ -149,8 +149,7 @@ function findIterate(r, target, strict = false) {  // slowly crawl from current 
         // r.log("Preacher: Looking at " + midx + "," + midy)
         if (utils.isStandable(r, midx, midy)) {
             // if (!strict || (strict && numAdjacentStrict(r, midx, midy) < 3))  // valid square
-            if (!badAdjacent(r, midx, midy))
-                return [midx, midy]
+            return [midx, midy]
         }
         if (midx < target[0])  // increment, terribly
             dx++
@@ -166,6 +165,7 @@ function findIterate(r, target, strict = false) {  // slowly crawl from current 
     return null
 }
 
+// unused, remove later
 function badAdjacent(r, x, y) {  // true if next to castle, church, or other preacher
     let visibles = r.getVisibleRobotMap()
     for (const dir of utils.directions) {

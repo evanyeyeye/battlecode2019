@@ -98,6 +98,7 @@ export function castleTurn(r) {
 
     let minesToIncrement = new Set()  // we want steady numbers
 
+    // look at nearby robots
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
         if (message !== 0 && !processedCastleTalk.has(robot.id)) {  // actual unused message
@@ -115,9 +116,12 @@ export function castleTurn(r) {
                 } 
             }
         } 
-         if (robot.team === r.me.team &&robot.unit != SPECS.CHURCH && robot.unit != SPECS.CASTLE) {
+        if (robot.team === r.me.team && robot.unit != SPECS.CHURCH && robot.unit != SPECS.CASTLE && robot.unit != SPECS.PILGRIM) {
             allyCount += 1
-        } else if (robot.team !== r.me.team) {
+        }
+        else if (robot.team === r.me.team && robot.unit === SPECS.PREACER)
+            preacher_count++ 
+        else if (robot.team !== r.me.team) {
             if (robot.unit == SPECS.CRUSADER)
             {
                 danger_crusader = true
@@ -211,6 +215,16 @@ export function castleTurn(r) {
     }
     */
 
+    // build preachers if panicking
+    if (danger && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
+        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+        if (buildDirection != null) {
+            r.log("Built Crusader")
+            // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
+            // crusaderCounter++
+            return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
+        }
+    }
     // ---------- LAST RESORT: ATTACK THE ENEMY ----------
     
     
