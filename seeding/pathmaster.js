@@ -54,10 +54,11 @@ export class PathMaster {
                                 queue.push(poss)
                         } else if (dir.includes(0)) {  // try double step
                             poss = cur.add(utils.doubleDirection(dir))
-                            if (this.isPassable(poss.x, poss.y, includeCastle)) {
-                                if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist)
+                            if (pf.isPointValid(poss.x, poss.y) && 
+                                this.isPassable(poss.x, poss.y, includeCastle) && 
+                                (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist))
                                     queue.push(poss)
-                            }
+                            
                         }
                     }
                 }
