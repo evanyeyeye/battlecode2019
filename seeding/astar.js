@@ -201,7 +201,7 @@ export class AStar {
         return this.map[y][x]
     }
 
-    // really messy! uses heatmap to estimate about robots out of range
+    // really messy! uses heatmap to estimate about robot location out of range
     probablyIsEmpty(x, y) {
         if (x < 0 || x >= this.map[0].length || y < 0 || y >= this.map.length)  // out of bounds
             return false

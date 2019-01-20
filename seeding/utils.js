@@ -100,6 +100,14 @@ export default {
         return passableMap[y][x] && visibleRobotMap[y][x] <= 0
     },
 
+    // checks if square is passable, not occupied, and not a mine
+    // for use with defensive units
+    isStandable: function(r, x, y) {
+        if (x < 0 || x >= r.map[0].length || y < 0 || y >= r.map.length)
+            return false
+        return r.getPassableMap()[y][x] && r.getVisibleRobotMap()[y][x] <= 0 && !r.getKarboniteMap()[y][x] && !r.getFuelMap()[y][x]
+    },
+
     // checks the square is passable and is occupied
     // (x, y) must be in robot vision range
     isOccupied: function (r, x, y) {
