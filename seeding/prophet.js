@@ -93,7 +93,7 @@ export function prophetTurn(r) {
                 //r.log("based location is "+baseLocation)
             }	
             friendlyRobots[otherRobot.id] = distance
-            r.log('base location is '+baseLocation)
+           // r.log('base location is '+baseLocation)
            // updateMines(r)  // refresh mines based on distance to base castle location
         }
         else {
@@ -164,7 +164,7 @@ export function prophetTurn(r) {
         if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
             // r.log("I want to move to " + targetMine)
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-            r.log([r.me.x,r.me.y])
+            //r.log([r.me.x,r.me.y])
             if (test!=null)
             {
             return utils.tryMoveRotate(r, test)
@@ -205,13 +205,13 @@ export function prophetTurn(r) {
 
    	
     // path to location
-    r.log("path to target ")
+    //r.log("path to target ")
     r.log(targetMine)
 	let pf = r.pm.getPathField(targetMine)  // this keeps the reversal
     if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
         // r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-        r.log([r.me.x,r.me.y])
+       // r.log([r.me.x,r.me.y])
         if (test!=null)
         {
         return utils.tryMoveRotate(r, test)
