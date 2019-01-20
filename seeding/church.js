@@ -19,6 +19,7 @@ var numTeamCastles = 0  // number of castles on our team. For now, split mines a
 var pilgrimCounter = 0
 var prophetCounter = 0
 var crusaderCounter = 0
+var preacherCounter = 0
 var mineToID = {}
 var sent=false
 
@@ -132,6 +133,19 @@ export function churchTurn(r) {
             // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
             crusaderCounter++
             return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
+        }
+    }
+    */
+
+    /*
+    // test build preachers
+    if (r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
+        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+        if (buildDirection != null) {
+            r.log("Built a Preacher")
+            // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
+            preacherCounter++
+            return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
         }
     }
     */

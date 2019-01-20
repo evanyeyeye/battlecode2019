@@ -8,7 +8,7 @@ var communicatedEnemyLocations = new Set()  // probably has to remake every turn
 
 export function preacherTurn(r) {
     if (r.me.turn === 1) {
-        r.log("I am a preacher")
+        r.log("Preacher: I am a preacher")
     }
 
     if (baseLocation === null) {  // have to find a base location first
@@ -48,20 +48,21 @@ export function preacherTurn(r) {
         if (bestval > 0 && r.fuel > SPECS.UNITS[r.me.unit].ATTACK_FUEL_COST)
             return r.attack(bestloc[0] - r.me.x, bestloc[1] - r.me.y)
         else
-            return  // doing nothing is probably best instead of moving
+            return  // doing nothing is probably better than moving
     }
 
     // otherwise move to a stationary position
-    if (baseLocation !== null && !settled && standLocation === null) {  // need find a position to stand in
+    if (baseLocation !== null && !settled && (standLocation === null) ) {  // need find a position to stand in
         standLocation = findStandable(r, baseLocation)
     }
 
-    else if (!settled && standLocation !== null) {  // need to move into position
+    if (!settled && standLocation !== null) {  // need to move into position
+        // r.log("Preacher: I am at " + r.me.x + "," + r.me.y + ", I want to move to " + standLocation)
         if (r.me.x === standLocation[0] && r.me.y === standLocation[1])  // check if already in position
             settled = true
         const node = r.am.findPath(standLocation)
         if (node === null){
-            r.log("A*: no path to " + move + " found")
+            r.log("Preacher: A*: no path to " + standLocation + " found")
             return
         }
         if (r.fuel > SPECS.UNITS[SPECS.PREACHER].FUEL_PER_MOVE) {
@@ -70,40 +71,62 @@ export function preacherTurn(r) {
                 return r.move(test[0], test[1])
         }
     }
-
-
     return
 }
 
 function findStandable(r, base) {
     const opposite = utils.reflectLocation(r, base)   // want to angle to face here
-    let target = null
+    // r.log("Preacher: opposite is at: " + opposite + " base is at: " + base)
+    // let target = null
     let adjacent_base = numAdjacentStrict(r, base[0], base[1])  // number of open tiles next to base. leave at least 1 open
+    // r.log("Preacher: number of open tiles next to base: " + adjacent_base)
 
-    let node = r.am.findPath(opposite)  // i guess the easiest way is to find a location on the fastest path to the enemy. RADIUS 9 TO ACCOUNT FOR CRUSADER JUMPING
+    let node = r.am.findPath(opposite, 9)  // i guess the easiest way is to find a location on the fastest path to the enemy. RADIUS 9 TO ACCOUNT FOR CRUSADER JUMPING
     if (node !== null) {
-        while (node.parent != null && (node.parent.x !== this.r.me.x || node.parent.y !== this.r.me.y)) {  // go to the node following current location
+        // ADDED CHILD SUPPORT TO A*
+        while (node.parent != null)
             node = node.parent
-        }
-        target = [node.x, node.y]  // this is a very short distance, maybe expand a little?
-
-        const adjusted = findIterate(r, target)
-        if (adjusted !== null)
-            return adjusted
-    }
-
-    else {  // no way to pathfind for some reason
-        r.log("Preacher: I can't pathfind to opposite location. Iteratively finding a place to stand")
-        if (adjacent_base > 1) {
-            for (const dir of directions) {  // very dumb to be recalculating
-                const tx = x + dir[0]
-                const ty = y + dir[1]
-                if (utils.isStandable(r, tx, ty))
-                    return [tx, ty]
+        // node is now the original node
+        while (node.child != null) {
+            node = node.child
+            const adjusted = findIterate(r, [node.x, node.y], true)
+            if (adjusted !== null) {
+                // r.log("Preacher: WOO THE PATHFINDING ACTUALLY WORKED??")
+                return adjusted
             }
         }
-        return findIterate(r, opposite) // absolutely horrible but idk
+        /*
+        let node_jr = node  // temp
+        while (node.parent != null && (node.parent.x !== r.me.x || node.parent.y !== r.me.y)) {  // go to the node following current location
+            node_jr = node  // end at 2 steps from current position
+            node = node.parent
+        }
+        node = node_jr  // temp
+        target = [node.x, node.y]  // this is a very short distance, maybe expand a little?
+        r.log("Preacher: pathfound far target: " + target)
+        const adjusted = findIterate(r, target, true)
+        r.log("Preacher: pathfound iterated target: " + adjusted)
+        if (adjusted !== null) {
+            r.log("Preacher: WOO THE PATHFINDING ACTUALLY WORKED??")
+            return adjusted
+        }
+        */
     }
+
+    // no way to pathfind for some reason
+    // r.log("Preacher: I can't pathfind to opposite location. Iteratively finding a place to stand")
+    /*
+    if (adjacent_base <= 1) {
+        for (const dir of utils.directions) {  // very dumb to be recalculating
+            const tx = x + dir[0]
+            const ty = y + dir[1]
+            if (utils.isStandable(r, tx, ty))
+                return [tx, ty]
+        }
+    }
+    */
+    // r.log("Preacher: No good ideal or adjacent target to stand on!!")
+    return findIterate(r, opposite, true) // absolutely horrible but idk
 }
 
 function findIterate(r, target, strict = false) {  // slowly crawl from current position to target, looking for empty squares. if strict, empty square needs to have at least 1 empty adjacent square
@@ -119,29 +142,54 @@ function findIterate(r, target, strict = false) {  // slowly crawl from current 
         dy = 1
     else if (changey < 0)
         dy = -1
-    while ( (r.me.x + dx < target[0]) || (r.me.y + dy < target[1]) ) {
-        midx = start[0] + dx
-        midy = start[1] + dy
+    // r.log("I want to iterate to: " + target + " dx: " + dx + " dy: " + dy)
+    while ( (r.me.x + dx !== target[0]) || (r.me.y + dy !== target[1]) ) {
+        const midx = r.me.x + dx
+        const midy = r.me.y + dy
+        // r.log("Preacher: Looking at " + midx + "," + midy)
         if (utils.isStandable(r, midx, midy)) {
-            if (!strict || (strict && numAdjacentStrict(r, midx, midy) >= 1))  // valid square
+            // if (!strict || (strict && numAdjacentStrict(r, midx, midy) < 3))  // valid square
+            if (!badAdjacent(r, midx, midy))
                 return [midx, midy]
         }
-        if (midx < target[0])  // increment
+        if (midx < target[0])  // increment, terribly
             dx++
-        if (midy + dy < target[1])
+        else if (midx > target[0])
+            dx--
+        if (midy < target[1])
             dy++
+        else if (midy > target[1])
+            dy--
     }
+    // r.log("Preacher: RETURNING ORIGINAL TARGET")
+    // return target
     return null
 }
 
-function numAdjacentStrict(r, x, y) {  // returns the number of adjacent things, be they robot, mine, or wall
-    let num = 0
-    for (const dir of directions) {
+function badAdjacent(r, x, y) {  // true if next to castle, church, or other preacher
+    let visibles = r.getVisibleRobotMap()
+    for (const dir of utils.directions) {
         const tx = x + dir[0]
         const ty = y + dir[1]
-        if (utils.isStandable(r, tx, ty))  // is passable, no robots there, no mines
+        const robotID = visibles[ty][tx]
+        if (robotID > 0) {  // there is a robot there
+            const type = r.getRobot(robotID).unit
+            if (type === SPECS.CHURCH || type === SPECS.CASTLE || type === SPECS.PREACHER)
+                return true
+        }
+    }
+    return false
+}
+
+function numAdjacentStrict(r, x, y) {  // returns the number of adjacent things at a location, be they robot, mine, or wall
+    let num = 0
+    for (const dir of utils.directions) {
+        const tx = x + dir[0]
+        const ty = y + dir[1]
+        if (!utils.isStandable(r, tx, ty))  // is passable, no robots there, no mines
             num++
     }
+    r.log("Preacher: adjacent: " + num)
     return num
 }
 
@@ -150,7 +198,7 @@ function numAdjacentWeighted(r, x, y) {  // ideally could receive targeting info
     let num = 0
     for (let dx = -1; dx <= 1; dx ++) {  // iterate through adjacent squares. unlike utils this includes the square itself i guess
         for (let dy = -1; dy <= 1; dy ++) {
-            const robotID = r.getVisibleRobotMap[y + dy][x + dx]
+            const robotID = r.getVisibleRobotMap()[y + dy][x + dx]
             if (robotID > 0) {
                 const other = r.getRobot(robotID)
                 if (other.team === r.me.team)
