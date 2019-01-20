@@ -31,8 +31,8 @@ export function crusaderTurn(r) {
         // }
 
         // temp
-        let enemy_x = r.map[0].length - r.me.x
-        let enemy_y = r.map.length - r.me.y
+        let enemy_x = Math.floor(r.map[0].length / 2)
+        let enemy_y = Math.floor(r.map.length / 2)
         target = [enemy_x, enemy_y]
     }
 
@@ -68,6 +68,10 @@ function moveParallel(r, cx, cy, tx, ty) {
     const dy = ty - cy
     return [r.me.x + dx, r.me.y + dy]
 
+}
+
+function incrementParallel(r, x, y, px, py) {
+    
 }
 
 function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a location to move to, continuing the formation of a line
@@ -108,16 +112,24 @@ function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a 
             dy = -px
         }
     }
-    const d = Math.sqrt(dx * dx + dy * dy)
-    const sx = dx / d
+    const d = Math.sqrt(dx * dx + dy * dy)  // used for scaling dx/dy
+    const pd = Math.sqrt(px * px + py * py)
+    const sx = dx / d  // scaled dx/dy
     const sy = dy / d
-    let multiplier = 1
+    const psx = px / pd
+    const psy = py / pd
+    let multiplier = 1  // gradually increase distance
     let nextX = cx
     let nextY = cy
     while (!utils.isEmpty(r, nextX, nextY)) {
         // r.log("cx: " + cx + " cy: " + cy + " nextX: " + nextX + " nextY: " + nextY)
         nextX = Math.floor(cx + sx*multiplier)
         nextY = Math.floor(cy + sy*multiplier)
+        let multiplier2 = 1
+        while(utils.getSquaredDistance(r, nextX, nextY, tx, ty) > pd) {  // move in for concave
+            nextX += Math.floor(cx + psx*multiplier2)
+            nextY += Math.floor(cy + psy*multiplier2)
+        }
         multiplier += 1
         if (nextX < 0 || nextX >= r.map[0].length || nextY < 0 || nextY >= r.map.length) {
             r.log("no way to form perpendicular formation")
