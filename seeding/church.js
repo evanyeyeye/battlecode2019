@@ -89,7 +89,7 @@ export function churchTurn(r) {
    }
    
   // r.log("I'm church there are this many pilgrims count: "+pilgrimCounter)
-    if (!danger && r.me.turn > 1 && (pilgrimCounter < idealNumPilgrims+1) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+    if (!danger && r.me.turn > 1 && (pilgrimCounter < idealNumPilgrims+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
         if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
         {       
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -109,7 +109,7 @@ export function churchTurn(r) {
         }
     }
 
-/*
+
     if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
         if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
          var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -120,7 +120,7 @@ export function churchTurn(r) {
          }
      }
      }
-   */
+  
 /*
     // build crusaders
     if (danger && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
