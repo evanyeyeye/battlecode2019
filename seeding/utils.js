@@ -78,6 +78,26 @@ export default {
         return this.directionToDouble[dir]
     },
 
+    directionToCost: {
+        "0,0": 0,
+        "-1,0": 1,
+        "0,1": 1,
+        "1,0": 1,
+        "0,-1": 1,
+        "-1,-1": 2,
+        "-1,1": 2,
+        "1,1": 2,
+        "1,-1": 2,
+        "2,0": 4,
+        "-2,0": 4,
+        "0,2": 4,
+        "0,-2": 4
+    },
+
+    getDirectionCost: function (dir) {
+        return this.directionToCost[dir]
+    },
+
     // try to move in dir
     // if occupied, try to move in adjacent left and right dirs
     // returns null if movement failed

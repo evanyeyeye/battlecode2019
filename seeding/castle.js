@@ -31,10 +31,10 @@ var crusaderCounter = 0
 var recievedMessages = {}
 
 var mine_range = 20
-var enemyCastleLocSent=false
+var enemyCastleLocSent = false
 
 export function castleTurn(r) {
-    
+
     if (r.me.turn > 60 && enemyCastleLocSent ==false) {
         let visibleRobotMap= r.getVisibleRobotMap()
         r.log("trying to send my symmetrical location")

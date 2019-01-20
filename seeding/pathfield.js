@@ -7,6 +7,7 @@ class PathPoint {
     constructor(dir, dist) {
         this.direction = dir
         this.dist = dist
+        this.optimal = false  // is my distance truly correct
     }
 }
 
@@ -35,7 +36,18 @@ export class PathField {
         return this.field[y][x].direction
     }
 
+    recurFixDistance(x, y) {
+        if (this.target[0] === x && this.target[1] === y)
+            return 0
+        const dir = this.field[y][x].direction
+        this.field[y][x].dist = utils.getDirectionCost(dir) + this.recurFixDistance(x + dir[0], y + dir[1])
+        this.field[y][x].optimal = true
+        return this.field[y][x].dist
+    }
+
     getDistanceAtPoint(x, y) {
+        if (!this.field[y][x].optimal)
+            this.field[y][x].dist = this.recurFixDistance(x, y)
         return this.field[y][x].dist
     }
 
