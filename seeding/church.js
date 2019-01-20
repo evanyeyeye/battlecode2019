@@ -19,6 +19,8 @@ var numTeamCastles = 0  // number of castles on our team. For now, split mines a
 var pilgrimCounter = 0
 var prophetCounter = 0
 var crusaderCounter = 0
+var mineToID = {}
+var sent=false
 
 var recievedMessages = {}
 var numFriendlyCastles = 1
@@ -41,15 +43,24 @@ export function churchTurn(r) {
     let enemyLocation = {}
     let closestEnemy = -1
     let minesToIncrement = new Set()  // we want steady numbers
+    pilgrimCounter=0
+
+
     for (const robot of r.getVisibleRobots()) { 
-    	if (robot.team === r.me.team&& robot.id !== r.me.id) {
-        	if (robot.unit!=SPECS.UNITS[SPECS.PILGRIM])
-        	{
+        if (robot.team === r.me.team&& robot.id !== r.me.id) {
+            if (robot.unit!=SPECS.PILGRIM)
+            {
             allyCount += 1
-       		}
-       		else{
-       		pilgrimCounter++;
-       		}
+            }
+            else{
+                pilgrimCounter++;
+
+                if (r.fuel_map[robot.y][robot.x]||r.karbonite_map[robot.y][robot.x]){
+                let cur_id = mineToID[robot.x.toString() +',' + robot.y.toString()]
+                mineStatus.get(cur_id).activity =10  // update yourself 
+                }   
+                
+            }
         }
          else if (robot.team !== r.me.team) {
             enemyCount += 1
@@ -66,30 +77,39 @@ export function churchTurn(r) {
 
     
     // ---------- START BUILDING STUFF ----------
+    
+    if (pilgrimCounter == idealNumPilgrims+1){
+        sent=true
+    }
 
     // build pilgrims
+   
+   if (sent ==true){
+    pilgrimCounter++;
+   }
+   
+  // r.log("I'm church there are this many pilgrims count: "+pilgrimCounter)
     if (!danger && r.me.turn > 1 && (pilgrimCounter < idealNumPilgrims+1) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
-		if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
+        if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
         {       
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             // see if there is a mine for a pilgrim to go to
-            const mineID = nextMineID(r, (r.me.turn >= mineStatus.size + 1))
+            const mineID = nextMineID(r)
             if (mineID !== null){
                 r.log("Built Pilgrim, trying to send it to " + mineID)
                 // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
                 let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
                 r.log(signalToSend)
                 r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
-                r.castleTalk(parseInt(mineID) + 100)  // let other castles know
-                mineStatus.get(parseInt(mineID)).activity += 10  // update yourself                
+                r.castleTalk(parseInt(mineID) + 100)  // let other castles know                            
                 return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
             }
         }
         }
     }
 
-
+/*
     if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
         if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
          var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -100,7 +120,7 @@ export function churchTurn(r) {
          }
      }
      }
-   
+   */
 /*
     // build crusaders
     if (danger && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
@@ -112,7 +132,7 @@ export function churchTurn(r) {
             return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
         }
     }
-	*/
+    */
     return
 }
 
@@ -140,6 +160,8 @@ function initializeMines(r) {  // deterministically label mines, store distances
                     activity: 0
                 })
                 sortedMines.push(mineID)
+                mineToID[i.toString() +',' + j.toString()] = mineID
+
             }
         }
     }
@@ -166,8 +188,10 @@ function calculateNumMines(r, range) {
 function calculateNumPilgrims(r) {
     let num = 0
     // r.log(sortedMines)
-    for (const entry of sortedMines.slice(0, 10)) {  // take only a portion of the closest mines
-        if (entry[1] < mine_range) {
+
+    r.log(sortedMines)
+    for (const entry of sortedMines) {  // take only a portion of the closest mines
+        if (mineStatus.get(entry).distance < mine_range) {
             num ++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
         }
     }
@@ -176,13 +200,22 @@ function calculateNumPilgrims(r) {
 }
 
 function nextMineID(r) {  // uses resource-blind ids
+    //r.log(idealNumPilgrims)
+    let robomap=r.getVisibleRobotMap()
     // use sortedMines with mineStatus to decide the next mine to send a pilgrim toward
     for (const mineID of sortedMines) {
+
+
         const mine = mineStatus.get(mineID)
+        if (robomap[mine.loc[1]][mine.loc[0]]==0)
+        {
+            mine.activity=0
         // r.log("ID of " + id + " has activity of " + mine.activity)
         if (mine.activity === 0 && mine.distance < mine_range) // no pilgrim activity here yet, temp way to cutoff distance
             return mineID
+        }
     }
     return null
+
 }
 

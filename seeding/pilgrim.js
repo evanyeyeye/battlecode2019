@@ -33,7 +33,7 @@ export function pilgrimTurn(r) {
         iDMines(r)
         // find the closest castle, probably built from there
         for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
-            if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
+            if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE||otherRobot.unit==SPECS.CHURCH && r.isRadioing(otherRobot)) {
                 // recieve message
                 let decodedMsg = comms.decodeSignal(otherRobot.signal, Object.keys(allMineID).length, 16)
                 r.log(decodedMsg)
@@ -317,6 +317,7 @@ function closestSafeMine(r) {
     if (target == null) {
         return null
     }
+    
     return target.split(",").map((n) => parseInt(n))
 }
 function findNearMine(r,min_dis){
