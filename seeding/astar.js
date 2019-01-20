@@ -108,7 +108,10 @@ export class AStar {
         // edge case double move to castle across wall
 	}
 
-    findPath(target, radius = SPECS.UNITS[this.r.unit].SPEED, fast = false) {  // array targets, returns a node object. Radius = max squared movement radius. Fast = ignore squared cost
+    findPath(target, radius = SPECS.UNITS[this.r.me.unit].SPEED, fast = false) {  // array targets, returns a node object. Radius = max squared movement radius. Fast = ignore squared cost
+        if (!this.isPassable(target[0], target[1]))
+            return null
+
         const nodeMap = utils.generateMatrix(this.map[0].length, this.map.length)  // holds null or nodes, for updating cost/parent of nodes
 
         const fringe = new PriorityQueue((a,b) => a.lessThan(b))

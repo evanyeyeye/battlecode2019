@@ -84,10 +84,11 @@ export function churchTurn(r) {
 
     // build pilgrims
    
-   if (sent ==true){
-    pilgrimCounter++;
-   }
+    if (sent ==true){
+        pilgrimCounter++;
+    }
    
+<<<<<<< HEAD
   // r.log("I'm church there are this many pilgrims count: "+pilgrimCounter)
     if (!danger && r.me.turn > 1 && (pilgrimCounter < idealNumPilgrims+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
         if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
@@ -104,17 +105,39 @@ export function churchTurn(r) {
                 r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                 r.castleTalk(parseInt(mineID) + 100)  // let other castles know                            
                 return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
+=======
+    // r.log("I'm church there are this many pilgrims count: "+pilgrimCounter)
+    if (!danger && r.me.turn > 1 && (pilgrimCounter < idealNumPilgrims+1) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+        if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200)) {       
+            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+            if (buildDirection != null) {
+                // see if there is a mine for a pilgrim to go to
+                const mineID = nextMineID(r)
+                if (mineID !== null){
+                    r.log("Built Pilgrim, trying to send it to " + mineID)
+                    // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
+                    let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
+                    r.log(signalToSend)
+                    r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
+                    r.castleTalk(parseInt(mineID) + 100)  // let other castles know                            
+                    return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
+                }
+>>>>>>> 2316860ac5b759b7e97bb0c167ca7d2494587853
             }
-        }
         }
     }
 
+<<<<<<< HEAD
 
+=======
+    /*
+>>>>>>> 2316860ac5b759b7e97bb0c167ca7d2494587853
     if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
         if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
-         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-         if (buildDirection != null) {
+            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+            if (buildDirection != null) {
             r.log("Built Prophet")
+<<<<<<< HEAD
           
              return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
          }
@@ -122,17 +145,28 @@ export function churchTurn(r) {
      }
   
 /*
+=======
+            return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+            }
+        }
+    }
+    */
+
+    /*
+>>>>>>> 2316860ac5b759b7e97bb0c167ca7d2494587853
     // build crusaders
-    if (danger && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
+    // test build crusaders
+    if (r.karbonite > 5*SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Built Crusader")
-            r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
+            // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
             crusaderCounter++
             return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
         }
     }
     */
+
     return
 }
 
