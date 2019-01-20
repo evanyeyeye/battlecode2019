@@ -10,25 +10,17 @@ class BFSLocation {
         this.y = y
         this.direction = dir
         this.dist = dist
-        // this.xdist = xdist
-        // this.ydist = ydist
     }
 
 
     add(nextDir) {
         let dx = nextDir[0]
         let dy = nextDir[1]
-        // return new BFSLocation(this.x + dx, this.y + dy, utils.reverseDirection(dir), this.xdist + cost[dir][1], this.ydist + cost[dir][0])
         if (!nextDir.includes(0))  // diagonal direction
             return new BFSLocation(this.x + dx, this.y + dy, utils.reverseDirection(nextDir), this.dist + 2)
-
         return new BFSLocation(this.x + dx, this.y + dy, utils.reverseDirection(nextDir), this.dist + 1)
     }
-    /*
-    dist() {
-        return squares[this.xdist] + squares[this.ydist]
-    }
-    */
+
 }
 
 export class PathMaster {
@@ -50,17 +42,22 @@ export class PathMaster {
             cur = queue.shift()
             if (pf.isPointSet(cur.x, cur.y)) {  // point already exists
                 if (pf.getPoint(cur.x, cur.y).dist > cur.dist) {  // update only if new distance is shorter
-                    // pf.addDirection(cur.x, cur.y, cur.direction)
                     pf.updatePoint(cur.x, cur.y, cur.direction, cur.dist)
                 }
-            } 
-            else {
+            } else {
                 pf.setPoint(cur.x, cur.y, cur.direction, cur.dist)  // set this as a point
                 for (let dir of utils.directionsWithDiagonalPriority) {  // search out
                     let poss = cur.add(dir)
-                    if (pf.isPointValid(poss.x, poss.y) && this.isPassable(poss.x, poss.y, includeCastle)) {  // valid point
-                        if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist) {  // point is either not seen before, or can be reached faster
-                            queue.push(poss)
+                    if (pf.isPointValid(poss.x, poss.y)) {
+                        if (this.isPassable(poss.x, poss.y, includeCastle)) {
+                            if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist)
+                                queue.push(poss)
+                        } else if (dir.includes(0)) {  // try double step
+                            poss = cur.add(utils.doubleDirection(dir))
+                            if (this.isPassable(poss.x, poss.y, includeCastle)) {
+                                if (!pf.isPointSet(poss.x, poss.y) || pf.getPoint(poss.x, poss.y).dist > poss.dist)
+                                    queue.push(poss)
+                            }
                         }
                     }
                 }
@@ -73,23 +70,16 @@ export class PathMaster {
     getPathField(target, includeCastle=false) {
         let x = target[0]
         let y = target[1]
-        // /*  // TEMP
         if (!this.pathFieldCache[y][x]) {
-            // this.r.log("Generating path field")
             this.pathFieldCache[y][x] = this.generatePathField(target, includeCastle)
         }
         return this.pathFieldCache[y][x]
-        // /  // TEMP
-        // return this.generatePathField(target, includeCastle)  // TEMP
     }
 
     isPassable(x, y, includeCastle=false) {  // include castle/church lets them be counted as valid
-        if (includeCastle)
+        if (includeCastle || !this.map[y][x])
             return this.map[y][x]
         let robot = this.r.getRobot(this.r.getVisibleRobotMap()[y][x])
-        if(robot == null || (robot.unit != SPECS.CASTLE && robot.unit != SPECS.CHURCH))  // no castle or church there
-        // if(robot === null || this.r.me.id === robot.id)  // TEMP
-            return this.map[y][x]
-        return false
+        return (robot == null || (robot.unit != SPECS.CASTLE && robot.unit != SPECS.CHURCH))  // no castle or church there
     }
 }

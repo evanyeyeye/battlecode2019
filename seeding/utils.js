@@ -56,11 +56,26 @@ export default {
         "1,0": [-1, 0],
         "1,-1": [-1, 1],
         "0,-1": [0, 1],
-        "0,0": [0, 0]
+        "0,0": [0, 0],
+        "2,0": [-2, 0],
+        "-2,0": [2, 0],
+        "0,2": [0, -2],
+        "0,-2": [0, 2]
     },
 
     reverseDirection: function (dir) {
         return this.directionToReverse[dir]
+    },
+
+    directionToDouble: {
+        "1,0": [2, 0],
+        "-1,0": [-2, 0],
+        "0,1": [0, 2],
+        "0,-1": [0, -2]
+    },
+
+    doubleDirection: function (dir) {
+        return this.directionToDouble[dir]
     },
 
     // try to move in dir

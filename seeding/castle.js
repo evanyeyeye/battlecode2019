@@ -232,8 +232,9 @@ function initializeMines(r) {
     })
 }
 
-// receive x coordinates on turn 2
-// receive y coordinates on turn 3
+// receive castle greeting on turn 2
+// receive x coordinates on turn 3
+// receive y coordinates on turn 4
 function receiveCastleLocations(r) {
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
