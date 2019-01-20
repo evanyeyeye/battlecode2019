@@ -19,6 +19,9 @@ var friendlyRobots = {}
 var enemyRobots = {}
 var robotXForLambda=null;
 var robotYForLambda=null;
+var prevmove=null
+var state=null // the current plan ocne receive all in from castle go all in
+var targetCastle=[]
 
 
 export function prophetTurn(r) {
@@ -31,9 +34,47 @@ export function prophetTurn(r) {
         for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
-                let message = otherRobot.signal()
+                let message = otherRobot.signal
+                let decoded = comms.decodeSignal(message)
+                if (decoded[2] == comms.ALL_IN)
+                {
+                    targetCastle.push([decoded[0],decoded[1]])
+                }
             }
         }
+    }
+    //this part of the code looks for targte castle and remove things
+    else{
+        for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
+            if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
+                // recieve message
+                let message = otherRobot.signal
+                let decoded = comms.decodeSignal(message)
+                if (decoded[2] == comms.ALL_IN)
+                {
+                    targetCastle.push([decoded[0],decoded[1]])
+                }
+            }
+            else if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.PROPHET && r.isRadioing(otherRobot)){
+                let message = otherRobot.signal
+                let decoded = comms.decodeSignal(message)
+
+                if (decoded[2] == comms.KILLED)
+                {
+                    let killed=null
+                    for (let i=0;i<targetCastle.length;i++)
+                    {
+                        if (targetCastle[i][0]==decoded[0] && targetCastle[i][1] == decoded[1])
+                        {
+                            killed=i
+                        }
+                    }
+                    targetCastle.splice(killed,1);
+
+                }
+            }
+        }
+
     }
 
     // ok now find the best move
@@ -52,7 +93,7 @@ export function prophetTurn(r) {
                 //r.log("based location is "+baseLocation)
             }	
             friendlyRobots[otherRobot.id] = distance
-            r.log('base location is '+baseLocation)
+           // r.log('base location is '+baseLocation)
            // updateMines(r)  // refresh mines based on distance to base castle location
         }
         else {
@@ -90,7 +131,7 @@ export function prophetTurn(r) {
     */
     let kiteAction=null
     // let kiteAction=kite(r)
-    
+
     if (kiteAction!=null){
     r.log("kites did something??????????????????????? "+ kiteAction)
     }
@@ -106,8 +147,37 @@ export function prophetTurn(r) {
     
 }
 }
-    
-    /* gang gang gang gang gang gang gang gang gang gang gang gang
+//found targte location to go all in
+
+
+    if (targetCastle.length>0){
+        let visibleRobotMap=r.getVisibleRobotMap()  
+        if (visibleRobotMap[targetCastle[1]][targetCastle[0]]==0){
+            targetCastle.shift()
+            if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
+            {
+                r.log("castle is destroyed!!!!!")
+                r.signal(comms.encodeCastleKill(targetCastle[0],targetCastle[1]),Math.ceil(visibleRobotMap[0].length*visibleRobotMap[0].length*2))
+            }
+        }  
+        let pf = r.pm.getPathField(targetCastle[0])  // this keeps the reversal
+        if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
+            // r.log("I want to move to " + targetMine)
+            let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
+            //r.log([r.me.x,r.me.y])
+            if (test!=null)
+            {
+            return utils.tryMoveRotate(r, test)
+            }
+    }
+
+        
+    }
+
+
+
+
+    /* geng geng geng geng geng geng geng geng geng geng geng geng
     */
     let move=gang(r)
     if (move!=null)
@@ -135,13 +205,13 @@ export function prophetTurn(r) {
 
    	
     // path to location
-    r.log("path to target ")
+    //r.log("path to target ")
     r.log(targetMine)
 	let pf = r.pm.getPathField(targetMine)  // this keeps the reversal
     if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
         // r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-        r.log([r.me.x,r.me.y])
+       // r.log([r.me.x,r.me.y])
         if (test!=null)
         {
         return utils.tryMoveRotate(r, test)
@@ -318,9 +388,10 @@ function gang(r){
     const myX=r.me.x
     const myY=r.me.y
     let blocked=[]
+    let twothird=0
     for (let side of sides){
         let totalCount=0
-        let nonEmptyCount=0
+        let nonEmptyCount=0        
         for (let direction of side){
             let offsetx=direction[0]
             let offsety=direction[1]
@@ -339,10 +410,15 @@ function gang(r){
         if (totalCount==nonEmptyCount){
             blocked.push(side)
         }
+        else if (nonEmptyCount*2>totalCount){
+            twothird++;
+            
+        }
     }
-    if (blocked.length>=1){       
+    if (blocked.length>=2||((blocked.length == 1 && twothird >=2))){       
         for (const dir of shuffledDirection()) {
         if (utils.isEmpty(r, r.me.x + dir[0], r.me.y + dir[1])) {
+            prevmove=dir
             return dir
         }
         }

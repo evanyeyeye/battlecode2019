@@ -10,7 +10,7 @@ var fast = false
 var my_side = Math.floor(Math.random()*2)
 
 export function crusaderTurn(r) {
-    if (r.me.turn == 1) {
+    if (r.me.turn === 1) {
         r.log("I am a Crusader")
         // for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
         //     if (otherRobot.team == r.me.team && otherRobot.unit == SPECS.CASTLE && r.isRadioing(otherRobot)) {
@@ -37,7 +37,7 @@ export function crusaderTurn(r) {
     }
 
     for (const robot of r.getVisibleRobots()) {
-        if (robot.team !== r.me.team && utils.getSquaredDistance(r.me.x, r.me.y, robot.x, robot.y) <= SPECS.UNITS[r.me.unit].ATTACK_RADIUS) {
+        if (robot.team !== r.me.team && utils.getSquaredDistance(r.me.x, r.me.y, robot.x, robot.y) <= SPECS.UNITS[r.me.unit].ATTACK_RADIUS && r.fuel > SPECS.UNITS[r.me.unit].ATTACK_FUEL_COST) {
             return r.attack(robot.x - r.me.x, robot.y - r.me.y)
         }
         else if (robot.team === r.me.team && robot.unit === SPECS.CHURCH) {
@@ -45,9 +45,8 @@ export function crusaderTurn(r) {
         }
     }
 
-    if (r.me.turn <= 200 && churchLocation !== null) {
+    if (churchLocation !== null) {
         const move = formPerpendicular(r, churchLocation[0], churchLocation[1], target[0], target[1], my_side)
-        r.log("I want to move to: " + move + ", I am at: " + r.me.x + "," + r.me.y)
         if (move != null) {
             const node = r.am.findPath(move)
             if (node === null){
@@ -61,6 +60,7 @@ export function crusaderTurn(r) {
             }
         }
     }
+    /*  // turn 200 is different for each robot, should use signal
     if (r.me.turn > 200) {
         const move = moveParallel(r, churchLocation[0], churchLocation[1], target[0], target[1])
         if (move != null) {
@@ -76,6 +76,7 @@ export function crusaderTurn(r) {
             }
         }
     }
+    */
     return
 }
 
@@ -144,8 +145,8 @@ function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a 
     let multiplier = 1  // gradually increase distance
     let nextX = cx
     let nextY = cy
-    while (!utils.isEmpty(r, nextX, nextY)) {
-        // r.log("cx: " + cx + " cy: " + cy + " nextX: " + nextX + " nextY: " + nextY)
+    while (!utils.isStandable(r, nextX, nextY)) {
+        r.log("cx: " + cx + " cy: " + cy + " nextX: " + nextX + " nextY: " + nextY)
         nextX = Math.floor(cx + sx*multiplier)
         nextY = Math.floor(cy + sy*multiplier)
 

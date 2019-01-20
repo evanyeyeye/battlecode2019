@@ -77,6 +77,9 @@ export function castleTurn(r) {
     let enemyDistance = {}
     let enemyLocation = {}
     let closestEnemy = -1
+    let danger_prophet = false
+    let danger_crusader =false
+    let preacher_count=0
 
     let minesToIncrement = new Set()  // we want steady numbers
 
@@ -97,9 +100,18 @@ export function castleTurn(r) {
                 } 
             }
         } 
-         if (robot.team === r.me.team) {
+         if (robot.team === r.me.team &&robot.unit != SPECS.CHURCH && robot.unit != SPECS.CASTLE) {
             allyCount += 1
         } else if (robot.team !== r.me.team) {
+            if (robot.unit == SPECS.CRUSADER)
+            {
+                danger_crusader = true
+
+            }
+            else if (robot.unit == SPECS.PROPHET)
+            {
+                danger_prophet = true
+            }
             enemyCount += 1
             enemyDistance[robot.id] = utils.getManhattanDistance(r.me.x, r.me.y, robot.x, robot.y)
             enemyLocation[robot.id] = [r.me.x, r.me.y]
@@ -160,16 +172,17 @@ export function castleTurn(r) {
 
 
 
-    if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
-          if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
-         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-         if (buildDirection != null) {
-            r.log("Built Prophet")
-          
-             return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
-         }
-     }
-     }
+
+
+    if (danger_prophet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
+        if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
+            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+            if (buildDirection != null) {
+                r.log("Built Prophet")
+                return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+            }
+        }
+    }
    
      
    
@@ -253,6 +266,7 @@ function receiveCastleLocations(r) {
 function findCastleLocations(r) {
     for (const [castleID, castleLoc] of castleLocationBuilder.entries()) {
         r.log(castleID + " " + castleLoc)
+      
         castleStatus[r.me.team].push({
             loc: [castleLoc[0], castleLoc[1]],
             distance: castlePathField.getDistanceAtPoint(castleLoc[0], castleLoc[1])
