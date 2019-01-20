@@ -52,6 +52,8 @@ export function prophetTurn(r) {
                 let decoded = comms.decodeSignal(message)
                 if (decoded[2] == comms.ALL_IN)
                 {
+                    r.log(message)
+                    r.log("I hear "+targetCastle)
                     targetCastle.push([decoded[0],decoded[1]])
                 }
             }
@@ -151,13 +153,14 @@ export function prophetTurn(r) {
 
 
     if (targetCastle.length>0){
+        r.log('I see castle as target at '+targetCastle)
         let visibleRobotMap=r.getVisibleRobotMap()  
-        if (visibleRobotMap[targetCastle[1]][targetCastle[0]]==0){
+        if (visibleRobotMap[targetCastle[0][1]][targetCastle[0][0]]==0){
             targetCastle.shift()
             if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
             {
                 r.log("castle is destroyed!!!!!")
-                r.signal(comms.encodeCastleKill(targetCastle[0],targetCastle[1]),Math.ceil(visibleRobotMap[0].length*visibleRobotMap[0].length*2))
+                r.signal(comms.encodeCastleKill(targetCastle[0][0],targetCastle[0][1],16),Math.ceil(visibleRobotMap[0].length*visibleRobotMap[0].length*2))
             }
         }  
         let pf = r.pm.getPathField(targetCastle[0])  // this keeps the reversal

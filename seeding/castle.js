@@ -31,8 +31,20 @@ var crusaderCounter = 0
 var recievedMessages = {}
 
 var mine_range = 20
+var enemyCastleLocSent=false
 
 export function castleTurn(r) {
+    if (r.me.turn > 200 && enemyCastleLocSent ==false) {
+        let visibleRobotMap= r.getVisibleRobotMap()
+        r.log("trying to send my symmetrical location")
+        if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
+        {
+            let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
+            r.log('sent '+curEnemyCastle)
+            r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1],16),Math.ceil(visibleRobotMap[0].length*visibleRobotMap[0].length*2))
+            enemyCastleLocSent =true
+        } 
+    }
 
     if (r.me.turn === 1) {
         r.log("I am a Castle")
