@@ -8,12 +8,17 @@ import comms from './comms.js'
 
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
-// distance: pathfield distance from this castle to mine (ideal)
+// distance: pathfield distance from this castle to mine
 // activity: heuristic for pilgrims at mine, assigning adds 10, subtract/add 1 per turn based on mining
 const mineStatus = new Map()
 const sortedMines = []  // sorted array of mineIDs ascending by distance
 
-const castleLocations = {}  // team: array of 1-3 locations
+// team: array of 1-3 objects with castle info
+// loc: [x, y] location of castle
+// distance: pathfield distance from this castle to the other castle
+const castleStatus = {0: [], 1: []}
+
+var castlePathField = null
 
 var idealNumPilgrims = 0
 var numTeamCastles = 0  // number of castles on our team. For now, split mines and pilgrim production
@@ -30,17 +35,12 @@ export function castleTurn(r) {
 
     if (r.me.turn === 1) {
         r.log("I am a Castle")
-
-        initializeMines(r)  // populates mineStatus and sortedMines
-        r.log("There are " + mineStatus.size + " mines")        
-
-        idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
-        
-        r.castleTalk(comms.CASTLE_GREETING)  // let other castles know you exist
+        initializeCastle(r)
     }
 
     if (r.me.turn == 2) {
-        findCastleLocations(r)  // populates castleLocations
+        findCastleLocations(r)  // populates castleStatus
+        r.log(castleStatus)
     }
 
     // mine_range = Math.max(mine_range, r.map.length + r.me.turn / 20)
@@ -177,24 +177,35 @@ function findBuildDirection(r, x, y) {
     return null
 }
 
+function initializeCastle(r) {
+    // generate pathfield from castle location
+    castlePathField = r.pm.getPathField([r.me.x, r.me.y])
+    // populate mineStatus and sortedMines
+    initializeMines(r)
+    r.log("There are " + mineStatus.size + " mines")
+    // determine number of pilgrims to build
+    idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
+    // let other castles know you exist
+    r.castleTalk(comms.CASTLE_GREETING)
+}
+
 // populate mineStatus: deterministically label mines, store location & distance from castle
 // populate sortedMines: sort mineIDs by distance
-function initializeMines(r) {  // deterministically label mines, store distances from castle
-    const pf = r.pm.getPathField([r.me.x, r.me.y])  // generate pathfield from castle location
+function initializeMines(r) {
     let mineID = 0
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
                 mineStatus.set(++mineID, {
                     loc: [i, j],
-                    distance: pf.getDistanceAtPoint(i, j),
+                    distance: castlePathField.getDistanceAtPoint(i, j),
                     activity: 0
                 })
                 sortedMines.push(mineID)
             }
         }
     }
-    // sort by distance from least to greatest
+    // sort mines by distance from least to greatest
     sortedMines.sort((a, b) => {
         return mineStatus.get(a).distance - mineStatus.get(b).distance
     })
@@ -206,7 +217,15 @@ function findCastleLocations(r) {
         r.log("" + robot.team)
         const message = robot.castle_talk
         if (message === comms.CASTLE_GREETING) {
-            // r.log("" + robot.team)
+            castleStatus[r.team].push({
+                loc: [robot.x, robot.y],
+                distance: castlePathField.getDistanceAtPoint(robot.x, robot.y)
+            })
+            const enemyCastleLoc = reflectLocation(r, [robot.x, robot.y])
+            castleStatus[r.enemyTeam].push({
+                loc: [enemyCastleLoc[0], enemyCastleLoc[1]],
+                distance: castlePathField.getDistanceAtPoint(enemyCastleLoc[0], enemyCastleLoc[1])
+            })
         }
     }
 }

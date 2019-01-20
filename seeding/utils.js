@@ -5,6 +5,27 @@ export default {
 
     attackingUnits: new Set([SPECS.CRUSADER, SPECS.PROPHET, SPECS.PREACHER]),
 
+    // returns boolean
+    // true => horizontal symmetry
+    // false => vertical symmetry
+    findSymmetry: function (r) {
+        const passibleMap = r.getPassableMap()
+        for (let j = 0; j < Math.floor(passableMap.length / 2); j++) {
+            for (let i = 0; i < passableMap[0].length; i++) {
+                if (passableMap[j][i] !== passableMap[passibleMap.length-j-1][i])
+                    return false
+            }
+        }
+        return true
+    },
+
+    reflectLocation: function(r, loc) {
+        const mapLength = r.getPassableMap().length
+        if (r.mapSymmetry)  // horizontal symmetry
+            return [loc[0], mapLength - loc[1] - 1]
+        return [mapLength - loc[0] - 1, loc[1]]  // vertical symmetry
+    },
+
     // counterclockwise order starting from northwest
     directions: [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]],
 

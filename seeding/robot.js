@@ -7,7 +7,7 @@ import {prophetTurn} from './prophet.js'
 import {preacherTurn} from './preacher.js'
 import {PathMaster} from './pathmaster.js'
 import {AStar} from './astar.js'
-
+import utils from './utils.js'
 
 class MyRobot extends BCAbstractRobot {
 
@@ -22,6 +22,8 @@ class MyRobot extends BCAbstractRobot {
         if (self.step == 1) {
             self.pm = new PathMaster(self, self.map)
             self.am = new AStar(self, self.map)
+            self.enemyTeam = self.team ^ 1
+            self.mapSymmetry = utils.findSymmetry(self)
         }
         switch (self.me.unit) {
             case SPECS.CASTLE:
