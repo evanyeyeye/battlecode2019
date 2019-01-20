@@ -56,7 +56,7 @@ export function castleTurn(r) {
     if (r.me.turn === 4) {
         receiveCastleLocations(r)  // receive (fourth iteration)
         findCastleLocations(r)  // populates castleStatus
-        r.log(castleStatus)
+        r.log("CASTLE LOCATIONS: " + castleStatus)
     }
 
     // mine_range = Math.max(mine_range, r.map.length + r.me.turn / 20)
