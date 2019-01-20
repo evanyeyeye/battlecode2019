@@ -16,6 +16,8 @@ class BFSLocation {
     add(nextDir) {
         let dx = nextDir[0]
         let dy = nextDir[1]
+        if (nextDir.includes(2))
+            return new BFSLocation(this.x + dx, this.y + dy, utils.reverseDirection(nextDir), this.dist + 4)
         if (!nextDir.includes(0))  // diagonal direction
             return new BFSLocation(this.x + dx, this.y + dy, utils.reverseDirection(nextDir), this.dist + 2)
         return new BFSLocation(this.x + dx, this.y + dy, utils.reverseDirection(nextDir), this.dist + 1)
