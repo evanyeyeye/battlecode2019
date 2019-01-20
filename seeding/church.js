@@ -110,7 +110,7 @@ export function churchTurn(r) {
         }
     }
 
-    
+    /*
     // build prophets
     if ( r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
         if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
@@ -121,7 +121,7 @@ export function churchTurn(r) {
             }
         }
     }
-    
+    */
 
     /*
     // test build crusaders
@@ -137,7 +137,7 @@ export function churchTurn(r) {
     }
     */
 
-    /*
+    
     // test build preachers
     if (r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -148,7 +148,7 @@ export function churchTurn(r) {
             return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
         }
     }
-    */
+    
     return
 }
 

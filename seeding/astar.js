@@ -84,6 +84,7 @@ class Node {
 		this.x = x
 		this.y = y
         this.parent = parent
+        this.child = null
 		this.f = g + h  // cost to minimize
         this.g = g
         this.h = h
@@ -111,8 +112,8 @@ export class AStar {
     findPath(target, radius = SPECS.UNITS[this.r.me.unit].SPEED, fast = false) {  // array targets, returns a node object. Radius = max squared movement radius. Fast = ignore squared cost
         if (!this.isPassable(target[0], target[1]))
             return null
-
         const nodeMap = utils.generateMatrix(this.map[0].length, this.map.length)  // holds null or nodes, for updating cost/parent of nodes
+        // const tempMap = utils.generateMatrix(this.map[0].length, this.map.length)  // the caching right now happens every time you visit a node, which could be multiple times for 1 pathfinding
 
         const fringe = new PriorityQueue((a,b) => a.lessThan(b))
         const source = new Node(this.r.me.x, this.r.me.y, null, 0, utils.getManhattanDistance(this.r.me.x, this.r.me.y, target[0], target[1]))
@@ -124,6 +125,12 @@ export class AStar {
             if (nodeMap[v.y][v.x] && nodeMap[v.y][v.x].f > v.f)  // already have a lower cost way to get here
                 continue
             if (v.x == target[0] && v.y == target[1]) {  // we found the target
+                let temp = v
+                while (temp.parent !== null) {  // label all the children in the final path
+                    const child = temp
+                    temp = temp.parent
+                    temp.child = child
+                }
                 return v
             }
             for (const [dx, dy] of this.getDirections(v, radius, fast)) {
@@ -212,6 +219,7 @@ export class AStar {
         }
         else if (robotID === -1) {  // we can't see here
             if (this.heatMap[y][x] !== null && 0 < this.heatMap[y][x][1] < 100) {  // we saw before a unit that could move
+                // this.r.log("a*: decrememting " + x + ',' + y)
                 this.heatMap[y][x] --  // decrement activity
                 return false
             }
@@ -226,7 +234,7 @@ export class AStar {
                 this.heatMap[y][x] = [robotID, 100]  // permanently avoid 100
                 return false
             }
-
+            /*  // this optimization does not work
             if (this.heatMap[y][x] !== null && robotID === this.heatMap[y][x][0]) {  // we saw the same robot here before
                 // this.r.log("I'm seeing the same robot at " + x + "," + y + ". id is: " + robotID)
                 if (this.heatMap[y][x][1] < 90)  // 10 less than permanent
@@ -238,6 +246,9 @@ export class AStar {
             // this.r.log("there is a new robot here, before: " + this.heatMap[y][x] + " new: " + robotID)
             this.heatMap[y][x] = [robotID, 1]
             return this.map[y][x]  // even if we can see it, its our first time. lets try to move there anyway
+            */
+            this.heatMap[y][x] = [robotID, 90]
+            return false
         }
     }
 }
