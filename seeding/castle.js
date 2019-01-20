@@ -196,7 +196,7 @@ export function castleTurn(r) {
         }
     }
    
-     
+    
    
     /*
     // build crusaders
@@ -211,7 +211,11 @@ export function castleTurn(r) {
     }
     */
 
+    // ---------- LAST RESORT: ATTACK THE ENEMY ----------
     
+    
+
+
     return
 }
 
