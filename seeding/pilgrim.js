@@ -145,14 +145,19 @@ export function pilgrimTurn(r) {
         // r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // each turn, let castles know you're here mining
         
         let seechurch=false;
-        for (let otherRobot of r.getVisibleRobots()) {  
+        let seeEnemy= false
+        for (let otherRobot of r.getVisibleRobots()) { 
+
             if (otherRobot.team == r.me.team&&(otherRobot.unit==SPECS.CHURCH||otherRobot.unit==SPECS.CASTLE)&&utils.getSquaredDistance(r.me.x,r.me.y,otherRobot.x,otherRobot.y)<49){
                 curAction = comms.ATTACK_MINE
                 seechurch = true
-            }            
+            }  
+            if (otherRobot.team != r.me.team && otherRobot.unit != SPECS.PILGRIM){
+                seeEnemy = true
+            }          
             }
             //don't see church near me so finding the right place to build mines to minimize movment
-              if (seechurch==false){
+              if (seechurch == false && seeEnemy == false){
                 updateMines(r)
                 let churchDirections=findBuildDirections(r,r.me.x,r.me.y)               
                 let nearmines=findNearMine(r,10)

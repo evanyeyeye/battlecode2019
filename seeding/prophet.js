@@ -19,6 +19,7 @@ var friendlyRobots = {}
 var enemyRobots = {}
 var robotXForLambda=null;
 var robotYForLambda=null;
+var prevmove=null
 
 
 export function prophetTurn(r) {
@@ -107,7 +108,7 @@ export function prophetTurn(r) {
 }
 }
     
-    /* gang gang gang gang gang gang gang gang gang gang gang gang
+    /* geng geng geng geng geng geng geng geng geng geng geng geng
     */
     let move=gang(r)
     if (move!=null)
@@ -318,9 +319,10 @@ function gang(r){
     const myX=r.me.x
     const myY=r.me.y
     let blocked=[]
+    let twothird=0
     for (let side of sides){
         let totalCount=0
-        let nonEmptyCount=0
+        let nonEmptyCount=0        
         for (let direction of side){
             let offsetx=direction[0]
             let offsety=direction[1]
@@ -339,10 +341,15 @@ function gang(r){
         if (totalCount==nonEmptyCount){
             blocked.push(side)
         }
+        else if (nonEmptyCount*2>totalCount){
+            twothird++;
+            
+        }
     }
-    if (blocked.length>=1){       
+    if (blocked.length >= 2 || ((blocked.length == 1 && twothird >= 1))){       
         for (const dir of shuffledDirection()) {
         if (utils.isEmpty(r, r.me.x + dir[0], r.me.y + dir[1])) {
+            prevmove=dir
             return dir
         }
         }
