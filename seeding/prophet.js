@@ -115,7 +115,7 @@ export function prophetTurn(r) {
 
         // return to church/castle
         let pf = r.pm.getPathField(baseLocation)
-        if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
+        if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
 
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
          
@@ -217,7 +217,7 @@ export function prophetTurn(r) {
     //r.log("path to target ")
     r.log(targetMine)
 	let pf = r.pm.getPathField(targetMine)  // this keeps the reversal
-    if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
+    if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
         // r.log("I want to move to " + targetMine)
         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
        // r.log([r.me.x,r.me.y])

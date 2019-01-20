@@ -93,7 +93,7 @@ export function pilgrimTurn(r) {
         // return to church/castle
         
          let pf = r.pm.getPathField(baseLocation)
-         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
+         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
              let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
              return utils.tryMoveRotate(r, test)
          }
@@ -211,7 +211,7 @@ export function pilgrimTurn(r) {
     // path to location
     
 	// let pf = r.pm.getPathField(targetMine)
- //    if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
+ //    if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
  //        // r.log("I want to move to " + targetMine)
  //        let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
  //        return utils.tryMoveRotate(r, test)
