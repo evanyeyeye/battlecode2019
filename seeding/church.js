@@ -89,30 +89,31 @@ export function churchTurn(r) {
         }
     }
 
-
+    /*
     if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
         if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
-         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-         if (buildDirection != null) {
+            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+            if (buildDirection != null) {
             r.log("Built Prophet")
-          
-             return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
-         }
-     }
-     }
-   
-/*
+            return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+            }
+        }
+    }
+    */
+
+
     // build crusaders
-    if (danger && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
+    // if (danger && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
+    if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Built Crusader")
-            r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
+            // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
             crusaderCounter++
             return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
         }
     }
-	*/
+	
     return
 }
 
