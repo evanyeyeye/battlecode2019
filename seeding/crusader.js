@@ -45,8 +45,9 @@ export function crusaderTurn(r) {
         }
     }
 
-    if (r.me.turn <= 500 && churchLocation !== null) {
+    if (r.me.turn <= 200 && churchLocation !== null) {
         const move = formPerpendicular(r, churchLocation[0], churchLocation[1], target[0], target[1], my_side)
+        r.log("I want to move to: " + move + ", I am at: " + r.me.x + "," + r.me.y)
         if (move != null) {
             const node = r.am.findPath(move)
             if (node === null){
@@ -60,7 +61,7 @@ export function crusaderTurn(r) {
             }
         }
     }
-    if (r.me.turn > 500) {
+    if (r.me.turn > 200) {
         const move = moveParallel(r, churchLocation[0], churchLocation[1], target[0], target[1])
         if (move != null) {
             const node = r.am.findPath(move)
@@ -90,6 +91,8 @@ function incrementParallel(r, x, y, px, py) {  // i was going to compartmentaliz
     return null
 }
 
+// THIS WILL BREAK ON MEDIUM-LONG LINES
+// the robot will lose vision of center, and think it can start building from there.
 function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a location to move to, continuing the formation of a line
     const px = tx - cx  // parallel change
     const py = ty - cy
@@ -132,9 +135,11 @@ function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a 
     const sx = dx / d  // scaled dx/dy
     const sy = dy / d
 
+    /*
     const pd = Math.sqrt(px * px + py * py)  // for incrementing in parallel direction
     const psx = px / pd
     const psy = py / pd
+    */
 
     let multiplier = 1  // gradually increase distance
     let nextX = cx
@@ -144,16 +149,18 @@ function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a 
         nextX = Math.floor(cx + sx*multiplier)
         nextY = Math.floor(cy + sy*multiplier)
 
+        /*
         let multiplier2 = 1
         while(utils.getSquaredDistance(r, nextX, nextY, tx, ty) > pd) {  // move in for concave
-            nextX += Math.floor(cx + psx*multiplier2)
-            nextY += Math.floor(cy + psy*multiplier2)
+            nextX += Math.floor(psx*multiplier2)
+            nextY += Math.floor(psy*multiplier2)
             multiplier2++
             if (nextX < 0 || nextX >= r.map[0].length || nextY < 0 || nextY >= r.map.length) {
                 r.log("no way to form perpendicular formation")
                 return null
             }
         }
+        */
 
         multiplier += 1
         if (nextX < 0 || nextX >= r.map[0].length || nextY < 0 || nextY >= r.map.length) {
