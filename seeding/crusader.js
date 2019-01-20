@@ -37,7 +37,7 @@ export function crusaderTurn(r) {
     }
 
     for (const robot of r.getVisibleRobots()) {
-        if (robot.team !== r.me.team && utils.getSquaredDistance(r.me.x, r.me.y, robot.x, robot.y) <= SPECS.UNITS[r.me.unit].ATTACK_RADIUS) {
+        if (robot.team !== r.me.team && utils.getSquaredDistance(r.me.x, r.me.y, robot.x, robot.y) <= SPECS.UNITS[r.me.unit].ATTACK_RADIUS && r.fuel > SPECS.UNITS[r.me.unit].ATTACK_FUEL_COST) {
             return r.attack(robot.x - r.me.x, robot.y - r.me.y)
         }
         else if (robot.team === r.me.team && robot.unit === SPECS.CHURCH) {
@@ -47,7 +47,6 @@ export function crusaderTurn(r) {
 
     if (churchLocation !== null) {
         const move = formPerpendicular(r, churchLocation[0], churchLocation[1], target[0], target[1], my_side)
-        r.log("I want to move to: " + move + ", I am at: " + r.me.x + "," + r.me.y)
         if (move != null) {
             const node = r.am.findPath(move)
             if (node === null){
@@ -79,10 +78,6 @@ export function crusaderTurn(r) {
     }
     */
     return
-}
-
-function isStandable(r, x, y) {
-    return r.map[y][x] && r.getVisibleRobotMap()[y][x] <= 0 && !r.karbonite_map[y][x] && !r.fuel_map[y][x]
 }
 
 function moveParallel(r, cx, cy, tx, ty) {
@@ -150,7 +145,7 @@ function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a 
     let multiplier = 1  // gradually increase distance
     let nextX = cx
     let nextY = cy
-    while (!isStandable(r, nextX, nextY)) {
+    while (!utils.isStandable(r, nextX, nextY)) {
         r.log("cx: " + cx + " cy: " + cy + " nextX: " + nextX + " nextY: " + nextY)
         nextX = Math.floor(cx + sx*multiplier)
         nextY = Math.floor(cy + sy*multiplier)
