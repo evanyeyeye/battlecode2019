@@ -1,7 +1,13 @@
 import {SPECS} from 'battlecode'
+import utils from './utils.js'
 
+const LEFT_SIDE = 0
+const RIGHT_SIDE = 1
+
+var churchLocation = null
 var target = null
 var fast = false
+var my_side = Math.floor(Math.random()*2)
 
 export function crusaderTurn(r) {
     if (r.me.turn == 1) {
@@ -25,24 +31,35 @@ export function crusaderTurn(r) {
         // }
 
         // temp
-        let enemy_x = r.map[0].length - r.me.x
-        let enemy_y = r.map.length - r.me.y
+        let enemy_x = Math.floor(r.map[0].length / 2)
+        let enemy_y = Math.floor(r.map.length / 2)
         target = [enemy_x, enemy_y]
     }
 
+    for (const robot of r.getVisibleRobots()) {
+        if (robot.team !== r.me.team && utils.getSquaredDistance(r.me.x, r.me.y, robot.x, robot.y) <= SPECS.UNITS[r.me.unit].ATTACK_RADIUS) {
+            return r.attack(robot.x - r.me.x, robot.y - r.me.y)
+        }
+        else if (robot.team === r.me.team && robot.unit === SPECS.CHURCH) {
+            churchLocation = [robot.x, robot.y]
+        }
+    }
 
-    // var pf = r.pm.getPathField(target)
-    // if (r.fuel > SPECS.UNITS[SPECS.CRUSADER].FUEL_PER_MOVE) {
-    //     var test = pf.getDirectionAtPoint(r.me.x, r.me.y)
-    //     // r.log(test)
-    //     return r.move(test[0], test[1])
-    // }
-
-    // for (const robot of r.getVisibleRobots()) {
-    //     if (robot.team !== r.me.team) {
-    //         return r.attack(robot.x - r.me.x, robot.y - r.me.y)
-    //     }
-    // }
+    if (r.me.turn >= 2 && churchLocation !== null) {
+        const move = formPerpendicular(r, churchLocation[0], churchLocation[1], target[0], target[1], my_side)
+        if (move != null) {
+            const node = r.am.findPath(move)
+            if (node === null){
+                r.log("A*: no path to " + move + " found")
+                return
+            }
+            if (r.fuel > SPECS.UNITS[SPECS.CRUSADER].FUEL_PER_MOVE) {
+                const test = r.am.nextDirection(node)
+                if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
+                    return r.move(test[0], test[1])
+            }
+        }
+    }
     return
 }
 
@@ -53,24 +70,140 @@ function moveParallel(r, cx, cy, tx, ty) {
 
 }
 
-function movePerpendicular(r, cx, cy, tx, ty, scale = 5) {
+function incrementParallel(r, x, y, px, py) {
+    
+}
+
+function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a location to move to, continuing the formation of a line
     const px = tx - cx  // parallel change
     const py = ty - cy
-    const bx = cx - r.me.x  // offset from base
-    const by = cy - r.me.y
-    const dist = utils.getManhattanDistance(cx, cy, tx, ty)
     let dx = 0
     let dy = 0
-    if (by > 0) {
-        dx = -py
-        dy = px
+
+    if (px === 0) {  // tangent is either left or right
+        if (side === LEFT_SIDE)  // super dumb, but this is the correct one i think?
+            dx = -py
+        else
+            dx = py
     }
-    else {
-        dx = py
-        dy = -px
+    else if (py === 0) {  // tangent is either up or down
+        if (side === LEFT_SIDE)
+            dy = -px
+        else
+            dy = px
     }
-    if (px < 0) {
-        dx = -dx
-        dy = -dy
+    else if (px * py >= 0) {  // positive slope
+        if (side === LEFT_SIDE) {
+            dx = py
+            dy = -px
+        }
+        else {  // the robot has a steeper slope than the center relative to the target
+            dx = -py
+            dy = px
+        }
     }
+    else {  // negative slope
+        if (side === LEFT_SIDE) {
+            dx = -py
+            dy = px
+        }
+        else {
+            dx = py
+            dy = -px
+        }
+    }
+    const d = Math.sqrt(dx * dx + dy * dy)  // used for scaling dx/dy
+    const pd = Math.sqrt(px * px + py * py)
+    const sx = dx / d  // scaled dx/dy
+    const sy = dy / d
+    const psx = px / pd
+    const psy = py / pd
+    let multiplier = 1  // gradually increase distance
+    let nextX = cx
+    let nextY = cy
+    while (!utils.isEmpty(r, nextX, nextY)) {
+        // r.log("cx: " + cx + " cy: " + cy + " nextX: " + nextX + " nextY: " + nextY)
+        nextX = Math.floor(cx + sx*multiplier)
+        nextY = Math.floor(cy + sy*multiplier)
+        let multiplier2 = 1
+        while(utils.getSquaredDistance(r, nextX, nextY, tx, ty) > pd) {  // move in for concave
+            nextX += Math.floor(cx + psx*multiplier2)
+            nextY += Math.floor(cy + psy*multiplier2)
+        }
+        multiplier += 1
+        if (nextX < 0 || nextX >= r.map[0].length || nextY < 0 || nextY >= r.map.length) {
+            r.log("no way to form perpendicular formation")
+            return null
+        }
+        if (nextX == r.me.x && nextY == r.me.y) {
+            // r.log("IM NOT MOVING ANYMORE IM ALREADY IN THE LINE")
+            return null  // we are already here!
+        }
+    }
+    return [nextX, nextY]
+}
+
+function movePerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE, scale = 5) {  // this is kinda like a beta function. Probably not useful
+    const px = tx - cx  // parallel change
+    const py = ty - cy
+
+    const mx = tx - r.me.x
+    const my = ty - r.me.y
+
+    const bx = cx - r.me.x  // offset from base
+    const by = cy - r.me.y
+    // const dist = utils.getManhattanDistance(cx, cy, tx, ty)
+    let dx = 0
+    let dy = 0
+    // why is this so complicated, why am i so stupid
+
+    if (px === 0) {  // tangent is either left or right
+        // if (bx <= 0)
+        if (side === LEFT_SIDE)  // super dumb, but this is the correct one i think?
+            dx = -py
+        else
+            dx = py
+    }
+    else if (py === 0) {  // tangent is either up or down
+        // if (by <= 0)
+        if (side === LEFT_SIDE)
+            dy = -px
+        else
+            dy = px
+    }
+    else if (px * py >= 0) {  // positive slope
+        // if (mx !== 0 && Math.abs(my / mx) < Math.abs(py / px)) {  // flatter slope compared to center
+        if (side === LEFT_SIDE) {
+            dx = py
+            dy = -px
+        }
+        else {  // the robot has a steeper slope than the center relative to the target
+            dx = -py
+            dy = px
+        }
+    }
+    else {  // negative slope
+        // if (Math.abs(my / mx) < Math.abs(py / px)) {
+        if (side === LEFT_SIDE) {
+            dx = -py
+            dy = px
+        }
+        else {
+            dx = py
+            dy = -px
+        }
+    }
+    r.log("cx: " + cx + " cy: " + cy + " tx: " + tx + " ty: " + ty + " dx: " + dx + " dy: " + dy)
+    const d = Math.sqrt(dx * dx + dy * dy)
+    let nextX = r.me.x + Math.floor(dx / d * scale)
+    let nextY = r.me.y + Math.floor(dy / d * scale)
+    if (nextX < 0)
+        nextX = 0
+    if (nextY < 0)
+        nextY = 0
+    if (nextX >= r.map[0].length)
+        nextX = r.map[0].length - 1
+    if (nextY >= r.map.length)
+        nextY = r.map.length - 1
+    return [nextX, nextY]
 }

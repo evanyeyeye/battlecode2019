@@ -114,7 +114,7 @@ export function castleTurn(r) {
     }
 
     for (const m of minesToIncrement)  // only want to increment once per recieved message. This way, always have 1 pilgrim near mine
-    	mineStatus.get(m).activity += 1
+        mineStatus.get(m).activity += 1
 
     if (r.me.turn % 50 === 0) {
         r.log("activity numbers, total: " + totalActivity)
@@ -159,6 +159,8 @@ export function castleTurn(r) {
         r.castleTalk(initialActivityQueue.shift())
     }
 
+/*
+
     if (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
           if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
          var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -169,6 +171,7 @@ export function castleTurn(r) {
          }
      }
      }
+     */
      
    
 /*
@@ -182,7 +185,7 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
         }
     }
-	*/
+    */
 
     
     return
