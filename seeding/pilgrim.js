@@ -153,6 +153,7 @@ export function pilgrimTurn(r) {
             }
             //don't see church near me so finding the right place to build mines to minimize movment
               if (seechurch==false){
+                updateMines(r)
                 let churchDirections=findBuildDirections(r,r.me.x,r.me.y)               
                 let nearmines=findNearMine(r,10)
                 //find best location
@@ -171,10 +172,14 @@ export function pilgrimTurn(r) {
                             r.log([r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],tempLocation[0],tempLocation[1]])
                             let temp_distance = utils.getManhattanDistance(r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],parseInt(tempLocation[0],10),parseInt(tempLocation[1],10))
                            // r.log(temp_distance)
+                           if (temp_distance==0)
+                           {
+                            temp_min+=1000
+                           }
                             temp_min+=temp_distance
                         }
                         //r.log(temp_min)
-                        if (temp_min<cur_min){
+                        if (temp_min<=cur_min){
                             cur_min=temp_min
                             cur_best=posibleDirection
                         }
@@ -244,10 +249,10 @@ function updateMines(r) {
     for (let j = 0; j<r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i]) {
-                karboniteMines[[i, j]] = utils.getManhattanDistance(i, j, baseLocation[0], baseLocation[1])  // confirm this ordering, idk
+                karboniteMines[[i, j]] = utils.getManhattanDistance(i, j,r.me.x,r.me.y)  // confirm this ordering, idk
             }
             if (r.fuel_map[j][i]) {
-                fuelMines[[i, j]] = utils.getManhattanDistance(i, j, baseLocation[0], baseLocation[1])
+                fuelMines[[i, j]] = utils.getManhattanDistance(i, j, r.me.x, r.me.y)
             }
         }
     }

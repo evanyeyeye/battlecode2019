@@ -226,7 +226,7 @@ export class AStar {
 
             if (this.heatMap[y][x] !== null && robotID === this.heatMap[y][x][0]) {  // we saw the same robot here before
                 // this.r.log("I'm seeing the same robot at " + x + "," + y + ". id is: " + robotID)
-                if (this.heatMap[y][x][1] < 100)
+                if (this.heatMap[y][x][1] < 90)  // 10 less than permanent
                     this.heatMap[y][x][1] += 10  // lets not move back for a while
                 return false
             }
