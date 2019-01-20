@@ -166,13 +166,14 @@ export function prophetTurn(r) {
         r.log(targetCastle[0])
         
         if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE*2) {
-            let node = r.am.findPath(targetMine[0], 4, false)
+            let node = r.am.findPath(targetCastle[0], 4, false)
             if (node === null){
-                r.log("A*: no path to " + targetMine[0] + " found")
+                r.log("A*: no path to " + targetCastle[0] + " found")
                 return
             }
             if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE*2) {
                 const test = r.am.nextDirection(node)
+                r.log("castle going to test "+test)
                 if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
                     return r.move(test[0], test[1])
                 // return utils.tryMoveRotate(r, test)
