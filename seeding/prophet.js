@@ -93,7 +93,6 @@ export function prophetTurn(r) {
     
     if (kiteAction!=null){
     r.log("kites did something??????????????????????? "+ kiteAction)
-
     }
 
 
@@ -107,6 +106,19 @@ export function prophetTurn(r) {
     
 }
 }
+    
+    /* gang gang gang gang gang gang gang gang gang gang gang gang
+    */
+    let move=gang(r)
+    if (move!=null)
+    {
+    return r.move(move[0], move[1]) 
+    }
+    return 
+
+
+
+    //wandering around
     
     if(targetMine==null)
     {
@@ -137,6 +149,85 @@ export function prophetTurn(r) {
     }
 
     return
+}
+
+
+//make space and get away from base
+function makespace(r){
+    let visibleRobotMap = r.getVisibleRobots();
+    let enemyCount=0;
+    let friendCount=0;
+    let enemyVector=[0,0]; //first dx second dy
+    for (let bot of visibleRobotMap){
+        // r.log(bot)
+        if (bot.team != r.me.team) {
+            if (bot.unit==SPECS.UNITS[SPECS.PROPHET])
+            {
+                enemyVector[0]+=(r.me.x-bot.x)
+                enemyVector[1]+=(r.me.y-bot.y)
+                enemyCount++;
+            }
+            if (bot.unit==SPECS.UNITS[SPECS.PREACHER])
+            {
+                enemyVector[0]+=(r.me.x-bot.x)
+                enemyVector[1]+=(r.me.y-bot.y)
+                enemyCount+=2;
+            }
+             if (bot.unit==SPECS.UNITS[SPECS.CRUSADER])
+            {
+                enemyVector[0]+=(r.me.x-bot.x)
+                enemyVector[1]+=(r.me.y-bot.y)
+                enemyCount+=1;
+            }
+           
+          
+        }
+        else {
+            if (bot.unit==SPECS.UNITS[SPECS.PROPHET])
+            {
+                friendCount++;
+            }
+            if (bot.unit==SPECS.UNITS[SPECS.PREACHER])
+            {
+                friendCount+=2;
+            }
+             if (bot.unit==SPECS.UNITS[SPECS.CRUSADER])
+            {
+                friendCount+=1;
+            }
+           
+        }
+        if (friendCount>=enemyCount+1){
+            return null;
+        }
+        else{
+            let toGoX=enemyVector[0]/Math.abs(enemyVector[0]);
+            let toGoY=enemyVector[1]/Math.abs(enemyVector[1]);
+           //not optimized to kite just some somewhere
+            if (utils.isEmpty(r, r.me.x+toGoX, r.me.y+toGoY))
+            {
+                return r.move(toGoX, toGoY) 
+            }
+            if (utils.isEmpty(r, r.me.x+toGoX, r.me.y+toGoY))
+            {
+                return r.move(toGoX, toGoY) 
+            }
+            if (Math.abs(enemyVector[0])>Math.abs(enemyVector[1]))
+            {
+                if (utils.isEmpty(r, r.me.x+toGoX, r.me.y))
+            {
+                return r.move(toGoX, 0) 
+            }
+            }
+            else{
+                if (utils.isEmpty(r, r.me.x, r.me.y+toGoY))
+            {
+               return  r.move(0, toGoY) 
+            }
+            }
+        }
+    }
+    return null
 }
 
 //decide which direction to go when kiting, or it can just not kite
@@ -216,7 +307,52 @@ function kite(r){
     }
     return null
 }
+//mvoe away if oen side 3 blocks are full around are not empty
+function gang(r){
+    //all in x y cordinate order
+    let north=[[-1,-1],[0,-1],[1,-1]]
+    let south=[[-1,1],[0,1],[1,1]]
+    let west=[[-1,-1],[-1,0],[-1,1]]
+    let east=[[1,-1],[1,0],[1,1]]
+    let sides=[north,south,east,west]
+    const myX=r.me.x
+    const myY=r.me.y
+    let blocked=[]
+    for (let side of sides){
+        let totalCount=0
+        let nonEmptyCount=0
+        for (let direction of side){
+            let offsetx=direction[0]
+            let offsety=direction[1]
+            let coordx=offsetx+myX
+            let coordy = offsety + myY
+            //when not empty
+            if (utils.isEmpty(r,coordx,coordy)){
+                totalCount++;
+            }
+            if (utils.isOccupied(r,coordx,coordy)){
+                totalCount++;
+                nonEmptyCount++;
+            }
+        }
+        //check if the whole side is blocked
+        if (totalCount==nonEmptyCount){
+            blocked.push(side)
+        }
+    }
+    if (blocked.length>1){       
+        for (const dir of shuffledDirection()) {
+        if (utils.isEmpty(r, r.me.x + dir[0], r.me.y + dir[1])) {
+            return dir
+        }
+        }
+    }
+    else{
+        return null
+    }
 
+    return null
+}
 //figure out which target to attack
 function findAttack(r){
     var visible = r.getVisibleRobots()
@@ -312,4 +448,17 @@ function iDMines(r) {  // deterministically label mines
             }
         }
     }
+}
+function shuffledDirection() {
+    let directions=utils.directions
+    let index=null
+    let x=null
+    for (let i =0; i <= (directions.length - 1); i++) {
+        index = Math.floor(Math.random() * (i + 1))
+        //swapping
+        x = directions[i]
+        directions[i] = directions[index]
+        directions[index] = x
+    }
+    return directions
 }
