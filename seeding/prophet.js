@@ -43,6 +43,39 @@ export function prophetTurn(r) {
             }
         }
     }
+    //this part of the code looks for targte castle and remove things
+    else{
+        for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
+            if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
+                // recieve message
+                let message = otherRobot.signal()
+                let decoded = comms.decodeSignal(message)
+                if (decoded[2] == comms.ALL_IN)
+                {
+                    targetCastle.push([decoded[0],decoded[1]])
+                }
+            }
+            else if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.PROPHET && r.isRadioing(otherRobot)){
+                let message = otherRobot.signal()
+                let decoded = comms.decodeSignal(message)
+
+                if (decoded[2] == comms.KILLED)
+                {
+                    let killed=null
+                    for (let i=0;i<targetCastle.length;i++)
+                    {
+                        if (targetCastle[i][0]==decoded[0] && targetCastle[i][1] == decoded[1])
+                        {
+                            killed=i
+                        }
+                    }
+                    targetCastle.splice(killed,1);
+
+                }
+            }
+        }
+
+    }
 
     // ok now find the best move
     friendlyRobots = {}
@@ -117,7 +150,16 @@ export function prophetTurn(r) {
 //found targte location to go all in
 
 
-    if (targetCastle.length>0){        
+    if (targetCastle.length>0){
+        let visibleRobotMap=r.getVisibleRobotMap()  
+        if (visibleRobotMap[targetCastle[1]][targetCastle[0]]==0){
+            targetCastle.shift()
+            if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
+            {
+                r.log("castle is destroyed!!!!!")
+                r.signal(comms.encodeCastleKill(targetCastle[0],targetCastle[1]),Math.ceil(visibleRobotMap[0].length*visibleRobotMap[0].length*2))
+            }
+        }  
         let pf = r.pm.getPathField(targetCastle[0])  // this keeps the reversal
         if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
             // r.log("I want to move to " + targetMine)
