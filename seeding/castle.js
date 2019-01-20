@@ -35,7 +35,7 @@ var enemyCastleLocSent = false
 
 export function castleTurn(r) {
    
-    if (r.me.turn > 100 && enemyCastleLocSent == false) {
+    if (r.me.turn > 900 && enemyCastleLocSent == false) {
         let visibleRobotMap= r.getVisibleRobotMap()
         r.log("trying to send my symmetrical location")
         if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
@@ -94,7 +94,7 @@ export function castleTurn(r) {
     let closestEnemy = -1
     let danger_prophet = false
     let danger_crusader =false
-    let preacher_count=0
+    let preacher_count = 0
 
     let minesToIncrement = new Set()  // we want steady numbers
 
