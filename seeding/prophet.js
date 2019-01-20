@@ -346,7 +346,7 @@ function gang(r){
             
         }
     }
-    if (blocked.length >= 2 || ((blocked.length == 1 && twothird >= 1))){       
+    if (blocked.length>=2||((blocked.length == 1 && twothird >=2))){       
         for (const dir of shuffledDirection()) {
         if (utils.isEmpty(r, r.me.x + dir[0], r.me.y + dir[1])) {
             prevmove=dir

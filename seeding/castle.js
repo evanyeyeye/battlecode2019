@@ -79,6 +79,7 @@ export function castleTurn(r) {
     let closestEnemy = -1
     let danger_prophet = false
     let danger_crusader =true
+    let preacher_count=0
 
     let minesToIncrement = new Set()  // we want steady numbers
 
@@ -162,6 +163,11 @@ export function castleTurn(r) {
             }
         }
     }
+    }
+
+    if (r.me.turn >= 4 && r.castle_talk === 0 && initialActivityQueue.length > 0) {
+        r.log("HOLD THE FUCKING")
+        r.castleTalk(initialActivityQueue.shift())
     }
 
     if (r.me.turn >= 4 && r.castle_talk === 0 && initialActivityQueue.length > 0) {
