@@ -163,16 +163,21 @@ export function prophetTurn(r) {
                 r.signal(comms.encodeCastleKill(targetCastle[0][0],targetCastle[0][1],16),Math.ceil(visibleRobotMap[0].length*visibleRobotMap[0].length*2))
             }
         }  
-        let pf = r.pm.getPathField(targetCastle[0])  // this keeps the reversal
-        if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE) {
-            // r.log("I want to move to " + targetMine)
-            let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-            //r.log([r.me.x,r.me.y])
-            if (test!=null)
-            {
-            return utils.tryMoveRotate(r, test)
+        r.log(targetCastle[0])
+        
+        if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE*2) {
+            let node = r.am.findPath(targetMine[0], 4, false)
+            if (node === null){
+                r.log("A*: no path to " + targetMine[0] + " found")
+                return
             }
+            if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE*2) {
+                const test = r.am.nextDirection(node)
+                if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
+                    return r.move(test[0], test[1])
+                // return utils.tryMoveRotate(r, test)
     }
+        }
 
         
     }
