@@ -31,10 +31,11 @@ var crusaderCounter = 0
 var recievedMessages = {}
 
 var mine_range = 20
-var enemyCastleLocSent=false
+var enemyCastleLocSent = false
 
 export function castleTurn(r) {
-    if (r.me.turn > 100 && enemyCastleLocSent ==false) {
+   
+    if (r.me.turn > 100 && enemyCastleLocSent == false) {
         let visibleRobotMap= r.getVisibleRobotMap()
         r.log("trying to send my symmetrical location")
         if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
@@ -45,6 +46,8 @@ export function castleTurn(r) {
             enemyCastleLocSent =true
         } 
     }
+
+    processedCastleTalk = new Set()
 
     if (r.me.turn === 1) {
         r.log("I am a Castle")
@@ -144,9 +147,8 @@ export function castleTurn(r) {
         // r.log(mineStatus)
     }
 
-    // ---------- START BUILDING STUFF ----------
+    // ---------- BUILD PILGRIMS ----------
 
-    // build pilgrims
     if (!danger && r.me.turn > 1 && pilgrimCounter < (idealNumPilgrims+1) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
         if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
         { 
@@ -177,14 +179,12 @@ export function castleTurn(r) {
     }
     }
 
-    if (r.me.turn >= 4 && r.castle_talk === 0 && initialActivityQueue.length > 0) {
-        r.log("HOLD THE FUCKING")
+    // if castle_talk space is free, start sending out stuff that was queued
+    if (r.me.turn >= 4 && !r.getRobot(r.id).castle_talk && initialActivityQueue.length > 0) {
         r.castleTalk(initialActivityQueue.shift())
     }
 
-
-
-
+    // ---------- BUILD ATTACKING TROOPS ----------
 
     if (danger_prophet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
         if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
@@ -233,8 +233,8 @@ function initializeCastle(r) {
     // generate pathfield from castle location
     castlePathField = r.pm.getPathField([r.me.x, r.me.y])
     // populate mineStatus and sortedMines
-    initializeMines(r)
-    r.log("There are " + mineStatus.size + " mines")
+    var totalMines = initializeMines(r)
+    r.log("There are " + mineStatus.size + " reachable mines (" + totalMines + " total)")
     // determine number of pilgrims to build
     idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
 }
@@ -242,16 +242,20 @@ function initializeCastle(r) {
 // populate mineStatus: deterministically label mines, store location & distance from castle
 // populate sortedMines: sort mineIDs by distance
 function initializeMines(r) {
+    let totalMines = 0
     let mineID = 0
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
-                mineStatus.set(++mineID, {
-                    loc: [i, j],
-                    distance: castlePathField.getDistanceAtPoint(i, j),
-                    activity: 0
-                })
-                sortedMines.push(mineID)
+                if (castlePathField.isPointSet(i, j)) {  // if unreachable, completely ignore mine existence
+                    mineStatus.set(++mineID, {
+                        loc: [i, j],
+                        distance: castlePathField.getDistanceAtPoint(i, j),
+                        activity: 0
+                    })
+                    sortedMines.push(mineID)                    
+                }
+                totalMines += 1
             }
         }
     }
@@ -259,10 +263,12 @@ function initializeMines(r) {
     sortedMines.sort((a, b) => {
         return mineStatus.get(a).distance - mineStatus.get(b).distance
     })
+    return totalMines
 }
 
-// receive x coordinates on turn 2
-// receive y coordinates on turn 3
+// receive castle greeting on turn 2
+// receive x coordinates on turn 3
+// receive y coordinates on turn 4
 function receiveCastleLocations(r) {
     for (const robot of r.getVisibleRobots()) {
         const message = robot.castle_talk
@@ -278,19 +284,17 @@ function receiveCastleLocations(r) {
 }
 
 // finds other allied castles, then uses symmetry to find enemy castles
+// if distance = null, the castle is unreachable
 function findCastleLocations(r) {
     for (const [castleID, castleLoc] of castleLocationBuilder.entries()) {
-        r.log(castleID + " " + castleLoc)
-      
         castleStatus[r.me.team].push({
             loc: [castleLoc[0], castleLoc[1]],
-            distance: castlePathField.getDistanceAtPoint(castleLoc[0], castleLoc[1])
+            distance: castlePathField.isPointSet(castleLoc[0], castleLoc[1]) ? castlePathField.getDistanceAtPoint(castleLoc[0], castleLoc[1]) : null
         })
-        r.log(castleStatus[r.me.team])
         const enemyCastleLoc = utils.reflectLocation(r, [castleLoc[0], castleLoc[1]])
         castleStatus[r.enemyTeam].push({
             loc: [enemyCastleLoc[0], enemyCastleLoc[1]],
-            distance: castlePathField.getDistanceAtPoint(enemyCastleLoc[0], enemyCastleLoc[1])
+            distance: castlePathField.isPointSet(enemyCastleLoc[0], enemyCastleLoc[1]) ? castlePathField.getDistanceAtPoint(enemyCastleLoc[0], enemyCastleLoc[1]) : null
         })
     }
 }

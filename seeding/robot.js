@@ -24,6 +24,7 @@ class MyRobot extends BCAbstractRobot {
             self.am = new AStar(self, self.map)
             self.enemyTeam = self.me.team ^ 1
             self.mapSymmetry = utils.findSymmetry(self)
+            self.previousLoc = null  // for tryMoveRotate only
         }
         switch (self.me.unit) {
             case SPECS.CASTLE:

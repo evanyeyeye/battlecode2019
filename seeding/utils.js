@@ -102,7 +102,7 @@ export default {
     // if occupied, try to move in adjacent left and right dirs
     // returns null if movement failed
     tryMoveRotate: function (r, dir) {
-        if (dir === [0, 0])
+        if (dir === [0, 0] || dir.includes(2) || dir.includes(-2))
             return null
 
         const x = r.me.x
@@ -111,17 +111,12 @@ export default {
             const tryDir = this.rotateDirection(dir, n) 
             const tryX = x + tryDir[0]
             const tryY = y + tryDir[1]
-            if (this.isEmpty(r, tryX, tryY))
+            if ((!r.previousLoc || !(r.previousLoc[0] == r.me.turn - 1 && r.previousLoc[1][0] == tryX && r.previousLoc[1][1] == tryY)) && this.isEmpty(r, tryX, tryY)) {
+                r.previousLoc = [r.me.turn, [x, y]]
                 return r.move(tryDir[0], tryDir[1])
+            }
         }
 
-        // maybe we will use this later
-        // if (dir[0] == 0 || dir[1] == 0)  // can only move r^2 of 4
-        //     if (utils.isEmpty(r, x + 2*dir[0], y + 2*dir[1])) {
-        //         r.log("gonna double move")
-        //         return r.move(2*dir[0], 2*dir[1])
-        //     }
-        
         return null
     },
 
