@@ -35,7 +35,7 @@ export function prophetTurn(r) {
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
                 let message = otherRobot.signal
-                let decoded = comms.decodeSignal(message)
+                let decoded = comms.decodeSignal(message,64,16)
                 if (decoded[2] == comms.ALL_IN)
                 {
                     targetCastle.push([decoded[0],decoded[1]])
@@ -49,7 +49,7 @@ export function prophetTurn(r) {
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
                 let message = otherRobot.signal
-                let decoded = comms.decodeSignal(message)
+                let decoded = comms.decodeSignal(message,64,16)
                 if (decoded[2] == comms.ALL_IN)
                 {
                     r.log(message)
