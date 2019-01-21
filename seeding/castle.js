@@ -210,7 +210,7 @@ export function castleTurn(r) {
     */
 
     // build preachers if panicking
-    if (danger && preacher_count < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
+    if (danger && allyPreacherCount < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Built Preacher")
