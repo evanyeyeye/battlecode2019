@@ -36,7 +36,7 @@ var enemyCastleLocSent = false
 export function castleTurn(r) {
 
    
-    if (r.me.turn > 200 && enemyCastleLocSent == false && r.fuel>2000) {
+    if (r.me.turn > 800 && enemyCastleLocSent == false && r.fuel>2000) {
         let visibleRobotMap= r.getVisibleRobotMap()
         r.log("trying to send my symmetrical location")
         if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
