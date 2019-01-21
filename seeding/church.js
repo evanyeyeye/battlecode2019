@@ -12,7 +12,7 @@ const FUEL = 1
 const mineStatus = new Map()
 const sortedMines = []  // sorted array of mineIDs ascending by distance
 
-var castlePathField = null
+var churchPathField = null
 
 var numMines = 0  // numMines is number of close mines
 var idealNumPilgrims = 0
@@ -35,10 +35,10 @@ export function churchTurn(r) {
     if (r.me.turn === 1) {
         r.log("I am a Church")
         // generate pathfield from castle location
-        castlePathField = r.pm.getPathField([r.me.x, r.me.y])
+        churchPathField = r.pm.getPathField([r.me.x, r.me.y])
         // populate mineStatus and sortedMines
-        var totalMines = initializeMines(r)
-        r.log("There are " + mineStatus.size + " reachable mines (" + totalMines + " total)")
+        initializeMines(r)
+        r.log("There are " + mineStatus.size + " mines")
         // calculate number of mines within range
         numMines = calculateNumMines(r, mine_range)  
         // determine number of pilgrims to build
@@ -170,31 +170,27 @@ function findBuildDirection(r, x, y) {
     return null
 }
 
-// populate mineStatus: deterministically label mines, store location & distance from church
+// populate mineStatus: deterministically label mines, store location & distance from castle
 // populate sortedMines: sort mineIDs by distance
-function initializeMines(r) { 
-    let totalMines = 0
+function initializeMines(r) {  // deterministically label mines, store distances from castle
     let mineID = 0
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
-                if (castlePathField.isPointSet(i, j)) {  // if unreachable, completely ignore mine existence
-                    mineStatus.set(++mineID, {
-                        loc: [i, j],
-                        distance: castlePathField.getDistanceAtPoint(i, j),
-                        activity: 0
-                    })
-                    sortedMines.push(mineID)                    
-                }
-                totalMines += 1
+                mineStatus.set(++mineID, {
+                    loc: [i, j],
+                    distance: churchPathField.getDistanceAtPoint(i, j),
+                    activity: 0
+                })
+                sortedMines.push(mineID)
+                mineToID[i.toString() +',' + j.toString()] = mineID
             }
         }
     }
-    // sort mines by distance from least to greatest
+    // sort by distance from least to greatest
     sortedMines.sort((a, b) => {
         return mineStatus.get(a).distance - mineStatus.get(b).distance
     })
-    return totalMines
 }
 
 // returns number of mines within a certain range of the castle
