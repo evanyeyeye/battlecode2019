@@ -132,14 +132,20 @@ export default {
 
     // checks if square is passable, not occupied, and not a mine
     // for use with defensive units
-    isStandable: function(r, x, y) {
+    isStandable: function(r, x, y, spread = false) {
         if (x < 0 || x >= r.map[0].length || y < 0 || y >= r.map.length)
             return false
         if (r.getPassableMap()[y][x] && r.getVisibleRobotMap()[y][x] <= 0 && !r.getKarboniteMap()[y][x] && !r.getFuelMap()[y][x]) {
             for (const dir of this.directions) {
                 const possibleRobot = r.getVisibleRobotMap()[y + dir[1]][x + dir[0]]
-                if (possibleRobot > 0 && (r.getRobot(possibleRobot).unit === SPECS.CHURCH || r.getRobot(possibleRobot) === SPECS.CASTLE) )
-                    return false
+                if (possibleRobot > 0) {
+                    const type = r.getRobot(possibleRobot).unit
+                    if (type === SPECS.CHURCH || type === SPECS.CASTLE) {
+                        return false
+                    }
+                    if (spread && type == r.me.unit)
+                        return false
+                }
             }
             return true
         }
