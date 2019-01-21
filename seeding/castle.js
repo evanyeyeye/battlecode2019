@@ -195,8 +195,7 @@ export function castleTurn(r) {
     }
    
     
-   
-/*
+    /*
     // build crusaders
     if (danger && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
