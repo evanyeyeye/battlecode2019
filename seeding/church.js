@@ -12,6 +12,8 @@ const FUEL = 1
 const mineStatus = new Map()
 const sortedMines = []  // sorted array of mineIDs ascending by distance
 
+var churchPathField = null
+
 var numMines = 0  // numMines is number of close mines
 var idealNumPilgrims = 0
 var numTeamCastles = 0  // number of castles on our team. For now, split mines and pilgrim production
@@ -31,12 +33,18 @@ var mine_range = 10
 export function churchTurn(r) {
 
     if (r.me.turn === 1) {
-        r.log("I am a chruch")
-        initializeMines(r)  // populates mineStatus and sortedMines
-        numMines = calculateNumMines(r, mine_range);  // this calculates number of mines within range
+        r.log("I am a Church")
+        // generate pathfield from castle location
+        churchPathField = r.pm.getPathField([r.me.x, r.me.y])
+        // populate mineStatus and sortedMines
+        initializeMines(r)
         r.log("There are " + mineStatus.size + " mines")
-        idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent      
+        // calculate number of mines within range
+        numMines = calculateNumMines(r, mine_range)  
+        // determine number of pilgrims to build
+        idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
     }
+
     let danger = false
     let allyCount = 0
     let enemyCount = 0
@@ -165,19 +173,17 @@ function findBuildDirection(r, x, y) {
 // populate mineStatus: deterministically label mines, store location & distance from castle
 // populate sortedMines: sort mineIDs by distance
 function initializeMines(r) {  // deterministically label mines, store distances from castle
-    const pf = r.pm.getPathField([r.me.x, r.me.y])  // generate pathfield from castle location
     let mineID = 0
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
                 mineStatus.set(++mineID, {
                     loc: [i, j],
-                    distance: pf.getDistanceAtPoint(i, j),
+                    distance: churchPathField.getDistanceAtPoint(i, j),
                     activity: 0
                 })
                 sortedMines.push(mineID)
                 mineToID[i.toString() +',' + j.toString()] = mineID
-
             }
         }
     }
