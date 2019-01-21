@@ -155,7 +155,7 @@ export function castleTurn(r) {
 
     // ---------- BUILD PILGRIMS ----------
 
-    if (!danger && pilgrimCounter < idealNumPilgrims + 1) {  // enough fuel to signal afterwards
+    if (!danger && pilgrimCounter < idealNumPilgrims + 2) {  // enough fuel to signal afterwards
         if ( (1 < r.me.turn < 10 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) || (r.karbonite > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50) && r.fuel > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 100) ))
         { 
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
