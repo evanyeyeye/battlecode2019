@@ -123,7 +123,6 @@ export function castleTurn(r) {
                 allyPreacherCount++ 
         }
         else if (robot.team !== r.me.team) {
-            danger = true
             if (robot.unit == SPECS.CRUSADER)
                 dangerCrusader = true
             else if (robot.unit == SPECS.PROPHET)
@@ -148,7 +147,7 @@ export function castleTurn(r) {
 
     // ---------- BUILD PILGRIMS ----------
 
-    if (!danger && pilgrimCounter < idealNumPilgrims + 2) {  // enough fuel to signal afterwards
+    if (!danger && (pilgrimCounter < idealNumPilgrims + 2)) {  // enough fuel to signal afterwards
         if ( (1 < r.me.turn < 10 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) || (r.karbonite > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50) && r.fuel > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 100) ))
         { 
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
