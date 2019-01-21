@@ -147,7 +147,7 @@ function findIterate(r, target, strict = false) {  // slowly crawl from current 
         const midx = r.me.x + dx
         const midy = r.me.y + dy
         // r.log("Preacher: Looking at " + midx + "," + midy)
-        if (utils.isStandable(r, midx, midy)) {
+        if (utils.isStandable(r, midx, midy, true)) {
             // if (!strict || (strict && numAdjacentStrict(r, midx, midy) < 3))  // valid square
             return [midx, midy]
         }

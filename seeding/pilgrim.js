@@ -92,11 +92,11 @@ export function pilgrimTurn(r) {
 
         // return to church/castle
         
-         let pf = r.pm.getPathField(baseLocation)
-         if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
-             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-             return utils.tryMoveRotate(r, test)
-         }
+         // let pf = r.pm.getPathField(baseLocation)
+         // if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
+         //     let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
+         //     return utils.tryMoveRotate(r, test)
+         // }
         
         // broken a*
         
@@ -109,7 +109,9 @@ export function pilgrimTurn(r) {
             const test = r.am.nextDirection(node)
             if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
                 return r.move(test[0], test[1])
-            // return utils.tryMoveRotate(r, test)
+            const temp = utils.tryMoveRotate(r, test)
+            if (temp)
+                return temp
         }
         
     }
