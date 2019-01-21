@@ -35,7 +35,7 @@ var enemyCastleLocSent = false
 
 export function castleTurn(r) {
    
-    if (r.me.turn > 900 && enemyCastleLocSent == false) {
+    if (r.me.turn > 850 && enemyCastleLocSent == false) {
         let visibleRobotMap= r.getVisibleRobotMap()
         r.log("trying to send my symmetrical location")
         if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
@@ -92,9 +92,9 @@ export function castleTurn(r) {
     let enemyDistance = {}
     let enemyLocation = {}
     let closestEnemy = -1
-    let danger_prophet = false
-    let danger_crusader =false
-    let preacher_count = 0
+    let dangerProphet = false
+    let dangerCrusader =false
+    let allyPreacherCount = 0
 
     let minesToIncrement = new Set()  // we want steady numbers
 
@@ -105,7 +105,7 @@ export function castleTurn(r) {
             if (robot.team === r.me.team && robot.id !== r.me.id) {  // other friendly robot
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
-                if (message != comms.CASTLE_GREETING && message >= 100) {  // castle is indicating that it sent a pilgrim to this mine
+                if (message < 200 && message >= 100) {  // castle is indicating that it sent a pilgrim to this mine
                     mineStatus.get(message - 100).activity += 10
                     // r.log("acknowledged another castle")
                 }
@@ -116,30 +116,24 @@ export function castleTurn(r) {
                 } 
             }
         } 
-        if (robot.team === r.me.team && robot.unit != SPECS.CHURCH && robot.unit != SPECS.CASTLE && robot.unit != SPECS.PILGRIM) {
-            allyCount += 1
+        if (robot.team === r.me.team) {
+            if (utils.attackingUnits.has(robot.unit))
+                allyCount += 1
+            if (robot.unit === SPECS.PREACER)
+                allyPreacherCount++ 
         }
-        else if (robot.team === r.me.team && robot.unit === SPECS.PREACER)
-            preacher_count++ 
         else if (robot.team !== r.me.team) {
             if (robot.unit == SPECS.CRUSADER)
-            {
-                danger_crusader = true
-
-            }
+                dangerCrusader = true
             else if (robot.unit == SPECS.PROPHET)
-            {
-                danger_prophet = true
-            }
+                dangerProphet = true
             enemyCount += 1
             enemyDistance[robot.id] = utils.getManhattanDistance(r.me.x, r.me.y, robot.x, robot.y)
             enemyLocation[robot.id] = [r.me.x, r.me.y]
-            if (closestEnemy === -1 || enemyDistance[robot.id] < enemyDistance[closestEnemy]) {
+            if (closestEnemy === -1 || enemyDistance[robot.id] < enemyDistance[closestEnemy])
                 closestEnemy = robot.id
-            }
-            if (enemyCount > allyCount) {
+            if (enemyCount > allyCount)
                 danger = true
-            }
         }
     }
 
@@ -190,7 +184,7 @@ export function castleTurn(r) {
 
     // ---------- BUILD ATTACKING TROOPS ----------
 
-    if (danger_prophet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
+    if (dangerProphet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
         if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
