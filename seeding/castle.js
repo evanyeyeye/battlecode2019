@@ -34,15 +34,16 @@ var mine_range = 14
 var enemyCastleLocSent = false
 
 export function castleTurn(r) {
+
    
-    if (r.me.turn > 800 && enemyCastleLocSent == false && r.fuel>2000) {
+    if (r.me.turn > 200 && enemyCastleLocSent == false && r.fuel>2000) {
         let visibleRobotMap= r.getVisibleRobotMap()
         r.log("trying to send my symmetrical location")
         if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
         {
             let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
             r.log('sent '+curEnemyCastle)
-            r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1],16),Math.ceil(visibleRobotMap[0].length*visibleRobotMap[0].length*2))
+            r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1],16),(visibleRobotMap[0].length-1)*(visibleRobotMap[0].length-1)*2)
             enemyCastleLocSent =true
         } 
     }

@@ -160,10 +160,11 @@ export function prophetTurn(r) {
             if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
             {
                 r.log("castle is destroyed!!!!!")
-                r.signal(comms.encodeCastleKill(targetCastle[0][0],targetCastle[0][1],16),Math.ceil(visibleRobotMap[0].length*visibleRobotMap[0].length*2))
+                r.signal(comms.encodeCastleKill(targetCastle[0][0],targetCastle[0][1],16),(visibleRobotMap[0].length-1)*(visibleRobotMap[0].length-1)*2)
             }
         }  
         r.log(targetCastle[0])
+        r.log(targetCastle)
         
         if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE*2) {
             let node = r.am.findPath(targetCastle[0], 4, false)
@@ -175,9 +176,11 @@ export function prophetTurn(r) {
                 const test = r.am.nextDirection(node)
                 r.log("castle going to test "+test)
                 if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
+                {
                     return r.move(test[0], test[1])
+                }
                 // return utils.tryMoveRotate(r, test)
-    }
+                }
         }
 
         
