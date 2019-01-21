@@ -230,7 +230,9 @@ export function pilgrimTurn(r) {
         const test = r.am.nextDirection(node)
         if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
             return r.move(test[0], test[1])
-        // return utils.tryMoveRotate(r, test)
+        const temp = utils.tryMoveRotate(r, test)
+        if (temp)
+            return temp
     }
     
     return
