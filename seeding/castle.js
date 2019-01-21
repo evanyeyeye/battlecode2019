@@ -219,10 +219,24 @@ export function castleTurn(r) {
             return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
         }
     }
+
     // ---------- LAST RESORT: ATTACK THE ENEMY ----------
     
-    
-
+    let attackClosestLocation = null
+    let attackClosestDistance = 999
+    for (const robot of r.getVisibleRobots()) {
+        if (r.me.team !== robot.team) {
+            const tempDistance = utils.getSquaredDistance(r.me.x, r.me.y, robot.x, robot.y)
+            if (tempDistance > 64)
+                continue
+            if (!attackClosestLocation || tempDistance < attackClosestDistance) {
+                attackClosestLocation = [robot.x, robot.y]
+                attackClosestDistance = tempDistance
+            }
+        }
+    }
+    if (attackClosestLocation)
+        return r.attack(attackClosestLocation[0] - r.me.x, attackClosestLocation[1] - r.me.y)
 
     return
 }
