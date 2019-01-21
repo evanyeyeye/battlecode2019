@@ -118,9 +118,10 @@ export function castleTurn(r) {
         } 
         if (robot.team === r.me.team && robot.unit != SPECS.CHURCH && robot.unit != SPECS.CASTLE && robot.unit != SPECS.PILGRIM) {
             allyCount += 1
+            if (robot.unit == SPECS.PREACHER)
+                preacher_count++
         }
-        else if (robot.team === r.me.team && robot.unit === SPECS.PREACER)
-            preacher_count++ 
+
         else if (robot.team !== r.me.team) {
             if (robot.unit == SPECS.CRUSADER)
             {
@@ -153,34 +154,34 @@ export function castleTurn(r) {
 
     // ---------- BUILD PILGRIMS ----------
 
-    if (!danger && r.me.turn > 1 && pilgrimCounter < (idealNumPilgrims+1) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
-        if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200))
+    if (!danger) {  // enough fuel to signal afterwards
+        if ( (1 < r.me.turn < 10) || (r.karbonite > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50) && r.fuel > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200) ))
         { 
-        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-        if (buildDirection != null) {
-            // see if there is a mine for a pilgrim to go to
-            const mineID = nextMineID(r)
-            r.log(mineID)
-            if (mineID !== null){
+            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+            if (buildDirection != null) {
+                // see if there is a mine for a pilgrim to go to
+                const mineID = nextMineID(r)
+                r.log(mineID)
+                if (mineID !== null){
 
-                r.log("Built Pilgrim, trying to send it to " + mineID)
-                // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
+                    r.log("Built Pilgrim, trying to send it to " + mineID)
+                    // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
 
-                let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
-                           
-                r.log(signalToSend)
-                r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
-                
-                if (r.me.turn <= 3)
-                    initialActivityQueue.push(parseInt(mineID) + 100)
-                else r.castleTalk(parseInt(mineID) + 100)  // let other castles know
+                    let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
+                               
+                    r.log(signalToSend)
+                    r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
+                    
+                    if (r.me.turn <= 3)
+                        initialActivityQueue.push(parseInt(mineID) + 100)
+                    else r.castleTalk(parseInt(mineID) + 100)  // let other castles know
 
-                mineStatus.get(parseInt(mineID)).activity += 10  // update yourself
-                pilgrimCounter++
-                return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
+                    mineStatus.get(parseInt(mineID)).activity += 10  // update yourself
+                    pilgrimCounter++
+                    return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
+                }
             }
         }
-    }
     }
 
     // if castle_talk space is free, start sending out stuff that was queued
@@ -216,10 +217,10 @@ export function castleTurn(r) {
     */
 
     // build preachers if panicking
-    if (danger && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
+    if (danger && preacher_count < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
-            r.log("Built Crusader")
+            r.log("Built Preacher")
             // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
             // crusaderCounter++
             return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
