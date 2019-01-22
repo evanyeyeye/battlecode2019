@@ -23,7 +23,7 @@ var prophetCounter = 0
 var crusaderCounter = 0
 var preacherCounter = 0
 var mineToID = {}
-var sent=false
+var sent = false
 
 var recievedMessages = {}
 var numFriendlyCastles = 1
@@ -52,21 +52,21 @@ export function churchTurn(r) {
     let enemyLocation = {}
     let closestEnemy = -1    
     let minesToIncrement = new Set()  // we want steady numbers
-    pilgrimCounter=0
+    pilgrimCounter = 0
 
 
     for (const robot of r.getVisibleRobots()) { 
         if (robot.team === r.me.team&& robot.id !== r.me.id) {
             if (robot.unit!=SPECS.PILGRIM)
             {
-            allyCount += 1
+                allyCount += 1
             }
             else{
                 pilgrimCounter++;
 
                 if (r.fuel_map[robot.y][robot.x]||r.karbonite_map[robot.y][robot.x]){
-                let cur_id = mineToID[robot.x.toString() +',' + robot.y.toString()]
-                mineStatus.get(cur_id).activity =10  // update yourself 
+                    let cur_id = mineToID[robot.x.toString() +',' + robot.y.toString()]
+                    mineStatus.get(cur_id).activity =10  // update yourself 
                 }   
                 
             }
@@ -87,20 +87,20 @@ export function churchTurn(r) {
     
     // ---------- START BUILDING STUFF ----------
     
-    if (pilgrimCounter == idealNumPilgrims+1){
-        sent=true
+    if (pilgrimCounter == idealNumPilgrims + 1){
+        sent = true
     }
 
     // build pilgrims
    
-    if (sent ==true) {
+    if (sent == true) {
         pilgrimCounter++;
     }
    
     // r.log("I'm church there are this many pilgrims count: "+pilgrimCounter)
 
-    if (r.me.turn > 1 && (pilgrimCounter < idealNumPilgrims+2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
-        if (r.me.turn <5||(r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200)){       
+    if (r.me.turn > 1 && (pilgrimCounter < idealNumPilgrims + 2) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+        if (r.me.turn < 5 || (r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200)){       
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
                 // see if there is a mine for a pilgrim to go to
@@ -121,7 +121,7 @@ export function churchTurn(r) {
     
     // build prophets
     if ( r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
-        if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
+        if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
             r.log("Built Prophet")
@@ -214,7 +214,7 @@ function calculateNumPilgrims(r) {
     r.log(sortedMines)
     for (const entry of sortedMines) {  // take only a portion of the closest mines
         if (mineStatus.get(entry).distance < mine_range) {
-            num ++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
+            num++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
         }
     }
     r.log("im going to try to make " + num + " pilgrims")
@@ -229,9 +229,9 @@ function nextMineID(r) {  // uses resource-blind ids
 
 
         const mine = mineStatus.get(mineID)
-        if (robomap[mine.loc[1]][mine.loc[0]]==0)
+        if (robomap[mine.loc[1]][mine.loc[0]] == 0)
         {
-            mine.activity=0
+            mine.activity = 0
         // r.log("ID of " + id + " has activity of " + mine.activity)
         if (mine.activity === 0 && mine.distance < mine_range) // no pilgrim activity here yet, temp way to cutoff distance
             return mineID
