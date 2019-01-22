@@ -150,59 +150,55 @@ export function pilgrimTurn(r) {
         let seeEnemy= false
         for (let otherRobot of r.getVisibleRobots()) { 
 
-            if (otherRobot.team == r.me.team&&(otherRobot.unit==SPECS.CHURCH||otherRobot.unit==SPECS.CASTLE)&&utils.getSquaredDistance(r.me.x,r.me.y,otherRobot.x,otherRobot.y)<49){
+            if (otherRobot.team == r.me.team&&(otherRobot.unit==SPECS.CHURCH||otherRobot.unit==SPECS.CASTLE)&&utils.getSquaredDistance(r.me.x,r.me.y,otherRobot.x,otherRobot.y) < 49){
                 curAction = comms.ATTACK_MINE
                 seechurch = true
-            }  
+            }
             if (otherRobot.team != r.me.team && otherRobot.unit != SPECS.PILGRIM){
                 seeEnemy = true
-            }          
             }
-            //don't see church near me so finding the right place to build mines to minimize movment
-              if (seechurch == false && seeEnemy == false){
-                updateMines(r)
-                let churchDirections=findBuildDirections(r,r.me.x,r.me.y)               
-                let nearmines=findNearMine(r,10)
-                //find best location
-                if (churchDirections.length>0)
+        }
+        //don't see church near me so finding the right place to build mines to minimize movment
+        if (seechurch == false && seeEnemy == false){
+            updateMines(r)
+            let churchDirections=findBuildDirections(r,r.me.x,r.me.y)               
+            let nearmines=findNearMine(r,10)
+            //find best location
+            if (churchDirections.length>0)
+            {
+                //r.log(churchDirections)
+                //r.log(nearmines)
+                let cur_best=null
+                let cur_min=9999
+                let temp_min=0
+                for (let posibleDirection of churchDirections)
                 {
-                    //r.log(churchDirections)
-                    //r.log(nearmines)
-                    let cur_best=null
-                    let cur_min=9999
-                    let temp_min=0
-                    for (let posibleDirection of churchDirections)
-                    {
-                        temp_min=0
-                        for (let locations_mine of nearmines){
-                            const tempLocation=locations_mine.split(",")
-                            r.log([r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],tempLocation[0],tempLocation[1]])
-                            let temp_distance = utils.getManhattanDistance(r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],parseInt(tempLocation[0],10),parseInt(tempLocation[1],10))
-                           // r.log(temp_distance)
-                           if (temp_distance==0)
-                           {
+                    temp_min=0
+                    for (let locations_mine of nearmines){
+                        const tempLocation=locations_mine.split(",")
+                        r.log([r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],tempLocation[0],tempLocation[1]])
+                        let temp_distance = utils.getManhattanDistance(r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],parseInt(tempLocation[0],10),parseInt(tempLocation[1],10))
+                        // r.log(temp_distance)
+                        if (temp_distance==0)
+                        {
                             temp_min+=1000
-                           }
-                            temp_min+=temp_distance
                         }
-                        //r.log(temp_min)
-                        if (temp_min<=cur_min){
-                            cur_min=temp_min
-                            cur_best=posibleDirection
-                        }
+                        temp_min+=temp_distance
                     }
-                    r.log(cur_best)
-                    if (r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
-                    {
-                        r.log("church is built !!!!!! nice job")
-                        return r.buildUnit(SPECS.CHURCH, cur_best[0], cur_best[1])
+                    //r.log(temp_min)
+                    if (temp_min<=cur_min){
+                        cur_min=temp_min
+                        cur_best=posibleDirection
                     }
                 }
-
-
+                r.log(cur_best)
+                if (r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
+                {
+                    r.log("church is built !!!!!! nice job")
+                    return r.buildUnit(SPECS.CHURCH, cur_best[0], cur_best[1])
                 }
-
-        
+            }
+        }
         return r.mine()
     }
   
@@ -280,7 +276,7 @@ function checkMine(r) {
         }
       
         if (utils.isEmpty(r, tempMine[0], tempMine[1])) {
-             if (occupiedLoc.has(tempMine.toString())) {
+            if (occupiedLoc.has(tempMine.toString())) {
                 // r.log('the mine at ' + curMine + ' is no longer occupied')
                 occupiedLoc.delete(tempMine.toString());
             }

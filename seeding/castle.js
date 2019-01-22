@@ -351,10 +351,10 @@ function nextMineID(r) {  // uses resource-blind ids
 
 //shuffle a random direction to check
 function shuffledDirection() {
-    let directions=utils.directions
-    let index=null
-    let x=null
-    for (let i =0; i <= (directions.length - 1); i++) {
+    let directions = utils.directions
+    let index = null
+    let x = null
+    for (let i = 0; i <= (directions.length - 1); i++) {
         index = Math.floor(Math.random() * (i + 1))
         //swapping
         x = directions[i]
