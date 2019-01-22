@@ -18,11 +18,11 @@ var priorityResource = -1;  // 0 is karbonite 1 is fuel both take in string veri
 var karboniteMines = {}  // maps mine locations to distance from base castle location
 var fuelMines = {}
 var baseLocation = null  // castle or church to return resources to
-var priorityResource=0;
+var priorityResource = 0;
 var allMineID = {}  // maps mine ID to its STRING location
 var mineToID = {}  // maps string location to id, convenience
 var curAction =null; //curent action
-var bestChurchLoc=null
+var bestChurchLoc = null
 
 var castleTargetMineID = null // the target mine that the castle gives
 
@@ -32,10 +32,10 @@ export function pilgrimTurn(r) {
         r.log("I am a Pilgrim")
         iDMines(r)
         // find the closest castle, probably built from there
-        for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
-            if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE||otherRobot.unit==SPECS.CHURCH && r.isRadioing(otherRobot)) {
+        for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
+            if (otherRobot.team == r.me.team && otherRobot.unit == SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH && r.isRadioing(otherRobot)) {
                 // recieve message
-                let decodedMsg = comms.decodeSignal(otherRobot.signal, Object.keys(allMineID).length, 16)
+                const decodedMsg = comms.decodeSignal(otherRobot.signal, Object.keys(allMineID).length, 16)
                 r.log(decodedMsg)
                 castleTargetMineID = decodedMsg[0] //first id being encoded
                 curAction = decodedMsg[1]
@@ -64,11 +64,11 @@ export function pilgrimTurn(r) {
     let enemyRobots = {}
 
     // look around
-    for (let otherRobot of r.getVisibleRobots()) {
+    for (const otherRobot of r.getVisibleRobots()) {
         const distance = utils.getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         if (otherRobot.team == r.me.team) {
             // set closest friendly castle or church as base
-            if ( (otherRobot.unit==SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || distance < (utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1])) )) {
+            if ( (otherRobot.unit == SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || distance < (utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1])) )) {
                 baseLocation = [otherRobot.x, otherRobot.y]
                 updateMines(r)  // refresh mines based on distance to base castle location
             }
@@ -100,7 +100,7 @@ export function pilgrimTurn(r) {
         
         // broken a*
         
-        let node = r.am.findPath(baseLocation, 4, false)
+        let node = r.am.findPath(baseLocation)
         if (node === null) {
             r.log("A*: no path found")
             return
@@ -130,14 +130,12 @@ export function pilgrimTurn(r) {
     if (targetMine === null)
 	   targetMine = closestSafeMine(r)
 
-    let curLocation = r.me.x.toString() + "," + r.me.y.toString()
+    const curLocation = r.me.x.toString() + "," + r.me.y.toString()
     // r.log('curloc: ' + curLocation)
     // for (let i of occupiedLoc) { r.log(i); }
 
     if (targetMine != null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) <= 2) {
         r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // when close to mine, let castle update activity
-    
-        
     }
 
 
@@ -146,49 +144,49 @@ export function pilgrimTurn(r) {
         // r.log("i'm actually trying to mine at " + targetMine[0] + ", " + targetMine[1])
         // r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // each turn, let castles know you're here mining
         
-        let seechurch=false;
+        let seeChurch=false;
         let seeEnemy= false
-        for (let otherRobot of r.getVisibleRobots()) { 
+        for (const otherRobot of r.getVisibleRobots()) { 
 
-            if (otherRobot.team == r.me.team&&(otherRobot.unit==SPECS.CHURCH||otherRobot.unit==SPECS.CASTLE)&&utils.getSquaredDistance(r.me.x,r.me.y,otherRobot.x,otherRobot.y) < 49){
+            if (otherRobot.team == r.me.team && (otherRobot.unit == SPECS.CHURCH || otherRobot.unit == SPECS.CASTLE) && utils.getSquaredDistance(r.me.x,r.me.y,otherRobot.x,otherRobot.y) < 49){
                 curAction = comms.ATTACK_MINE
-                seechurch = true
+                seeChurch = true
             }
             if (otherRobot.team != r.me.team && otherRobot.unit != SPECS.PILGRIM){
                 seeEnemy = true
             }
         }
         //don't see church near me so finding the right place to build mines to minimize movment
-        if (seechurch == false && seeEnemy == false){
+        if (seeChurch == false && seeEnemy == false){
             updateMines(r)
-            let churchDirections=findBuildDirections(r,r.me.x,r.me.y)               
-            let nearmines=findNearMine(r,10)
+            let churchDirections = findBuildDirections(r,r.me.x,r.me.y)               
+            let nearmines = findNearMine(r,10)
             //find best location
-            if (churchDirections.length>0)
+            if (churchDirections.length > 0)
             {
                 //r.log(churchDirections)
                 //r.log(nearmines)
-                let cur_best=null
-                let cur_min=9999
-                let temp_min=0
-                for (let posibleDirection of churchDirections)
+                let cur_best = null
+                let cur_min = 9999
+                let temp_min = 0
+                for (const possibleDirection of churchDirections)
                 {
-                    temp_min=0
+                    temp_min = 0
                     for (let locations_mine of nearmines){
-                        const tempLocation=locations_mine.split(",")
-                        r.log([r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],tempLocation[0],tempLocation[1]])
-                        let temp_distance = utils.getManhattanDistance(r.me.x+posibleDirection[0],r.me.y+posibleDirection[1],parseInt(tempLocation[0],10),parseInt(tempLocation[1],10))
+                        const tempLocation = locations_mine.split(",")
+                        r.log([r.me.x + possibleDirection[0], r.me.y + possibleDirection[1], tempLocation[0], tempLocation[1]])
+                        let temp_distance = utils.getManhattanDistance(r.me.x + possibleDirection[0],r.me.y + possibleDirection[1], parseInt(tempLocation[0], 10), parseInt(tempLocation[1], 10))
                         // r.log(temp_distance)
-                        if (temp_distance==0)
+                        if (temp_distance == 0)
                         {
-                            temp_min+=1000
+                            temp_min += 1000
                         }
-                        temp_min+=temp_distance
+                        temp_min += temp_distance
                     }
                     //r.log(temp_min)
-                    if (temp_min<=cur_min){
-                        cur_min=temp_min
-                        cur_best=posibleDirection
+                    if (temp_min <= cur_min){
+                        cur_min = temp_min
+                        cur_best = possibleDirection
                     }
                 }
                 r.log(cur_best)
@@ -241,7 +239,7 @@ function iDMines(r) {  // deterministically label mines
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]){
                 // r.log("Pilgrim: Mine at " + [i, j] + " is " + counter)
                 counter++
-                allMineID[counter] = i.toString() +',' + j.toString()
+                allMineID[counter] = i.toString() + ',' + j.toString()
                 mineToID[i.toString() + ',' + j.toString()] = counter
             }
         }
@@ -250,7 +248,7 @@ function iDMines(r) {  // deterministically label mines
 
 // update mine locations based on distance from 
 function updateMines(r) {
-    for (let j = 0; j<r.karbonite_map.length; j++) {
+    for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i]) {
                 karboniteMines[[i, j]] = utils.getManhattanDistance(i, j,r.me.x,r.me.y)  // confirm this ordering, idk
@@ -265,9 +263,9 @@ function updateMines(r) {
 // check all mines that are dangerous according to units in vision
 // later check if you can safely mine
 function checkMine(r) {
-    let merged = Object.assign({},karboniteMines, fuelMines);
-    let visible = r.getVisibleRobots()
-    for (let curMine in merged) {
+    const merged = Object.assign({},karboniteMines, fuelMines);
+    const visible = r.getVisibleRobots()
+    for (const curMine in merged) {
         let tempMine = curMine.split(",").map((n) => parseInt(n))
         if (utils.isOccupied(r, tempMine[0], tempMine[1])) {
             if (!occupiedLoc.has(tempMine.toString())){
@@ -284,7 +282,7 @@ function checkMine(r) {
         // || unsafeLoc.has(curMine) not sure if you check unsafe loc or not
         // only do it if something can possibly be attacked by things in vision
         if (utils.getSquaredDistance(r.me.x,r.me.y,tempMine[0], tempMine[1]) ** 0.5 < 18){
-            for (let robot in visible){
+            for (const robot in visible){
                 if (robot.team != r.me.team && utils.isEnemyInRange(r, robot, tempMine)){
                     unsafeLoc.add(tempMine.toString());
                     break;
@@ -325,8 +323,8 @@ function closestSafeMine(r) {
     return target.split(",").map((n) => parseInt(n))
 }
 function findNearMine(r,min_dis){
-    let mineList=[]
-    let merged = Object.assign({},karboniteMines, fuelMines);
+    let mineList = []
+    const merged = Object.assign({},karboniteMines, fuelMines);
     for (const [location, distance] of Object.entries(merged)) {
         if (distance < min_dis) {
            mineList.push(location)
@@ -338,7 +336,7 @@ function findNearMine(r,min_dis){
 
 }
 function findBuildDirections(r, x, y) {
-    let buildingDirections=[]
+    let buildingDirections = []
     for (const dir of utils.directions) {
         if (utils.isEmpty(r, x + dir[0], y + dir[1])) {
             buildingDirections.push(dir)
