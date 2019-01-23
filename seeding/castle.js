@@ -391,8 +391,8 @@ function nearMines(r,mineID,mine_range){
     let mapsize = r.map.length
     let curMine=mineStatus.get(mineID)
     let mineLoc = curMine.loc //location array
-    for (let int i = -mine_range; i < mine_range; i++){        
-        for (let int j = -mine_range; j < mine_range; j++){
+    for (let i = -mine_range; i < mine_range; i++){        
+        for (let j = -mine_range; j < mine_range; j++){
             if (Math.abs(i) + Math.abs(j) < mine_range){
                 let curX = mineLoc[0] + i
                 let curY = mineLoc[1] + j

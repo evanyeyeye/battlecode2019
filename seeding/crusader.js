@@ -6,8 +6,10 @@ const RIGHT_SIDE = 1
 
 var churchLocation = null
 var target = null
-var fast = false
-var my_side = Math.floor(Math.random()*2)
+var fast = false  // fast movement
+
+var my_side = Math.floor(Math.random()*2)  // pick random side of line
+var multiplier = 1  // monotonically increase position in line
 
 export function crusaderTurn(r) {
     if (r.me.turn === 1) {
@@ -141,8 +143,8 @@ function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a 
     const psx = px / pd
     const psy = py / pd
     */
-
-    let multiplier = 1  // gradually increase distance
+    
+    multiplier = 1  // gradually increase distance
     let nextX = cx
     let nextY = cy
     while (!utils.isStandable(r, nextX, nextY)) {
