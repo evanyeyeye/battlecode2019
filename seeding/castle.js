@@ -9,6 +9,8 @@ import comms from './comms.js'
 // activity: heuristic for pilgrims at mine, assigning adds 10, subtract/add 1 per turn based on mining
 const mineStatus = new Map()
 const sortedMines = []  // sorted array of mineIDs ascending by distance
+var mineToGoOrder = [] //sorted array of mineID order, it's different because it build church
+var mineToID = {}  // maps string location to id, convenience
 
 // team: array of 1-3 objects with castle info
 // loc: [x, y] location of castle
@@ -32,6 +34,7 @@ var recievedMessages = {}
 
 var mine_range = 14
 var enemyCastleLocSent = false
+
 
 export function castleTurn(r) {
 
@@ -270,12 +273,16 @@ function initializeMines(r) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
                 if (castlePathField.isPointSet(i, j)) {  // if unreachable, completely ignore mine existence
+                    //find if on my side of symmetry or not
+                    let side = 0 //side 0 is my side, 1 is enemy side
+
                     mineStatus.set(++mineID, {
                         loc: [i, j],
                         distance: castlePathField.getDistanceAtPoint(i, j),
                         activity: 0
                     })
-                    sortedMines.push(mineID)                    
+                    sortedMines.push(mineID)
+                    mineToID[arrayToString([i,j])] = mineID                    
                 }
                 totalMines += 1
             }
@@ -283,6 +290,7 @@ function initializeMines(r) {
     }
     // sort mines by distance from least to greatest
     sortedMines.sort((a, b) => {
+
         return mineStatus.get(a).distance - mineStatus.get(b).distance
     })
     return totalMines
@@ -362,4 +370,41 @@ function shuffledDirection() {
         directions[index] = x
     }
     return directions
+}
+
+
+//returns a strinified version of an array
+//used to find location string using array
+//takes array of two index [x,y] and convert to string
+function arrayToString(array){
+    return array[0].toString() + "," + array[1].toString()
+
+}
+
+
+//returns a list of nearby mine ids
+//used to find all near mine id so you can increase activity level wehn pilgirm sent
+//we want to not send pilgrim from castle unelss for exploration
+//find the id of all nearby mines so you can increase activity level 
+function nearMines(r,mineID,mine_range){
+    let toRet = []
+    let mapsize = r.map.length
+    let curMine=mineStatus.get(mineID)
+    let mineLoc = curMine.loc //location array
+    for (let int i = -mine_range; i < mine_range; i++){        
+        for (let int j = -mine_range; j < mine_range; j++){
+            if (Math.abs(i) + Math.abs(j) < mine_range){
+                let curX = mineLoc[0] + i
+                let curY = mineLoc[1] + j
+                // no need to check in range or not since it's already part of the key it's in                
+                let curLoc = arrayToString(curX,curY)
+                if (curLoc in mineToID){
+                    toRet.push(mineToID[curLoc])
+                }               
+
+            }
+
+        }
+    }
+
 }
