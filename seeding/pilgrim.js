@@ -13,7 +13,7 @@ var fuelThreshold =  750 // if over this amount of fuel, free to build churches.
 
 var unsafeLoc = new Set();  // set to see place is unsafe
 var occupiedLoc = new Set(); // set to occupied loc  both take in string verison of location both take in string verison of location
-var priorityResource = -1;  // 0 is karbonite 1 is fuel both take in string verison of location
+var priorityResource = 0;  // 0 is karbonite 1 is fuel both take in string verison of location
 // TODO: DOES NOT ACCOUNT FOR OBSTACLES IN HOW EASY A MINE IS TO REACH
 var karboniteMines = {}  // maps mine locations to distance from base castle location
 var fuelMines = {}
@@ -174,7 +174,7 @@ export function pilgrimTurn(r) {
                     temp_min = 0
                     for (let locations_mine of nearmines){
                         const tempLocation = locations_mine.split(",")
-                        r.log([r.me.x + possibleDirection[0], r.me.y + possibleDirection[1], tempLocation[0], tempLocation[1]])
+                       // r.log([r.me.x + possibleDirection[0], r.me.y + possibleDirection[1], tempLocation[0], tempLocation[1]])
                         let temp_distance = utils.getManhattanDistance(r.me.x + possibleDirection[0],r.me.y + possibleDirection[1], parseInt(tempLocation[0], 10), parseInt(tempLocation[1], 10))
                         // r.log(temp_distance)
                         if (temp_distance == 0)
