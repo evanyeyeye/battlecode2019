@@ -32,7 +32,7 @@ var crusaderCounter = 0
 
 var recievedMessages = {}
 
-var mine_range = 14
+var mine_range = 10
 var enemyCastleLocSent = false
 
 
@@ -110,7 +110,18 @@ export function castleTurn(r) {
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
                 if (message < 200 && message >= 100) {  // castle is indicating that it sent a pilgrim to this mine
-                    mineStatus.get(message - 100).activity += 10
+                    //change encoding scheme later
+                    let messageMineID = message - 100
+                    let receivedMine =  mineStatus.get(messageMineID)
+                    receivedMine.activity += 10                   
+                    if (receivedMine.distance > mine_range){
+                        let near = nearMines(r,messageMineID)
+                        for (let tempMineID of near){
+                            let tempMineStatus = mineStatus.get(tempMineID) 
+                            tempMineStatus.activity += 10               
+                        }                      
+                    }
+
                     // r.log("acknowledged another castle")
                 }
                 else if (!(r.me.turn <= 3 && castleLocationBuilder.has(robot.id))) {  // pilgrim is already there and mining
@@ -151,7 +162,7 @@ export function castleTurn(r) {
 
     // ---------- BUILD PILGRIMS ----------
 
-    if (!danger && (pilgrimCounter < idealNumPilgrims + 3)) {  // enough fuel to signal afterwards
+    if (!danger) {  // enough fuel to signal afterwards
         if ( (1 < r.me.turn < 10 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) || (r.karbonite > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50) && r.fuel > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 100) ))
         { 
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -189,7 +200,7 @@ export function castleTurn(r) {
     // ---------- BUILD ATTACKING TROOPS ----------
 
     if (dangerProphet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
-        if (r.me.turn <10||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
+        if (r.me.turn <3||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
                 r.log("Built Prophet")
@@ -297,8 +308,9 @@ function initializeMines(r) {
                     if (side == 0){
                         let near = lengthNearMinesWithXY (r,i,j)
                         // if it's resource dense on my side, prioritize
-                        if (near >= 4){
-                            //tempDistance = mine_range + 1
+                        if (near >= 8){
+                            //if more near better
+                            tempDistance = mine_range + 1 - near/64
                         }
                     }
                     //on enemy side
@@ -307,7 +319,7 @@ function initializeMines(r) {
                     }
                     //prefer karbonite sincei t's better early
                     if (r.karbonite_map[j][i]){
-                        tempDistance -= 8
+                        tempDistance -= 5
 
                     }
                     mineStatus.set(++mineID, {
@@ -327,6 +339,7 @@ function initializeMines(r) {
 
         return mineStatus.get(a).distance - mineStatus.get(b).distance
     })
+    r.log(sortedMines)
     r.log("mine status is")
     r.log(mineStatus)
     return totalMines
@@ -386,15 +399,20 @@ function nextMineID(r) {  // uses resource-blind ids
     // use sortedMines with mineStatus to decide the next mine to send a pilgrim toward
     for (const mineID of sortedMines) {
         const mine = mineStatus.get(mineID)
-        // r.log("ID of " + id + " has activity of " + mine.activity)
+        // /r.log("ID of " + mineID + " has activity of " + mine.activity)
         if (mine.activity === 0) // no pilgrim activity here yet, temp way to cutoff distance
-        {
-            let near = nearMines(r,mineID)
-            for (let tempMineID of near){
-                let tempMineStatus = mineStatus.get(tempMineID)
-                tempMineStatus.activity+=10
-            }
+        {            
+            // if close to castle no need to descrease activity
             return mineID
+            if (mine.distance > mine_range){
+                let near = nearMines(r,mineID)
+                for (let tempMineID of near){
+                    let tempMineStatus = mineStatus.get(tempMineID) 
+                    //increase nearby activity
+                    tempMineStatus.activity += 10               
+                }
+                
+            }
         }
     }
     return null
