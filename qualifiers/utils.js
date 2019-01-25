@@ -110,6 +110,7 @@ export default {
         "0,-3": 9
     },
 
+    // get the base cost of moving in a direction
     getDirectionCost: function (dir) {
         return this.directionToCost[dir]
     },
