@@ -52,7 +52,7 @@ export function crusaderTurn(r) {
         if (move != null) {
             const node = r.am.findPath(move)
             if (node === null){
-                r.log("A*: no path to " + move + " found")
+                r.log("Crusader: A*: no path to " + move + " found")
                 return
             }
             if (r.fuel > SPECS.UNITS[SPECS.CRUSADER].FUEL_PER_MOVE) {

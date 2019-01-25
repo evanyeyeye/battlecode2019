@@ -27,15 +27,15 @@ var targetCastle=[]
 export function prophetTurn(r) {
     if (r.me.turn == 1) {
 
-        r.log("I am a Prophet")
+        r.log("Prophet: I am a Prophet")
         iDMines(r)
 
         // find the closest castle, probably built from there
-        for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
+        for (const otherRobot of r.getVisibleRobots()) {
             if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
                 // recieve message
-                let message = otherRobot.signal
-                let decoded = comms.decodeSignal(message,64,16)
+                const message = otherRobot.signal
+                const decoded = comms.decodeSignal(message, 64, 16)
                 if (decoded[2] == comms.ALL_IN)
                 {
                     targetCastle.push([decoded[0],decoded[1]])
@@ -43,37 +43,34 @@ export function prophetTurn(r) {
             }
         }
     }
-    //this part of the code looks for targte castle and remove things
+
+    //this part of the code looks for target castle and remove things
     else{
-        for (let otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
-            if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.CASTLE && r.isRadioing(otherRobot)) {
-                // recieve message
-                let message = otherRobot.signal
-               
-                let decoded = comms.decodeSignal(message,64,16)
+        for (const otherRobot of r.getVisibleRobots()) {
+            const message = otherRobot.signal  // get any messages
+            if (otherRobot.team == r.me.team && otherRobot.unit == SPECS.CASTLE && r.isRadioing(otherRobot)) {  // castle sending message
+                // recieve message               
+                const decoded = comms.decodeSignal(message,64,16)
                 if (decoded[2] == comms.ALL_IN)
                 {
                     r.log(message)
-                    r.log("I hear "+targetCastle)
+                    r.log("Prophet: I hear " + targetCastle)
                     targetCastle.push([decoded[0],decoded[1]])
                 }
             }
-            else if (otherRobot.team == r.me.team && otherRobot.unit==SPECS.PROPHET && r.isRadioing(otherRobot)){
-                let message = otherRobot.signal
-                let decoded = comms.decodeSignal(message)
-
+            else if (otherRobot.team == r.me.team && otherRobot.unit == SPECS.PROPHET && r.isRadioing(otherRobot)){
+                const decoded = comms.decodeSignal(message)
                 if (decoded[2] == comms.KILLED)
                 {
-                    let killed=null
-                    for (let i=0;i<targetCastle.length;i++)
+                    let killed = null
+                    for (let i = 0; i < targetCastle.length; i++)
                     {
-                        if (targetCastle[i][0]==decoded[0] && targetCastle[i][1] == decoded[1])
+                        if (targetCastle[i][0] == decoded[0] && targetCastle[i][1] == decoded[1])
                         {
-                            killed=i
+                            killed = i
                         }
                     }
-                    targetCastle.splice(killed,1);
-
+                    targetCastle.splice(killed, 1);
                 }
             }
         }
@@ -115,14 +112,21 @@ export function prophetTurn(r) {
         }
 
         // return to church/castle
+        /*
         let pf = r.pm.getPathField(baseLocation)
         if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
 
             let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
          
             return utils.tryMoveRotate(r, test)
-       
         }
+        */
+
+        const test = r.am.nextMove(baseLocation)
+        if (test === null)
+            return
+        else
+            return r.move(test[0], test[1])
     }
 
 
@@ -130,13 +134,12 @@ export function prophetTurn(r) {
     **************************************
     this portion is for attacking strategy
 	**************************************
-
     */
+
     let kiteAction = null
     // let kiteAction=kite(r)
-
     if (kiteAction != null){
-        r.log("kites did something??????????????????????? " + kiteAction)
+        r.log("Prophet: kites did something? " + kiteAction)
     }
 
 
@@ -145,36 +148,36 @@ export function prophetTurn(r) {
         let attackTarget = findAttack(r);
         if (attackTarget != null)
         {
-            r.log("found to attack!!!!!!!!!!!!!!!!!!!!!!!! " + attackTarget)
+            r.log("Prophet: found to attack! Enemy is " + attackTarget.unit + " at " + attackTarget.x + "," + attackTarget.y)
             return r.attack(attackTarget.x - r.me.x, attackTarget.y - r.me.y)
         }
     }
-//found targte location to go all in
 
+    //found target location to go all in
 
-    if (targetCastle.length > 0){
-        r.log('I see castle as target at '+targetCastle)
+    if (targetCastle.length > 0) {
+        r.log('Prophet: I see castle as target at ' + targetCastle)
         let visibleRobotMap = r.getVisibleRobotMap()  
         if (visibleRobotMap[targetCastle[0][1]][targetCastle[0][0]] == 0){
             targetCastle.shift()
             if (r.fuel > Math.ceil(visibleRobotMap[0].length*1.415))
             {
-                r.log("castle is destroyed!!!!!")
+                r.log("Prophet castle is destroyed!!!!!")
                 r.signal(comms.encodeCastleKill(targetCastle[0][0],targetCastle[0][1],16),(visibleRobotMap[0].length-1)*(visibleRobotMap[0].length-1)*2)
             }
         }  
         r.log(targetCastle[0])
         r.log(targetCastle)
-        
+        /*
         if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE*2) {
             let node = r.am.findPath(targetCastle[0], 4, false)
             if (node === null){
-                r.log("A*: no path to " + targetCastle[0] + " found")
+                r.log("Prophet: A*: no path to " + targetCastle[0] + " found")
                 return
             }
             if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE*2) {
                 const test = r.am.nextDirection(node)
-                r.log("castle going to test "+ test)
+                r.log("Prophet: castle going to test "+ test)
                 if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
                 {
                     return r.move(test[0], test[1])
@@ -182,12 +185,15 @@ export function prophetTurn(r) {
                 // return utils.tryMoveRotate(r, test)
             }
         }
+        */
+        const test = r.am.nextMove(targetCastle[0])
+        if (test === null)
+            return
+        else
+            return r.move(test[0], test[1])
 
         
     }
-
-
-
 
     /* geng geng geng geng geng geng geng geng geng geng geng geng
     */
@@ -200,7 +206,7 @@ export function prophetTurn(r) {
 
 
 
-    //wandering around
+    // wandering around
     
     if(targetMine == null)
     {
@@ -218,6 +224,8 @@ export function prophetTurn(r) {
    	
     // path to location
     //r.log("path to target ")
+
+    /*
     r.log(targetMine)
 	let pf = r.pm.getPathField(targetMine)  // this keeps the reversal
     if (r.fuel > SPECS.UNITS[SPECS.PROPHET].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
@@ -229,6 +237,13 @@ export function prophetTurn(r) {
             return utils.tryMoveRotate(r, test)
         }
     }
+    */
+
+    const test = r.am.nextMove(targetMine)
+        if (move === null)
+            return
+        else
+            return r.move(test[0], test[1])
 
     return
 }

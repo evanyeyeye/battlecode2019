@@ -202,6 +202,19 @@ export class AStar {
         return [dx, dy]
     }
 
+    // returns a move toward the target. Checks for fuel and makes sure move is valid
+    nextMove(target, radius = SPECS.UNITS[this.r.me.unit].SPEED, fast = false) {
+        const node = this.findPath(target, radius, fast)
+        if (node === null)
+            this.r.log("Unit " + this.r.me.unit + " : no path to " + target + " found with A*")
+        else{ 
+            const move = this.nextDirection(node)
+            if (this.r.fuel > SPECS.UNITS[this.r.me.unit].FUEL_PER_MOVE * utils.getDirectionCost(move) && utils.isEmpty(this.r, this.r.me.x + move[0], this.r.me.y + move[1]))
+                return move
+        }
+        return null
+    }
+
     isPassable(x, y) {
         if (x < 0 || x >= this.map[0].length || y < 0 || y >= this.map.length)
             return false
