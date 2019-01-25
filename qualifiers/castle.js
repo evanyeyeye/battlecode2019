@@ -184,7 +184,7 @@ export function castleTurn(r) {
                     r.log(signalToSend)
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     
-                    if (r.me.turn <= 3)                        
+                    if (r.me.turn <= 4)                        
                         initialActivityQueue.push(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))
                     else r.castleTalk(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))  // let other castles know
 

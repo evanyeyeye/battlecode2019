@@ -160,7 +160,7 @@ export function pilgrimTurn(r) {
     // for (let i of occupiedLoc) { r.log(i); }
 
     if (targetMine != null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) <= 2) {
-        r.castleTalk(comms.encodeCastleTalk(mineToID[targetMine[0] + ',' + targetMine[1]],comms.CASTLETALK_ON_MINE))  // when close to mine, let castle update activity
+        r.castleTalk(comms.encodeCastleTalk(mineToID[targetMine[0].toString() + ',' + targetMine[1].toString()],comms.CASTLETALK_ON_MINE))  // when close to mine, let castle update activity
     }
 
 
