@@ -109,7 +109,7 @@ export function castleTurn(r) {
             if (robot.team === r.me.team && robot.id !== r.me.id) {  // other friendly robot
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
-                if (message < 255 && r.me.turn > 4) {  // castle is indicating that it sent a pilgrim to this mine                   
+                if (message < 255) {  // castle is indicating that it sent a pilgrim to this mine                   
                     let decoded = comms.decodeCastleTalk(message)
                     //array 0 is id, 1 is 2 bit action in string
 
