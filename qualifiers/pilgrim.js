@@ -96,9 +96,15 @@ export function pilgrimTurn(r) {
             for (let tempDirection of directions){
                 let tempLocation = [r.me.x+tempDirection[0],r.me.y+tempDirection[1]]
                 // close enough to give the collected resources and it's on a different resource mine
-                if (utils.isOccupied(r,tempLocation[0],tempLocation[1])){
-                    
-                    return r.give(tempDirection[0], tempDirection[1], r.me.karbonite, r.me.fuel)
+                if (utils.isOccupied(r,tempLocation[0],tempLocation[1]) ){
+                    // try to give to opposite mine so dont lose things in void
+                    if (!(r.fuel_map[tempLocation[1]][tempLocation[0]] && r.me.fuel > 80))
+                    {                    
+                        return r.give(tempDirection[0], tempDirection[1], r.me.karbonite, r.me.fuel)
+                    }
+                    if (!(r.karbonite_map[tempLocation[1]][tempLocation[0]] && r.me.karbonite > 18)){
+                        return r.give(tempDirection[0], tempDirection[1], r.me.karbonite, r.me.fuel)
+                    }
                     
                 }
 
