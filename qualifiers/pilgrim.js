@@ -89,6 +89,23 @@ export function pilgrimTurn(r) {
             // close enough to give the collected resources
             return r.give(baseLocation[0] - r.me.x, baseLocation[1] - r.me.y, r.me.karbonite, r.me.fuel)
         }
+        //fix edge case of trying to go base with robot in middle
+        if(utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) == 2) {
+            let directions = utils.directions
+            let robotMap = r.getVisibleRobotMap()
+            for (let tempDirection of directions){
+                let tempLocation = [r.me.x+tempDirection[0],r.me.y+tempDirection[1]]
+                // close enough to give the collected resources and it's on a different resource mine
+                if (utils.isOccupied(r,tempLocation[0],tempLocation[1])){
+                    
+                    return r.give(tempDirection[0], tempDirection[1], r.me.karbonite, r.me.fuel)
+                    
+                }
+
+            }
+            
+        }
+
 
         // return to church/castle
         
@@ -205,14 +222,14 @@ export function pilgrimTurn(r) {
 	}
 
     // path to location
-    
-	// let pf = r.pm.getPathField(targetMine)
- //    if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
- //        // r.log("I want to move to " + targetMine)
- //        let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
- //        return utils.tryMoveRotate(r, test)
- //    }
-    
+    /*
+	 let pf = r.pm.getPathField(targetMine)
+     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
+         // r.log("I want to move to " + targetMine)
+         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
+         return utils.tryMoveRotate(r, test)
+     }
+    */
     // broken a*
     
     let node = r.am.findPath(targetMine, 4, false)
@@ -222,9 +239,12 @@ export function pilgrimTurn(r) {
     }
     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
         const test = r.am.nextDirection(node)
+        r.log("astar move is " + test)
         if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
             return r.move(test[0], test[1])
+
         const temp = utils.tryMoveRotate(r, test)
+        r.log("rotate move is " + temp)
         if (temp)
             return temp
     }
