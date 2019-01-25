@@ -11,6 +11,10 @@ export default {
     ALL_IN: "1000",
     KILLED: "1001",
 
+    CASTLETALK_ON_MINE: "00",
+    CASTLETALK_GOING_MINE: "01",
+    CASTLETALK_SEND_TROOP: "10",
+
     // encode message for signaling
     // action is a number
     encodeSignal: function (mineID, mineID2, totalMines, action, signallen) {
@@ -110,7 +114,8 @@ export default {
         }   
         message += encoded_mine    
         message += action
-        return message
+        let encoded = parseInt(message, 2);
+        return encoded
 
     },
     //decode castle talk message

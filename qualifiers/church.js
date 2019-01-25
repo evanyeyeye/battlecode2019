@@ -102,7 +102,7 @@ export function churchTurn(r) {
                     let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
                     r.log(signalToSend)
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
-                    r.castleTalk(parseInt(mineID) + 100)  // let other castles know                            
+                    r.castleTalk(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))  // let other castles know                            
                     return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
                 }
             }

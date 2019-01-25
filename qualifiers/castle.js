@@ -109,14 +109,18 @@ export function castleTurn(r) {
             if (robot.team === r.me.team && robot.id !== r.me.id) {  // other friendly robot
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
-                if (message < 200 && message >= 100) {  // castle is indicating that it sent a pilgrim to this mine
-                    //change encoding scheme later
-                    let messageMineID = message - 100
+                if (message < 255 && r.me.turn > 4) {  // castle is indicating that it sent a pilgrim to this mine                   
+                    let decoded = comms.decodeCastleTalk(message)
+                    //array 0 is id, 1 is 2 bit action in string
+
+                    r.log(decoded)
+                    let messageMineID = decoded[0]
                     let receivedMine =  mineStatus.get(messageMineID)
                     receivedMine.activity += 10                   
                     if (receivedMine.distance > mine_range){
                         let near = nearMines(r,messageMineID)
                         for (let tempMineID of near){
+                            r.log(tempMineID)
                             let tempMineStatus = mineStatus.get(tempMineID) 
                             tempMineStatus.activity += 10               
                         }                      
@@ -180,9 +184,9 @@ export function castleTurn(r) {
                     r.log(signalToSend)
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     
-                    if (r.me.turn <= 3)
-                        initialActivityQueue.push(parseInt(mineID) + 100)
-                    else r.castleTalk(parseInt(mineID) + 100)  // let other castles know
+                    if (r.me.turn <= 3)                        
+                        initialActivityQueue.push(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))
+                    else r.castleTalk(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))  // let other castles know
 
                     mineStatus.get(parseInt(mineID)).activity += 10  // update yourself
                     pilgrimCounter++
@@ -451,7 +455,7 @@ function nearMines(r,mineID){
     let toRet = []
     let mapsize = r.map.length
     r.log('near mine of')
-    r.log(mineID)    
+   // r.log(mineID)    
     let curMine=mineStatus.get(mineID)
     let mineLoc = curMine.loc //location array
     for (let i = -mine_range; i < mine_range; i++){        

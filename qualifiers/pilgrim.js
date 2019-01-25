@@ -43,7 +43,9 @@ export function pilgrimTurn(r) {
                     continue
                 }
                 r.log("Pilgrim received a target mine: " + castleTargetMineID)
-                r.castleTalk(castleTargetMineID + 100)  // acknowledge being sent to this mine, castle handles this now
+                let toCastleTalk = comms.encodeCastleTalk(castleTargetMineID,comms.CASTLETALK_GOING_MINE)
+                r.log(toCastleTalk)
+                r.castleTalk(toCastleTalk)  // acknowledge being sent to this mine, castle handles this now
                 r.log("Pilgrim received building a target mine near: "+castleTargetMineID)
             }
         }
@@ -158,7 +160,7 @@ export function pilgrimTurn(r) {
     // for (let i of occupiedLoc) { r.log(i); }
 
     if (targetMine != null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) <= 2) {
-        r.castleTalk(mineToID[targetMine[0] + ',' + targetMine[1]])  // when close to mine, let castle update activity
+        r.castleTalk(comms.encodeCastleTalk(mineToID[targetMine[0] + ',' + targetMine[1]],comms.CASTLETALK_ON_MINE))  // when close to mine, let castle update activity
     }
 
 
