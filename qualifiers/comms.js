@@ -99,6 +99,33 @@ export default {
   
     return encoded
     },
+    //encode castle talk message
+    encodeCastleTalk: function(mineID, action){
+        let encoded_mine=mineID.toString(2);
+        let bitsToGive = 6
+        let message=""   
+        //fill up the empty spots 
+        for (let i=0; i<bitsToGive - encoded_mine.length ;i++){
+            message+="0"
+        }   
+        message += encoded_mine    
+        message += action
+        return message
+
+    },
+    //decode castle talk message
+    decodeCastleTalk: function (msg){
+        let binary=msg.toString(2);       
+        let binarylen= binary.length
+        for (let i=0; i< 8- binarylen;i++){
+            binary="0"+binary
+        }     
+        let bitsToGive = 6 // how many bits to give
+        let firstMine = parseInt(binary.substring(0,bitsToGive),2)    
+        let action = binary.substring(bitsToGive,bitsToGive+2) 
+        return [firstMine,action] 
+
+    },
 
 
 
