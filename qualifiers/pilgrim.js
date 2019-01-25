@@ -43,7 +43,7 @@ export function pilgrimTurn(r) {
                     continue
                 }
                 r.log("Pilgrim received a target mine: " + castleTargetMineID)
-                // r.castleTalk(castleTargetMineID + 100)  // acknowledge being sent to this mine, castle handles this now
+                r.castleTalk(castleTargetMineID + 100)  // acknowledge being sent to this mine, castle handles this now
                 r.log("Pilgrim received building a target mine near: "+castleTargetMineID)
             }
         }
