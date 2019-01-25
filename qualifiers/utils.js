@@ -137,6 +137,13 @@ export default {
         return null
     },
 
+    // checks if square is passable
+    isPassable: function(r, x, y) {
+        if (x < 0 || x >= r.map[0].length || y < 0 || y >= r.map.length)
+            return false
+        return r.getPassableMap()[y][x]
+    },
+
     // checks if square is passable and is not occupied
     // (x, y) must be in robot vision range 
     isEmpty: function (r, x, y) {

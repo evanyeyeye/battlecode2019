@@ -21,6 +21,7 @@ var prevmove = null
 var state = null  // the current plan ocne receive all in from castle go all in
 var targetCastle=[]
 
+var settled = false  // temp way to check if i should move or not
 
 export function prophetTurn(r) {
     if (r.me.turn == 1) {
@@ -43,7 +44,7 @@ export function prophetTurn(r) {
     }
 
     //this part of the code looks for target castle and remove things
-    else{
+    else {
         for (const otherRobot of r.getVisibleRobots()) {
             const message = otherRobot.signal  // get any messages
             if (otherRobot.team === r.me.team && otherRobot.unit === SPECS.CASTLE && r.isRadioing(otherRobot)) {  // castle sending message
@@ -160,21 +161,22 @@ export function prophetTurn(r) {
 
     /* geng geng geng geng geng geng geng geng geng geng geng geng
     */
-    const move = gang(r)
-    if (move !== null)
-    {
-        return r.move(move[0], move[1]) 
+    if (!settled) {
+        if (utils.isStandable(r, r.me.x, r.me.y)) {
+            r.log("Prophet, settling at " + r.me.x + "," + r.me.y)
+            settled = true
+        }
+        else {
+            const move = gang(r)
+            if (move !== null)
+            {
+                return r.move(move[0], move[1]) 
+            }
+            return
+        }
     }
-    else
-        return 
 
     // wandering around
-    
-    if (idToMine === null) {
-        r.log("Prophet, idToMine is null for some reason")
-        iDMines(r)
-    }
-
     if(targetMine === null)  // move to random mine. also error checking
     {
         targetMine = idToMine[Math.floor(Math.random() * Object.keys(idToMine).length)]; // fix this later this is going to random
@@ -189,7 +191,7 @@ export function prophetTurn(r) {
 
     // path to location
     const test = r.am.nextMove(targetMine)
-        if (move === null)
+        if (test === null)
             return
         else
             return r.move(test[0], test[1])
@@ -276,45 +278,39 @@ function kite(r){
 }
 
 // move away if one side 3 blocks around are not empty
-function gang(r){
+function gang(r) {
     // all in x y coordinate order
     let north = [[-1,-1], [0,-1], [1,-1]]
     let south = [[-1,1], [0,1], [1,1]]
     let west = [[-1,-1], [-1,0], [-1,1]]
     let east = [[1,-1], [1,0], [1,1]]
     let sides = [north, south, east, west]
-    const myX = r.me.x
-    const myY = r.me.y
     let blocked = []
     let twothird = 0
     for (const side of sides){
         let totalCount = 0
         let nonEmptyCount = 0        
         for (const direction of side){
-            const offsetx = direction[0]
-            const offsety = direction[1]
-            const coordx = offsetx + myX
-            const coordy = offsety + myY
+            const coordx = r.me.x + direction[0]
+            const coordy = r.me.y + direction[1]
             // when not empty
-            if (utils.isEmpty(r, coordx, coordy)){
+            if (utils.isPassable(r, coordx, coordy)) {  // count number of valid squares
                 totalCount++
-            }
-            else if (utils.isOccupied(r, coordx, coordy)){
-                totalCount++
-                nonEmptyCount++
+                if (!utils.isStandable(r, coordx, coordy))  // count number of squares you shouldn't move to
+                    nonEmptyCount++
             }
         }
         // check if the whole side is blocked
-        if (totalCount === nonEmptyCount){
+        if (totalCount === nonEmptyCount) {  // all valid squares are blocked on this side
             blocked.push(side)
         }
-        else if (nonEmptyCount*2 > totalCount){
+        else if (nonEmptyCount*2 > totalCount){  // over half of valid squares are blocked on this side
             twothird++
         }
     }
     if (blocked.length >= 2 || ((blocked.length === 1 && twothird >= 2))) {  // try to move if a lot of sides are blocked     
         for (const dir of shuffledDirections()) {
-            if (utils.isEmpty(r, r.me.x + dir[0], r.me.y + dir[1])) {
+            if (utils.isStandable(r, r.me.x + dir[0], r.me.y + dir[1])) {
                 prevmove = dir
                 return dir
             }
