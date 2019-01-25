@@ -21,7 +21,7 @@ var baseLocation = null  // castle or church to return resources to
 var priorityResource = 0;
 var allMineID = {}  // maps mine ID to its STRING location
 var mineToID = {}  // maps string location to id, convenience
-var curAction =null; //curent action
+var curAction = null; //curent action
 var bestChurchLoc = null
 
 var castleTargetMineID = null // the target mine that the castle gives
