@@ -493,16 +493,19 @@ function findInRangeTotalDistance(tempLocation,enemyList){
 //can be optimized later
 function setHeatMap(r,enemyRobotSq){
     for (let enemy of enemyRobotSq){
-        if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS.length == 2){
-            let heatRadius = (SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5 + 1)**2
-            for (let j = 0; j < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; j++) {
-                for (let i = 0; i < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; i++) {                
-                    if ((i*i+j*j) < (heatRadius)){
-                        r.am.setEnemyHeat(enemy.x+i,enemy.y+j,5)
-                    }                                
-                     
+        r.log(enemy.unit)
+        if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS !=null){
+            if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS != 0){
+                let heatRadius = (SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5 + 1)**2
+                for (let j = 0; j < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; j++) {
+                    for (let i = 0; i < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; i++) {                
+                        if ((i*i+j*j) < (heatRadius)){
+                            r.am.setEnemyHeat(enemy.x+i,enemy.y+j,5)
+                        }                                
+                         
+                    }
                 }
-            }
-        }        
+            }   
+        }     
     }
 }
