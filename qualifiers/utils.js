@@ -208,7 +208,7 @@ export default {
             this.absCache.set(dy, Math.abs(dy))
         return this.absCache.get(dx) + this.absCache.get(dy)
     },
-
+    //this gives squared not the square root
     squaredCache: new Map(),
     getSquaredDistance: function (x1, y1, x2, y2) {
         const dx = x2 - x1

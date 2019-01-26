@@ -64,9 +64,11 @@ export function pilgrimTurn(r) {
     // ok now find the best move
     let friendlyRobots = {}
     let enemyRobots = {}
+    let senseDanger = false
 
     // look around
     for (const otherRobot of r.getVisibleRobots()) {
+        const sqdis = utils.getSquaredDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         const distance = utils.getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         if (otherRobot.team == r.me.team) {
             // set closest friendly castle or church as base
@@ -77,6 +79,16 @@ export function pilgrimTurn(r) {
             friendlyRobots[otherRobot.id] = distance
         }
         else {
+            if (otherRobot.unit == SPECS.PROPHET){
+                if (sqdis <= 64){
+                    senseDanger = true
+                }
+            }
+            if (otherRobot.unit == SPECS.CRUSADER || otherRobot.unit == SPECS.PREACHER){
+                if (sqdis <= 49){
+                    senseDanger = true
+                }
+            }
             enemyRobots[otherRobot.id] = distance
         }
     }
@@ -140,6 +152,23 @@ export function pilgrimTurn(r) {
         }
         
     }
+
+    //// ---------- KITE IF SENSE DANGER ----------
+   
+
+    let kiteAction = null
+    if (senseDanger){
+        r.log("calculating kite")
+        kiteAction = kite(r)
+        if (kiteAction != null){
+            r.log("pilgrim sense danger, moving back")
+            r.log(kiteAction)
+            return r.move(kiteAction[0],kiteAction[1])
+            //return kiteAction
+        }
+    }
+    
+
 
     // ---------- MOVING TO A MINE OR MINING THERE ----------
 
@@ -373,4 +402,78 @@ function findBuildDirections(r, x, y) {
     }
     return buildingDirections
 }
+// decide which direction to go when kiting, or it can just not kite. Returns the move
+function kite(r){
+    const visibleRobotMap = r.getVisibleRobots();
+    let enemyCount = 0;
+    let friendlyCount = 0;
+    let enemyVector = [0, 0];  // total dx, dy
+    let enemyList = []
+    for (const bot of visibleRobotMap){
+        // r.log(bot)
+        if (bot.team !== r.me.team) {
+            if (utils.getSquaredDistance(bot.x,bot.y,r.me.x,r.me.y) <= 64)
+            {
+                if (bot.unit != SPECS.UNITS[SPECS.CHURCH] && bot.unit != SPECS.UNITS[SPECS.PILGRIM])
+                {
+                    enemyList.push(bot)
+                }
+              
+            }
+           
+          
+        }
+    }
+    let cur_dir = null
+    let bestTotalInRange = 99999999
+    let bestTotalDistance = 0
+    
+
+    for (const dir of utils.directions) {
+        r.log(cur_dir)
+        let tempLocation = [r.me.x + dir[0],r.me.y + dir[1]]
+        if (utils.isEmpty(r,tempLocation[0],tempLocation[1])) {
+            let curResult = findInRangeTotalDistance(tempLocation,enemyList)
+            //curresult [0] is the total in range curresult [1] is total distanceto enemy            
+            if (curResult[0] < bestTotalInRange){
+                cur_dir = dir
+                bestTotalInRange = curResult[0]
+                bestTotalDistance = curResult[1]               
+
+            }
+            if (curResult[0] == bestTotalInRange){
+                if (curResult[1] > bestTotalDistance){
+                    cur_dir = dir
+                    bestTotalInRange = curResult[0]
+                    bestTotalDistance = curResult[1]
+                }
+            }
+
+        }
+    }     
+    r.log(cur_dir)
+    return cur_dir
+}
+//return array like this [total within attack range, total distance]
+//find the total distance for comparing kiting options
+function findInRangeTotalDistance(tempLocation,enemyList){
+    let totalInRange = 0
+    let totalDistance = 0
+    for (let enemy of enemyList){
+        let tempDistance = utils.getSquaredDistance(tempLocation[0],tempLocation[1],enemy.x,enemy.y) 
+        if (enemy.unit == SPECS.PROPHET){
+            if (tempDistance <= 64){
+                totalInRange++
+            }
+        }
+        if (enemy.unit == SPECS.CRUSADER || enemy.unit == SPECS.PREACHER){
+            if (tempDistance <= 49){
+                totalInRange++
+            }
+        }
+        totalDistance += tempDistance**0.25
+    }
+    return [totalInRange,totalDistance]
+}
+
 
