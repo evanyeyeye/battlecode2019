@@ -102,7 +102,7 @@ export class AStar {
 	constructor(r, map) {
 		this.r = r
 		this.map = map
-        this.heatMap = utils.generateMatrix(this.map[0].length, this.map.length)  // activity is back! null if nothing, else is [robotid, activity of that id, last turn updated]
+        this.heatMap = utils.generateMatrix(this.map[0].length, this.map.length)  // activity is back! null if nothing, else is [in enemy range or not, heat, last turn updated]
 
         // future:
         // caching
@@ -224,6 +224,15 @@ export class AStar {
         const currentTurn = this.r.me.turn
         const robotID = this.r.getVisibleRobotMap()[y][x]
         if (robotID === 0) {  // there is definitely no robot here
+            if (this.heatMap[y][x] !== null) {
+                const attackable = this.heatMap[y][x][0]
+                const heat = this.heatMap[y][x][1]
+                if (attackable && heat > 0) {  // avoid this location anyways cuz we marked it as attackable
+                    this.heatMap[y][x][1]--
+                    this.heatMap[y][x][2] = currentTurn
+                    return false
+                }
+            }
             this.heatMap[y][x] = null  // reset the location
             return this.map[y][x]
         }
@@ -246,37 +255,16 @@ export class AStar {
         else {  // we can definitely see a robot here
             const otherRobot = this.r.getRobot(robotID)
             if (otherRobot.unit === SPECS.CASTLE || otherRobot.unit === SPECS.CHURCH)  // normally avoid castles
-                this.heatMap[y][x] = [robotID, HEAT_MAX, currentTurn]  // permanently avoid locations at HEAT_MAX
-            /*  // this optimization does not work
-            if (this.heatMap[y][x] !== null && robotID === this.heatMap[y][x][0]) {  // we saw the same robot here before
-                // this.r.log("I'm seeing the same robot at " + x + "," + y + ". id is: " + robotID)
-                if (this.heatMap[y][x][1] < 90)  // 10 less than permanent
-                    this.heatMap[y][x][1] += 10  // lets not move back for a while
-                return false
-            }
-
-            // there is a robot here, and we haven't seen it before
-            // this.r.log("there is a new robot here, before: " + this.heatMap[y][x] + " new: " + robotID)
-            this.heatMap[y][x] = [robotID, 1]
-            return this.map[y][x]  // even if we can see it, its our first time. lets try to move there anyway
-            */
+                this.heatMap[y][x] = [false, HEAT_MAX, currentTurn]  // permanently avoid locations at HEAT_MAX
             else
-                this.heatMap[y][x] = [robotID, 10, currentTurn]  // decays after 10 turns
+                this.heatMap[y][x] = [false, 10, currentTurn]  // decays after 10 turns
                 // this.setHeat(x, y, 10, robotID)  // decays after 10 turns
             return false
         }
     }
 
     // set the heat of a tile
-    setHeat(x, y, heat, robotID = 0) {
-        if (this.heatMap[y][x] === null) {
-            this.heatMap[y][x] = [robotID, heat, this.r.me.turn]
-        }
-        else {
-            if (heat > HEAT_MAX)
-                heat = HEAT_MAX
-            this.heatMap[y][x][1] = heat
-            this.heatMap[y][x][2] = this.r.me.turn
-        }
+    setEnemyHeat(x, y, heat) {
+        this.heatMap[y][x] = [true, heat, this.r.me.turn]
     }
 }
