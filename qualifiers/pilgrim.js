@@ -26,6 +26,9 @@ var bestChurchLoc = null
 
 var castleTargetMineID = null // the target mine that the castle gives
 
+var hangout = false  // if kited a lot, recently, means cna't go
+var kiteCount = 0 // kiteCount array that records near turn kites
+
 
 export function pilgrimTurn(r) {
     if (r.me.turn == 1) {
@@ -160,7 +163,7 @@ export function pilgrimTurn(r) {
 
     //// ---------- KITE IF SENSE DANGER ----------
    
-
+    kiteCount-- //decaying kite count
     let kiteAction = null
     if (senseDanger){
         r.log("calculating kite")
@@ -168,9 +171,13 @@ export function pilgrimTurn(r) {
         if (kiteAction != null){
             r.log("pilgrim sense danger, moving back")
             r.log(kiteAction)
+            kiteCount +=7
             return r.move(kiteAction[0],kiteAction[1])
             //return kiteAction
         }
+    }
+    if (kiteCount > 15){
+        return
     }
     
 
