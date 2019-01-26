@@ -262,6 +262,7 @@ export class AStar {
             */
             else
                 this.heatMap[y][x] = [robotID, 10, currentTurn]  // decays after 10 turns
+                // this.setHeat(x, y, 10, robotID)  // decays after 10 turns
             return false
         }
     }
@@ -269,13 +270,13 @@ export class AStar {
     // set the heat of a tile
     setHeat(x, y, heat, robotID = 0) {
         if (this.heatMap[y][x] === null) {
-            heatMap[y][x] = [robotID, heat, this.r.me.turn]
+            this.heatMap[y][x] = [robotID, heat, this.r.me.turn]
         }
         else {
             if (heat > HEAT_MAX)
                 heat = HEAT_MAX
-            heatMap[y][x][1] = heat
-            heatMap[y][x][2] = this.r.me.turn
+            this.heatMap[y][x][1] = heat
+            this.heatMap[y][x][2] = this.r.me.turn
         }
     }
 }
