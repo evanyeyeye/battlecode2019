@@ -491,16 +491,22 @@ function findInRangeTotalDistance(tempLocation,enemyList){
     return [totalInRange,totalDistance]
 }
 //can be optimized later
-function setHeatMap(r,enemyRobotSq){
+function setHeatMap(r,enemyRobotSq){    
+    let map_len = r.map[0].length
     for (let enemy of enemyRobotSq){
         r.log(enemy.unit)
         if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS !=null){
-            if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS != 0){
-                let heatRadius = (SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5 + 1)**2
-                for (let j = 0; j < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; j++) {
-                    for (let i = 0; i < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; i++) {                
+            if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS != 0){                
+                let heatRadius = (SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5)**2
+                let radius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5
+                for (let j = 0; j < radius; j++) {
+                    for (let i = 0; i < radius; i++) {                
                         if ((i*i+j*j) < (heatRadius)){
-                            r.am.setEnemyHeat(enemy.x+i,enemy.y+j,5)
+                            if (!(enemy.x+i < 0 || enemy.x+i >= map_len || enemy.y+j < 0 || enemy.y+j >= map_len))
+                            {
+                                r.am.setEnemyHeat(enemy.x+i,enemy.y+j,5)
+                            }
+                            
                         }                                
                          
                     }
@@ -508,4 +514,5 @@ function setHeatMap(r,enemyRobotSq){
             }   
         }     
     }
+
 }
