@@ -2,6 +2,8 @@ import {PathField} from './pathfield.js'
 import utils from './utils.js'
 import {SPECS} from 'battlecode'
 
+const HEAT_MAX = 1000
+
 // taken from stack overflow, https://stackoverflow.com/questions/42919469/efficient-way-to-implement-priority-queue-in-javascript
 const top = 0
 const parent = i => ((i + 1) >>> 1) - 1  // i think to get the parent index of an index i
@@ -100,7 +102,7 @@ export class AStar {
 	constructor(r, map) {
 		this.r = r
 		this.map = map
-        this.heatMap = utils.generateMatrix(this.map[0].length, this.map.length)  // activity is back! null if nothing, else is [robotid, activity of that id]
+        this.heatMap = utils.generateMatrix(this.map[0].length, this.map.length)  // activity is back! null if nothing, else is [robotid, activity of that id, last turn updated]
 
         // future:
         // caching
@@ -110,7 +112,7 @@ export class AStar {
 	}
 
     findPath(target, radius = SPECS.UNITS[this.r.me.unit].SPEED, fast = false) {  // array targets, returns a node object. Radius = max squared movement radius. Fast = ignore squared cost
-        if (!this.isPassable(target[0], target[1]))
+        if (!utils.isPassable(this.r, target[0], target[1]))
             return null
         const nodeMap = utils.generateMatrix(this.map[0].length, this.map.length)  // holds null or nodes, for updating cost/parent of nodes
         // const tempMap = utils.generateMatrix(this.map[0].length, this.map.length)  // the caching right now happens every time you visit a node, which could be multiple times for 1 pathfinding
@@ -136,7 +138,7 @@ export class AStar {
             for (const [dx, dy] of this.getDirections(v, radius, fast)) {
                 const x = v.x + dx
                 const y = v.y + dy
-                if (this.probablyIsEmpty(x, y) || (x == target[0] && y == target[1] && this.isPassable(x, y))) {  // either empty, or passable and is target
+                if (this.probablyIsEmpty(x, y) || (x == target[0] && y == target[1])) {  // either empty, or passable and is target
                     let dg = 1  // additional cost to move to the next tile
                     if (fast)
                         dg = Math.abs(dx) + Math.abs(dy)  // bad
@@ -215,38 +217,36 @@ export class AStar {
         return null
     }
 
-    isPassable(x, y) {
-        if (x < 0 || x >= this.map[0].length || y < 0 || y >= this.map.length)
-            return false
-        return this.map[y][x]
-    }
-
     // really messy! uses heatmap to estimate about robot location out of range
     probablyIsEmpty(x, y) {
         if (x < 0 || x >= this.map[0].length || y < 0 || y >= this.map.length)  // out of bounds
             return false
+        const currentTurn = this.r.me.turn
         const robotID = this.r.getVisibleRobotMap()[y][x]
-        if (robotID === 0) {  // there is no robot here
-            this.heatMap[y][x] = null
+        if (robotID === 0) {  // there is definitely no robot here
+            this.heatMap[y][x] = null  // reset the location
             return this.map[y][x]
         }
         else if (robotID === -1) {  // we can't see here
-            if (this.heatMap[y][x] !== null && 0 < this.heatMap[y][x][1] < 100) {  // we saw before a unit that could move
-                // this.r.log("a*: decrememting " + x + ',' + y)
-                this.heatMap[y][x] --  // decrement activity
-                return false
+            if (this.heatMap[y][x] !== null) {  // we saw before a unit
+                const heat = this.heatMap[y][x][1]  // the heat here
+                const lastTurn = this.heatMap[y][x][2]  // the last turn we examined this location
+                if (0 < heat < HEAT_MAX && lastTurn < currentTurn)  // decrement if necessary
+                    this.heatMap[y][x][1]--
+                if (heat > 0)  // still probably not passable
+                    return false
+                else
+                    return this.map[y][x]
             }
-            else {
-                this.heatMap[y][x] = null  // reset the location
+            else {  // never seen anything here
                 return this.map[y][x]
             }
         }
 
-        else {  // we can see a robot here
-            if (this.r.getRobot(robotID).unit == SPECS.CASTLE || this.r.getRobot(robotID).unit == SPECS.CHURCH) {  // normally avoid castles
-                this.heatMap[y][x] = [robotID, 100]  // permanently avoid 100
-                return false
-            }
+        else {  // we can definitely see a robot here
+            const otherRobot = this.r.getRobot(robotID)
+            if (otherRobot.unit === SPECS.CASTLE || otherRobot.unit === SPECS.CHURCH)  // normally avoid castles
+                this.heatMap[y][x] = [robotID, HEAT_MAX, currentTurn]  // permanently avoid locations at HEAT_MAX
             /*  // this optimization does not work
             if (this.heatMap[y][x] !== null && robotID === this.heatMap[y][x][0]) {  // we saw the same robot here before
                 // this.r.log("I'm seeing the same robot at " + x + "," + y + ". id is: " + robotID)
@@ -260,8 +260,22 @@ export class AStar {
             this.heatMap[y][x] = [robotID, 1]
             return this.map[y][x]  // even if we can see it, its our first time. lets try to move there anyway
             */
-            this.heatMap[y][x] = [robotID, 90]
+            else
+                this.heatMap[y][x] = [robotID, 10, currentTurn]  // decays after 10 turns
             return false
+        }
+    }
+
+    // set the heat of a tile
+    setHeat(x, y, heat, robotID = 0) {
+        if (this.heatMap[y][x] === null) {
+            heatMap[y][x] = [robotID, heat, this.r.me.turn]
+        }
+        else {
+            if (heat > HEAT_MAX)
+                heat = HEAT_MAX
+            heatMap[y][x][1] = heat
+            heatMap[y][x][2] = this.r.me.turn
         }
     }
 }
