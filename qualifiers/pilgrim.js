@@ -65,6 +65,7 @@ export function pilgrimTurn(r) {
     let friendlyRobots = {}
     let enemyRobots = {}
     let senseDanger = false
+    let enemyRobotList = []
 
     // look around
     for (const otherRobot of r.getVisibleRobots()) {
@@ -79,7 +80,7 @@ export function pilgrimTurn(r) {
             friendlyRobots[otherRobot.id] = distance
         }
         else {
-            if (otherRobot.unit == SPECS.PROPHET){
+            if (otherRobot.unit == SPECS.PROPHET || otherRobot.unit == SPECS.CASTLE){
                 if (sqdis <= 64){
                     senseDanger = true
                 }
@@ -90,8 +91,12 @@ export function pilgrimTurn(r) {
                 }
             }
             enemyRobots[otherRobot.id] = distance
+            enemyRobotList.push(otherRobot)
         }
     }
+    //change rheat map can be optimized
+    setHeatMap(r,enemyRobotList)
+    
 
     // ---------- MOVING BACK TO BASE ----------
 
@@ -475,5 +480,16 @@ function findInRangeTotalDistance(tempLocation,enemyList){
     }
     return [totalInRange,totalDistance]
 }
-
-
+//can be optimized later
+function setHeatMap(r,enemyRobotSq){
+    for (let enemy of enemyRobotSq){
+        for (let j = 0; j < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; j++) {
+            for (let i = 0; i < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; i++) {                
+                if ((i*i+j*j) < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]){
+                    r.am.setEnemyHeat(i,j,5)
+                }                                
+                 
+            }
+        }        
+    }
+}
