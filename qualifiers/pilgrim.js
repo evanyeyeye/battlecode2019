@@ -163,8 +163,9 @@ export function pilgrimTurn(r) {
 
     //// ---------- KITE IF SENSE DANGER ----------
    
-    kiteCount-- //decaying kite count
+    //decaying kite count
     let kiteAction = null
+    kiteCount--;
     if (senseDanger){
         r.log("calculating kite")
         kiteAction = kite(r)
@@ -176,7 +177,9 @@ export function pilgrimTurn(r) {
             //return kiteAction
         }
     }
-    if (kiteCount > 15){
+
+   
+    if (kiteCount >= 18){
         return
     }
     
@@ -490,13 +493,15 @@ function findInRangeTotalDistance(tempLocation,enemyList){
 //can be optimized later
 function setHeatMap(r,enemyRobotSq){
     for (let enemy of enemyRobotSq){
-        let heatRadius = (SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5 + 1)**2
-        for (let j = 0; j < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; j++) {
-            for (let i = 0; i < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; i++) {                
-                if ((i*i+j*j) < (heatRadius)){
-                    r.am.setEnemyHeat(i,j,5)
-                }                                
-                 
+        if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS.length == 2){
+            let heatRadius = (SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5 + 1)**2
+            for (let j = 0; j < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; j++) {
+                for (let i = 0; i < SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5; i++) {                
+                    if ((i*i+j*j) < (heatRadius)){
+                        r.am.setEnemyHeat(enemy.x+i,enemy.y+j,5)
+                    }                                
+                     
+                }
             }
         }        
     }
