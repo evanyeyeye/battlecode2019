@@ -121,12 +121,10 @@ export function prophetTurn(r) {
 
     // kiting away from enemies
     const kiteMove = kite(r)
-    /*
-    if (kiteMove !== null) {
+    if (kiteMove !== null) {  // will be null if there is no need
         r.log("Prophet: kite did something! " + kiteMove)
         return r.move(kiteMove)
     }
-    */
 
     if (Object.keys(enemyRobots).length > 0)
     {
@@ -138,7 +136,7 @@ export function prophetTurn(r) {
         }
     }
 
-    //found target location to go all in
+    // found target location to go all in
 
     if (targetCastle.length > 0) {
         r.log("Prophet: I see castle as target at " + targetCastle[0])
@@ -162,8 +160,8 @@ export function prophetTurn(r) {
     /* geng geng geng geng geng geng geng geng geng geng geng geng
     */
     if (!settled) {
-        if (utils.isStandable(r, r.me.x, r.me.y)) {
-            r.log("Prophet, settling at " + r.me.x + "," + r.me.y)
+        if (utils.isStandable(r, r.me.x, r.me.y)) {  // a futile attempt to save fuel
+            r.log("Prophet: settling at " + r.me.x + "," + r.me.y)
             settled = true
         }
         else {
