@@ -52,9 +52,11 @@ export function prophetTurn(r) {
                 const decoded = comms.decodeSignal(message,64,16)
                 if (decoded[2] === comms.ALL_IN)
                 {
+                    /* disable all in
                     r.log(message)
                     r.log("Prophet: I hear " + targetCastle)
                     targetCastle.push([decoded[0], decoded[1]])
+                    */
                 }
             }
             else if (otherRobot.team === r.me.team && otherRobot.unit === SPECS.PROPHET && r.isRadioing(otherRobot)){

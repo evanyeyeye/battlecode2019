@@ -38,7 +38,7 @@ export function churchTurn(r) {
         churchPathField = r.pm.getPathField([r.me.x, r.me.y])
         // populate mineStatus and sortedMines
         initializeMines(r)
-        r.log("There are " + mineStatus.size + " mines")
+        r.log("Church: There are " + mineStatus.size + " mines")
         // calculate number of mines within range
         numMines = calculateNumMines(r, mine_range)  
         // determine number of pilgrims to build
@@ -97,10 +97,9 @@ export function churchTurn(r) {
                 // see if there is a mine for a pilgrim to go to
                 const mineID = nextMineID(r)
                 if (mineID !== null){
-                    r.log("Built Pilgrim, trying to send it to " + mineID)
+                    r.log("Church: Built Pilgrim, trying to send it to " + mineID)
                     // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
                     let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
-                    r.log(signalToSend)
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     r.castleTalk(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))  // let other castles know                            
                     return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
@@ -115,7 +114,7 @@ export function churchTurn(r) {
         if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
-            r.log("Built Prophet")
+            r.log("Church: Built Prophet")
             return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
             }
         }
@@ -128,7 +127,7 @@ export function churchTurn(r) {
     if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
-            r.log("Built Crusader")
+            r.log("Church: Built Crusader")
             // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
             crusaderCounter++
             return r.buildUnit(SPECS.CRUSADER, buildDirection[1], buildDirection[0])
@@ -141,7 +140,7 @@ export function churchTurn(r) {
     if (r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
-            r.log("Built a Preacher")
+            r.log("Church: Built a Preacher")
             // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
             preacherCounter++
             return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
@@ -200,20 +199,16 @@ function calculateNumMines(r, range) {
 // Theres usually different ratios of mines i think, but for every 2-mine grouping it would be distance * 2 / 10 + 2 i think
 function calculateNumPilgrims(r) {
     let num = 0
-    // r.log(sortedMines)
-
-    r.log(sortedMines)
     for (const entry of sortedMines) {  // take only a portion of the closest mines
         if (mineStatus.get(entry).distance < mine_range) {
             num++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
         }
     }
-    r.log("im going to try to make " + num + " pilgrims")
+    r.log("Church: im going to try to make " + num + " pilgrims")
     return num
 }
 
 function nextMineID(r) {  // uses resource-blind ids
-    //r.log(idealNumPilgrims)
     let robomap=r.getVisibleRobotMap()
     // use sortedMines with mineStatus to decide the next mine to send a pilgrim toward
     for (const mineID of sortedMines) {
@@ -223,7 +218,7 @@ function nextMineID(r) {  // uses resource-blind ids
         if (robomap[mine.loc[1]][mine.loc[0]] == 0)
         {
             mine.activity = 0
-        // r.log("ID of " + id + " has activity of " + mine.activity)
+        // r.log("Church: ID of " + id + " has activity of " + mine.activity)
         if (mine.activity === 0 && mine.distance < mine_range) // no pilgrim activity here yet, temp way to cutoff distance
             return mineID
         }

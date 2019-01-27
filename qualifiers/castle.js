@@ -41,11 +41,11 @@ export function castleTurn(r) {
    
     if (r.me.turn > 800 && enemyCastleLocSent == false && r.fuel>2000) {
         let visibleRobotMap= r.getVisibleRobotMap()
-        r.log("trying to send my symmetrical location")
+        r.log("Castle: trying to send my symmetrical location")
         if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
         {
             let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
-            r.log('sent '+curEnemyCastle)
+            r.log('Castle: sent '+ curEnemyCastle)
             r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1],16),(visibleRobotMap[0].length-1)*(visibleRobotMap[0].length-1)*2)
             enemyCastleLocSent =true
         } 
@@ -113,14 +113,12 @@ export function castleTurn(r) {
                     let decoded = comms.decodeCastleTalk(message)
                     //array 0 is id, 1 is 2 bit action in string
 
-                    r.log(decoded)
                     let messageMineID = decoded[0]
                     let receivedMine =  mineStatus.get(messageMineID)
                     receivedMine.activity += 10                   
                     if (receivedMine.distance > mine_range){
                         let near = nearMines(r,messageMineID)
                         for (let tempMineID of near){
-                            r.log(tempMineID)
                             let tempMineStatus = mineStatus.get(tempMineID) 
                             tempMineStatus.activity += 10               
                         }                      
@@ -173,15 +171,12 @@ export function castleTurn(r) {
             if (buildDirection != null) {
                 // see if there is a mine for a pilgrim to go to
                 const mineID = nextMineID(r)
-                r.log(mineID)
                 if (mineID !== null){
 
                     r.log("Built Pilgrim, trying to send it to " + mineID)
                     // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
 
-                    let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
-                               
-                    r.log(signalToSend)
+                    let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)  
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     
                     if (r.me.turn <= 4)                        
@@ -207,7 +202,7 @@ export function castleTurn(r) {
         if (r.me.turn <3||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
-                r.log("Built Prophet")
+                r.log("Castle: Built Prophet")
                 return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
             }
         }
@@ -231,7 +226,7 @@ export function castleTurn(r) {
     if (danger && allyPreacherCount < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
-            r.log("Built Preacher")
+            r.log("Castle: Built Preacher")
             // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
             // crusaderCounter++
             return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
@@ -343,9 +338,11 @@ function initializeMines(r) {
 
         return mineStatus.get(a).distance - mineStatus.get(b).distance
     })
+    /*
     r.log(sortedMines)
     r.log("mine status is")
     r.log(mineStatus)
+    */
     return totalMines
 }
 
@@ -387,15 +384,15 @@ function findCastleLocations(r) {
 // Theres usually different ratios of mines i think, but for every 2-mine grouping it would be distance * 2 / 10 + 2 i think
 function calculateNumPilgrims(r) {
     let num = 0
-  //  r.log("sortedmines"+sortedMines)
+  //  r.log("Castle: sortedmines"+sortedMines)
     for (const mineID of sortedMines) {  // take only a portion of the closest mines
         const mine = mineStatus.get(mineID)
         if (mine.distance < mine_range) {
-           // r.log("distance is "+mine.distance)
+           // r.log("Castle: distance is "+mine.distance)
             num ++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
         }
     }
-    r.log("im going to try to make " + num + " pilgrims")
+    r.log("Castle: im going to try to make " + num + " pilgrims")
     return num
 }
 
@@ -403,7 +400,7 @@ function nextMineID(r) {  // uses resource-blind ids
     // use sortedMines with mineStatus to decide the next mine to send a pilgrim toward
     for (const mineID of sortedMines) {
         const mine = mineStatus.get(mineID)
-        // /r.log("ID of " + mineID + " has activity of " + mine.activity)
+        // /r.log("Castle: ID of " + mineID + " has activity of " + mine.activity)
         if (mine.activity === 0) // no pilgrim activity here yet, temp way to cutoff distance
         {            
             // if close to castle no need to descrease activity
@@ -454,7 +451,7 @@ function arrayToString(array){
 function nearMines(r,mineID){
     let toRet = []
     let mapsize = r.map.length
-    r.log('near mine of')
+    // r.log('Castle: near mine of')
     // r.log(mineID)    
     let curMine=mineStatus.get(mineID)
     let mineLoc = curMine.loc //location array
