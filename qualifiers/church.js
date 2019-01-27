@@ -166,23 +166,40 @@ export function churchTurn(r) {
 
 
     
-    // build prophets
-    if (!(dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
-        ((danger || prophetCounter < r.me.turn / 25) && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
-        if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
-            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-            if (buildDirection != null) {
-            r.log("Church: Built Prophet")
-            return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+        // build prophets
+        if (!(dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
+            ((danger || prophetCounter < r.me.turn / 25) && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
+            if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
+                var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+                if (buildDirection != null) {
+                r.log("Church: Built Prophet")
+                return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+                }
+            }
+        }   
+
+        if (preacherCounter >= 2 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
+            if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
+                var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+                if (buildDirection !== null) {
+                    // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
+                    const defensive_pos = forms.nextPosition(r, defense_center, occupied_positions)
+                    if (defensive_pos !== null) {
+                        r.log("Church: Built a Preacher, sending it to: " + defensive_pos)  // preacher counter increments when scanning friends
+                        r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
+                        occupied_positions.add(defensive_pos.toString())
+                        return r.buildUnit(SPECS.PREACHER, buildDirection[0], buildDirection[1])
+                    }
+                }
+            }
         }
-    }
-    
-    if (preacherCounter >= 2 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
-        if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
+
+        // test build preachers
+        if (danger && preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection !== null) {
                 // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
-                const defensive_pos = forms.nextPosition(r, defense_center, occupied_positions)
+                const defensive_pos = forms.nextPosition(r, occupied_positions)
                 if (defensive_pos !== null) {
                     r.log("Church: Built a Preacher, sending it to: " + defensive_pos)  // preacher counter increments when scanning friends
                     r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
@@ -191,21 +208,8 @@ export function churchTurn(r) {
                 }
             }
         }
-    }
-
-    // test build preachers
-    if (danger && preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
-        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-        if (buildDirection !== null) {
-            // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
-            const defensive_pos = nextPosition(r, occupied_positions)
-            if (defensive_pos !== null) {
-                r.log("Church: Built a Preacher, sending it to: " + defensive_pos)  // preacher counter increments when scanning friends
-                r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
-                occupied_positions.add(defensive_pos.toString())
-                return r.buildUnit(SPECS.PREACHER, buildDirection[0], buildDirection[1])
     //-------------------------OFFENSE BUILD------------------------------------
-    else{
+    } else {
         if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 2) {
             var buildDirection = findAttackDirection(r, targetCastle[0], targetCastle[1])
             if (buildDirection !== null) {
