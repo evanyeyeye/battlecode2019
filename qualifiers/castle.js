@@ -111,11 +111,13 @@ export function castleTurn(r) {
 
                     let messageMineID = decoded[0]
                     let receivedMine =  mineStatus.get(messageMineID)
-                    receivedMine.activity += 10                   
+                    receivedMine.activity += 10     
+
                     if (receivedMine.distance > mine_range){
                         let near = nearMines(r,messageMineID)
                         for (let tempMineID of near){
                             let tempMineStatus = mineStatus.get(tempMineID) 
+                            //r.log(tempMineStatus)
                             tempMineStatus.activity += 10               
                         }                      
                     }
@@ -419,7 +421,7 @@ function nextMineID(r) {  // uses resource-blind ids
         if (mine.activity === 0) // no pilgrim activity here yet, temp way to cutoff distance
         {            
             // if close to castle no need to descrease activity
-            return mineID
+            
             if (mine.distance > mine_range){
                 let near = nearMines(r,mineID)
                 for (let tempMineID of near){
@@ -429,6 +431,7 @@ function nextMineID(r) {  // uses resource-blind ids
                 }
                 
             }
+            return mineID
         }
     }
     return null
