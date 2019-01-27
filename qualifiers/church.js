@@ -32,6 +32,7 @@ var occupied_positions = new Set()  // later make more intelligent to remove
 var offensive = false
 
 var targetCastle = null
+var producing = true
 
 export function churchTurn(r) {
 
@@ -173,7 +174,32 @@ export function churchTurn(r) {
     }
 
     //-------------------------OFFENSE BUILD------------------------------------
-    else {
+    else if (producing == true){
+        for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
+            if (otherRobot.team === r.me.team) {
+                // recieve message
+
+                const decodedMsg = comms.decodeSignal(otherRobot.signal)
+                r.log("Pilgrim: recieved message: " + decodedMsg)             
+                
+                if (decodedMsg[2] == comms.KILLED)
+                {
+                    if (targetCastle != null)
+                    {
+                        if (targetCastle[0] == decodedMsg[0] && targetCastle[1] == decodedMsg[1] ){
+                            targetCastle = null
+                            offensive = false
+                            r.log(decodedMsg)
+                            producing =false
+
+                            r.log("Church: I see castle killed" + targetCastle)       
+                        } 
+                    }            
+                   
+                }
+            }
+        }
+
         if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 1000) {  // save at least 1000
             var buildDirection = findAttackDirection(r, targetCastle[0], targetCastle[1])
             if (buildDirection !== null) {
