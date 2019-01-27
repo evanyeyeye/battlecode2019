@@ -35,7 +35,7 @@ export function prophetTurn(r) {
                 // recieve message
                 const message = otherRobot.signal
                 const decoded = comms.decodeSignal(message, 64, 16)
-                if (decoded[2] === comms.ALL_IN)
+                if (decoded[2] === comms.ATTACK)
                 {
                     targetCastle.push([decoded[0], decoded[1]])
                 }

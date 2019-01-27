@@ -20,6 +20,7 @@ export default {
     CASTLETALK_ON_MINE: "00",
     CASTLETALK_GOING_MINE: "01",
     CASTLETALK_SEND_TROOP: "10",
+    CASTLETALK_SAVE: "11",
 
     // encode message for signaling
     // action is a number
