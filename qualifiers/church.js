@@ -205,6 +205,7 @@ export function churchTurn(r) {
                 }
             }
         }
+    }
     //-------------------------OFFENSE BUILD------------------------------------
 
     else if (producing == true){
