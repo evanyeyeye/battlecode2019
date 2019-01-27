@@ -26,6 +26,7 @@ var preacherCounter = 0
 var mineToID = {}
 
 var mine_range = 10
+var status = 0 // when status = 0 is normal, when 1 is attacking
 
 export function churchTurn(r) {
 
@@ -95,7 +96,7 @@ export function churchTurn(r) {
                     r.log("Church: Built Pilgrim, trying to send it to " + mineID)
                     // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
                     
-                    let signalToSend = comms.encodeSignal(mineID, 1, mineStatus.size, comms.ATTACK_MINE, 16)
+                    let signalToSend = comms.encodeSignal(mineID, 1, 64, comms.ATTACK_MINE, 16)
 
                     r.signal(signalToSend, 2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     r.castleTalk(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))  // let other castles know                            

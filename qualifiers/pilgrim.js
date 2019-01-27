@@ -13,6 +13,10 @@ var mineToID = {}  // maps string location to id, convenience
 var castleTargetMineID = null // the target mine that the castle gives
 
 var kiteCount = 0 // kiteCount array that records near turn kites
+var buildingFort = false
+var targetCastle = null
+var buildNow = false
+var targetMine = null
 
 
 export function pilgrimTurn(r) {
@@ -23,14 +27,22 @@ export function pilgrimTurn(r) {
         for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team === r.me.team && (otherRobot.unit === SPECS.CASTLE || otherRobot.unit === SPECS.CHURCH) && r.isRadioing(otherRobot)) {
                 // recieve message
-                const decodedMsg = comms.decodeSignal(otherRobot.signal, 64, 16)
+                let decodedMsg = comms.decodeSignal(otherRobot.signal, 64, 16)
+                r.log(decodedMsg)
                 castleTargetMineID = decodedMsg[0] // first id being encoded
-                if (castleTargetMineID >= 900) {
-                    continue
+                if (decodedMsg[2] == comms.ALL_IN)
+                {
+                    targetCastle = [decodedMsg[0], decodedMsg[1]]
+                    r.log(decodedMsg)
+                    r.log("Pilgrim: I hear to build offensive church" + targetCastle)                    
+                   
                 }
-                r.log("Pilgrim: Received a target mine: " + castleTargetMineID)
-                const toCastleTalk = comms.encodeCastleTalk(castleTargetMineID, comms.CASTLETALK_GOING_MINE)
-                r.castleTalk(toCastleTalk)  // acknowledge being sent to this mine, castle handles this now
+                else{         
+
+                    r.log("Pilgrim: Received a target mine: " + castleTargetMineID)
+                    const toCastleTalk = comms.encodeCastleTalk(castleTargetMineID, comms.CASTLETALK_GOING_MINE)
+                    r.castleTalk(toCastleTalk)  // acknowledge being sent to this mine, castle handles this now
+                }
             }
         }
     }
@@ -65,7 +77,11 @@ export function pilgrimTurn(r) {
                 }
             }
             enemyRobots[otherRobot.id] = distance
-            enemyRobotList.push(otherRobot)
+            if (otherRobot.unit != SPECS.PILGRIM )
+            {
+                enemyRobotList.push(otherRobot)
+            }
+            
         }
     }
 
@@ -112,8 +128,11 @@ export function pilgrimTurn(r) {
     //// ---------- KITE IF SENSE DANGER ----------
    
     // decaying kite count
-    kiteCount--;
-    if (senseDanger){
+    if (kiteCount > 0 )
+    {
+        kiteCount--;
+    }
+    if (senseDanger && (kiteCount <=21)){
         r.log("Pilgrim: calculating kite")
         const kiteAction = kite(r)
         if (kiteAction !== null){
@@ -122,16 +141,24 @@ export function pilgrimTurn(r) {
             //return kiteAction
         }
     }
-    if (kiteCount >= 18){
-        return
-    }
+    
+    //-----------------MOVE TO TARGET MINE TO TRY BUILD CHURCH ---------------
     
     // ---------- MOVING TO A MINE OR MINING THERE ----------
 
     // old way to find mines
+    //r.log(targetCastle)
+    if (targetCastle != null){
+        targetMine = targetCastle
+    }
+    else{    
+        targetMine = idToMine[castleTargetMineID].split(",").map((n) => parseInt(n))
+    }
 
-    // look at mines
-    let targetMine = idToMine[castleTargetMineID].split(",").map((n) => parseInt(n))
+    
+
+    //check if moving to castle when attacking
+    
 
     if (targetMine === null)
        targetMine = closestSafeMine(r)  // picks the closest mine to the base
@@ -192,9 +219,58 @@ export function pilgrimTurn(r) {
     }
 
     // path to mine
-    const test = r.am.nextMove(targetMine)
+    const test = r.am.nextMove(targetMine)    
     if (test === null)
+    {
+        //reached a place where you can't get to castle
+        if (targetCastle != null){
+            //-------------------------------FOR ATTACKING CHURHC---------------------------
+            if (r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
+            {
+                let buildingDirections = []                
+                for (const dir of utils.directions) {
+                    if (utils.isEmpty(r, r.me.x + dir[0], r.me.y + dir[1])) {  // this will also avoid building next to other buildings. maybe remove later
+                        if (r.am.heatMap[r.me.y + dir[1]][r.me.x + dir[0]] != null)
+                        {
+                            //if there is no heat
+                            if (r.am.heatMap[r.me.y + dir[1]][r.me.x + dir[0]] == 0)
+                            {
+                                buildingDirections.push(dir)
+                            }
+                        
+                        }
+                        //if there is no heat
+                        else{
+                            buildingDirections.push(dir)
+                        }
+                    }
+                }
+                r.log("offensive church directions")
+                r.log(buildingDirections)  
+                // find furthest place to put it
+                let maxDis = 0
+                let minDir = null
+                for (let dir of buildingDirections){
+                    if (utils.getManhattanDistance(r, r.me.x + dir[0], r.me.y + dir[1],targetCastle[0], targetCastle[1]) > maxDis)
+                    {
+                        minDis = utils.getManhattanDistance(r, r.me.x + dir[0], r.me.y + dir[1],targetCastle[0], targetCastle[1])
+                        minDir = dir
+                    }                        
+
+                
+                    if (minDir != null)
+                    {
+                        r.log("Pilgrim: offensive church is built !!!!!! yeahhh")
+                        return r.buildUnit(SPECS.CHURCH, buildingDirections[0][0], buildingDirections[0][1])
+                    }
+                }
+            }
+
+
+        }
+
         return
+    }
     return r.move(test[0], test[1])
 }
 
@@ -294,7 +370,7 @@ function kite(r){
     let enemyList = []
     for (const bot of visibleRobotMap) {
         if (bot.team !== r.me.team) {
-            if (utils.getSquaredDistance(bot.x, bot.y, r.me.x, r.me.y) <= 64)
+            if (utils.getSquaredDistance(bot.x, bot.y, r.me.x, r.me.y) <= 100)
             {
                 if (bot.unit !== SPECS.UNITS[SPECS.CHURCH] && bot.unit !== SPECS.UNITS[SPECS.PILGRIM])
                 {
@@ -355,23 +431,27 @@ function findInRangeTotalDistance(tempLocation, enemyList){
 // can be optimized later
 function setHeatMap(r,enemyRobotSq){    
     const map_len = r.map[0].length
-    for (const enemy of enemyRobotSq){
+   // r.log(enemyRobotSq)  
+   // let markedheat = []  
+    for (let enemy of enemyRobotSq){
         let enemyRadius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS
-        if (enemy.unit === SPECS.PROPHET)
-            enemyRadius = enemyRadius[1]
-        if (enemyRadius !== null && enemyRadius !== 0) {
-            const radius = enemyRadius**0.5
-            for (let j = 0; j < radius; j++) {
-                for (let i = 0; i < radius; i++) {                
-                    if ((i*i + j*j) < (enemyRadius)){
-                        if (!(enemy.x + i < 0 || enemy.x + i >= map_len || enemy.y + j < 0 || enemy.y + j >= map_len))
-                        {
-                            r.am.setEnemyHeat(enemy.x + i, enemy.y + j, 5)
-                        }
-                    }                                
-                }
+        if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS !=null){
+            if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS != 0){                  
+                const radius = enemyRadius[1]**0.5
+                for (let j = -radius; j <= radius; j++) {
+                    for (let i = -radius; i <= radius; i++) {                
+                        if ((i*i + j*j) <= (enemyRadius[1])){
+                            if (!(enemy.x + i < 0 || enemy.x + i >= map_len || enemy.y + j < 0 || enemy.y + j >= map_len))
+                            {
+                                r.am.setEnemyHeat(enemy.x + i, enemy.y + j, 5)
+                               // markedheat.push([enemy.x + i, enemy.y + j])
+                            }
+                        }                                
+                    }
+                }                
             }
-        }     
+        }    
     }
+    //r.log(markedheat)
 
 }
