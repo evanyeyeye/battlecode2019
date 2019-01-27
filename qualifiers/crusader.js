@@ -50,35 +50,13 @@ export function crusaderTurn(r) {
     if (churchLocation !== null) {
         const move = formPerpendicular(r, churchLocation[0], churchLocation[1], target[0], target[1], my_side)
         if (move != null) {
-            const node = r.am.findPath(move)
-            if (node === null){
-                r.log("Crusader: A*: no path to " + move + " found")
+            const test = r.am.nextMove(move)
+            if (node === null)
                 return
-            }
-            if (r.fuel > SPECS.UNITS[SPECS.CRUSADER].FUEL_PER_MOVE) {
-                const test = r.am.nextDirection(node)
-                if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
-                    return r.move(test[0], test[1])
-            }
+            return r.move(test[0], test[1])
         }
     }
-    /*  // turn 200 is different for each robot, should use signal
-    if (r.me.turn > 200) {
-        const move = moveParallel(r, churchLocation[0], churchLocation[1], target[0], target[1])
-        if (move != null) {
-            const node = r.am.findPath(move)
-            if (node === null){
-                r.log("A*: no path to " + move + " found")
-                return
-            }
-            if (r.fuel > SPECS.UNITS[SPECS.CRUSADER].FUEL_PER_MOVE) {
-                const test = r.am.nextDirection(node)
-                if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
-                    return r.move(test[0], test[1])
-            }
-        }
-    }
-    */
+
     return
 }
 
@@ -94,9 +72,8 @@ function incrementParallel(r, x, y, px, py) {  // i was going to compartmentaliz
     return null
 }
 
-// THIS WILL BREAK ON MEDIUM-LONG LINES
 // the robot will lose vision of center, and think it can start building from there.
-function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a location to move to, continuing the formation of a line
+function formPerpendicular(r, cx, cy, tx, ty, side, multiplier) {  // returns a location to move to, continuing the formation of a line
     const px = tx - cx  // parallel change
     const py = ty - cy
     let dx = 0
@@ -138,46 +115,18 @@ function formPerpendicular(r, cx, cy, tx, ty, side = LEFT_SIDE) {  // returns a 
     const sx = dx / d  // scaled dx/dy
     const sy = dy / d
 
-    /*
-    const pd = Math.sqrt(px * px + py * py)  // for incrementing in parallel direction
-    const psx = px / pd
-    const psy = py / pd
-    */
-    
-    multiplier = 1  // gradually increase distance
     let nextX = cx
     let nextY = cy
     while (!utils.isStandable(r, nextX, nextY) || r.getVisibleRobotMap()[nextY][nextX] === -1) {  // not open or cant see
         r.log("Crusader: cx: " + cx + " cy: " + cy + " nextX: " + nextX + " nextY: " + nextY)
         nextX = Math.floor(cx + sx*multiplier)
         nextY = Math.floor(cy + sy*multiplier)
-
-        /*
-        let multiplier2 = 1
-        while(utils.getSquaredDistance(r, nextX, nextY, tx, ty) > pd) {  // move in for concave
-            nextX += Math.floor(psx*multiplier2)
-            nextY += Math.floor(psy*multiplier2)
-            multiplier2++
-            if (nextX < 0 || nextX >= r.map[0].length || nextY < 0 || nextY >= r.map.length) {
-                r.log("no way to form perpendicular formation")
-                return null
-            }
-        }
-        */
-
         multiplier += 1
         if (nextX < 0 || nextX >= r.map[0].length || nextY < 0 || nextY >= r.map.length) {
             r.log("Crusader: no way to form perpendicular formation")
-            /*
-            if (my_side === LEFT_SIDE)
-            	my_side = RIGHT_SIDE
-            else
-            	my_side = LEFT_SIDE
-            */
             return null
     	}
         if (nextX == r.me.x && nextY == r.me.y) {
-            // r.log("IM NOT MOVING ANYMORE IM ALREADY IN THE LINE")
             return null  // we are already here!
         }
     }

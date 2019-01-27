@@ -14,6 +14,7 @@ var fuelThreshold =  750 // if over this amount of fuel, free to build churches.
 var unsafeLoc = new Set();  // set to see place is unsafe
 var occupiedLoc = new Set(); // set to occupied loc  both take in string verison of location both take in string verison of location
 var priorityResource = 0;  // 0 is karbonite 1 is fuel both take in string verison of location
+
 // TODO: DOES NOT ACCOUNT FOR OBSTACLES IN HOW EASY A MINE IS TO REACH
 var karboniteMines = {}  // maps mine locations to distance from base castle location
 var fuelMines = {}
@@ -32,41 +33,34 @@ var kiteCount = 0 // kiteCount array that records near turn kites
 
 export function pilgrimTurn(r) {
     if (r.me.turn == 1) {
-        r.log("I am a Pilgrim")
+        r.log("Pilgrim: I am a Pilgrim")
         iDMines(r)
         // find the closest castle, probably built from there
         for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
-            if (otherRobot.team == r.me.team && otherRobot.unit == SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH && r.isRadioing(otherRobot)) {
+            if (otherRobot.team === r.me.team && (otherRobot.unit === SPECS.CASTLE || otherRobot.unit === SPECS.CHURCH) && r.isRadioing(otherRobot)) {
                 // recieve message
                 const decodedMsg = comms.decodeSignal(otherRobot.signal, Object.keys(allMineID).length, 16)
-                r.log(decodedMsg)
                 castleTargetMineID = decodedMsg[0] //first id being encoded
                 curAction = decodedMsg[1]
                 if (castleTargetMineID >= 900) {
                     continue
                 }
-                r.log("Pilgrim received a target mine: " + castleTargetMineID)
-                let toCastleTalk = comms.encodeCastleTalk(castleTargetMineID,comms.CASTLETALK_GOING_MINE)
-                r.log(toCastleTalk)
+                r.log("Pilgrim: Received a target mine: " + castleTargetMineID)
+                const toCastleTalk = comms.encodeCastleTalk(castleTargetMineID, comms.CASTLETALK_GOING_MINE)
                 r.castleTalk(toCastleTalk)  // acknowledge being sent to this mine, castle handles this now
-                r.log("Pilgrim received building a target mine near: "+castleTargetMineID)
+                // r.log("Pilgrim: Received building a target mine near: "+castleTargetMineID)
             }
         }
     }
 
-    
-
-
-    let state = MINE  // idk if this is going to be useful
     if (priorityResource == -1)
         priorityResource = Math.floor(Math.random() * 2)
 
     // no reason to float karbonite?
-  
 
     // ok now find the best move
     let friendlyRobots = {}
-    let enemyRobots = {}
+    let enemyRobots = {}  // id to distance
     let senseDanger = false
     let enemyRobotList = []
 
@@ -74,21 +68,21 @@ export function pilgrimTurn(r) {
     for (const otherRobot of r.getVisibleRobots()) {
         const sqdis = utils.getSquaredDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         const distance = utils.getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
-        if (otherRobot.team == r.me.team) {
+        if (otherRobot.team === r.me.team) {
             // set closest friendly castle or church as base
-            if ( (otherRobot.unit == SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation == null  || distance < (utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1])) )) {
+            if ( (otherRobot.unit === SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation === null  || distance < (utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1])) )) {
                 baseLocation = [otherRobot.x, otherRobot.y]
                 updateMines(r)  // refresh mines based on distance to base castle location
             }
             friendlyRobots[otherRobot.id] = distance
         }
         else {
-            if (otherRobot.unit == SPECS.PROPHET || otherRobot.unit == SPECS.CASTLE){
+            if (otherRobot.unit == SPECS.PROPHET || otherRobot.unit === SPECS.CASTLE){
                 if (sqdis <= 64){
                     senseDanger = true
                 }
             }
-            if (otherRobot.unit == SPECS.CRUSADER || otherRobot.unit == SPECS.PREACHER){
+            if (otherRobot.unit == SPECS.CRUSADER || otherRobot.unit === SPECS.PREACHER){
                 if (sqdis <= 49){
                     senseDanger = true
                 }
@@ -97,88 +91,62 @@ export function pilgrimTurn(r) {
             enemyRobotList.push(otherRobot)
         }
     }
-    //change rheat map can be optimized
-    setHeatMap(r,enemyRobotList)
-    
 
+    // change heat map can be optimized
+    setHeatMap(r,enemyRobotList)  // marks off squares based on range of enemy robots
+    
     // ---------- MOVING BACK TO BASE ----------
 
     // edit this so that if does make sense go for other resource
     // return to church/castle if full
-    if (r.me.karbonite == SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel == SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
+    if (r.me.karbonite === SPECS.UNITS[SPECS.PILGRIM].KARBONITE_CAPACITY || r.me.fuel === SPECS.UNITS[SPECS.PILGRIM].FUEL_CAPACITY) {
         // r.log("Carrying resources back to " + baseLocation)
         if(utils.getSquaredDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) <= 2) {
             // close enough to give the collected resources
             return r.give(baseLocation[0] - r.me.x, baseLocation[1] - r.me.y, r.me.karbonite, r.me.fuel)
         }
-        //fix edge case of trying to go base with robot in middle
-        if(utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) == 2) {
-            let directions = utils.directions
-            let robotMap = r.getVisibleRobotMap()
-            for (let tempDirection of directions){
-                let tempLocation = [r.me.x+tempDirection[0],r.me.y+tempDirection[1]]
+
+        // fix edge case of trying to go base with robot in middle
+        if (utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1]) === 2) {
+            const robotMap = r.getVisibleRobotMap()
+            for (const tempDirection of utils.directions){
+                const tempLocation = [r.me.x + tempDirection[0],r.me.y + tempDirection[1]]
                 // close enough to give the collected resources and it's on a different resource mine
-                if (utils.isOccupied(r,tempLocation[0],tempLocation[1]) ){
+                if (utils.isOccupied(r,tempLocation[0],tempLocation[1]) ) {
                     // try to give to opposite mine so dont lose things in void
-                    if (!(r.fuel_map[tempLocation[1]][tempLocation[0]] && r.me.fuel > 80))
-                    {                    
+                    if (!(r.fuel_map[tempLocation[1]][tempLocation[0]] && r.me.fuel > 80)) {
                         return r.give(tempDirection[0], tempDirection[1], r.me.karbonite, r.me.fuel)
                     }
-                    if (!(r.karbonite_map[tempLocation[1]][tempLocation[0]] && r.me.karbonite > 18)){
+                    if (!(r.karbonite_map[tempLocation[1]][tempLocation[0]] && r.me.karbonite > 16)) {
                         return r.give(tempDirection[0], tempDirection[1], r.me.karbonite, r.me.fuel)
                     }
-                    
                 }
-
             }
-            
         }
-
 
         // return to church/castle
         
-         // let pf = r.pm.getPathField(baseLocation)
-         // if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
-         //     let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-         //     return utils.tryMoveRotate(r, test)
-         // }
-        
-        // broken a*
-        
-        let node = r.am.findPath(baseLocation)
-        if (node === null) {
-            r.log("A*: no path found")
+        let test = r.am.nextMove(baseLocation)
+        if (test === null) {
             return
         }
-        if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
-            const test = r.am.nextDirection(node)
-            if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
-                return r.move(test[0], test[1])
-            const temp = utils.tryMoveRotate(r, test)
-            if (temp)
-                return temp
-        }
-        
+        return r.move(test[0], test[1])
     }
 
     //// ---------- KITE IF SENSE DANGER ----------
    
-    //decaying kite count
-    let kiteAction = null
+    // decaying kite count
     kiteCount--;
     if (senseDanger){
         r.log("calculating kite")
-        kiteAction = kite(r)
-        if (kiteAction != null){
-            r.log("pilgrim sense danger, moving back")
-            r.log(kiteAction)
-            kiteCount +=7
-            return r.move(kiteAction[0],kiteAction[1])
+        const kiteAction = kite(r)
+        if (kiteAction !== null){
+            r.log("Pilgrim: sense danger, moving back")
+            kiteCount += 7
+            return r.move(kiteAction[0], kiteAction[1])
             //return kiteAction
         }
     }
-
-   
     if (kiteCount >= 18){
         return
     }
@@ -188,23 +156,17 @@ export function pilgrimTurn(r) {
     // ---------- MOVING TO A MINE OR MINING THERE ----------
 
     // old way to find mines
-    
 
     // look at mines
-    // updateMines(r)  // since this only changes with base castle location, moved up to that part of the code
-    // r.log(allMineID)
-    // r.log(castleTargetMineID)
     let targetMine = allMineID[castleTargetMineID].split(",").map((n) => parseInt(n))
 
     if (targetMine === null)
 	   targetMine = closestSafeMine(r)
 
     const curLocation = r.me.x.toString() + "," + r.me.y.toString()
-    // r.log('curloc: ' + curLocation)
-    // for (let i of occupiedLoc) { r.log(i); }
 
     if (targetMine != null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) <= 2) {
-        r.log(mineToID[targetMine[0].toString() + ',' + targetMine[1].toString()])
+        // r.log(mineToID[targetMine[0].toString() + ',' + targetMine[1].toString()])
         r.castleTalk(comms.encodeCastleTalk(mineToID[targetMine[0].toString() + ',' + targetMine[1].toString()],comms.CASTLETALK_ON_MINE))  // when close to mine, let castle update activity
     }
 
@@ -259,10 +221,9 @@ export function pilgrimTurn(r) {
                         cur_best = possibleDirection
                     }
                 }
-                r.log(cur_best)
                 if (r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
                 {
-                    r.log("church is built !!!!!! nice job")
+                    r.log("Pilgrim: church is built !!!!!! nice job")
                     return r.buildUnit(SPECS.CHURCH, cur_best[0], cur_best[1])
                 }
             }
@@ -274,35 +235,11 @@ export function pilgrimTurn(r) {
 		targetMine = baseLocation
 	}
 
-    // path to location
-    /*
-	 let pf = r.pm.getPathField(targetMine)
-     if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE && pf.isPointSet(r.me.x, r.me.y)) {
-         // r.log("I want to move to " + targetMine)
-         let test = pf.getDirectionAtPoint(r.me.x, r.me.y)  // uses pathfinding
-         return utils.tryMoveRotate(r, test)
-     }
-    */
-    // broken a*
-    
-    let node = r.am.findPath(targetMine, 4, false)
-    if (node === null){
-        r.log("A*: no path to " + targetMine + " found")
+    // path to mine
+    const test = r.am.nextMove(targetMine)
+    if (test === null)
         return
-    }
-    if (r.fuel > SPECS.UNITS[SPECS.PILGRIM].FUEL_PER_MOVE) {
-        const test = r.am.nextDirection(node)
-        r.log("astar move is " + test)
-        if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
-            return r.move(test[0], test[1])
-
-        const temp = utils.tryMoveRotate(r, test)
-        r.log("rotate move is " + temp)
-        if (temp)
-            return temp
-    }
-    
-    return
+    return r.move(test[0], test[1])
 }
 
 function iDMines(r) {  // deterministically label mines
@@ -395,6 +332,7 @@ function closestSafeMine(r) {
 
     return target.split(",").map((n) => parseInt(n))
 }
+
 function findNearMine(r,min_dis){
     let mineList = []
     const merged = Object.assign({},karboniteMines, fuelMines);
@@ -417,6 +355,7 @@ function findBuildDirections(r, x, y) {
     }
     return buildingDirections
 }
+
 // decide which direction to go when kiting, or it can just not kite. Returns the move
 function kite(r){
     const visibleRobotMap = r.getVisibleRobots();
@@ -424,64 +363,59 @@ function kite(r){
     let friendlyCount = 0;
     let enemyVector = [0, 0];  // total dx, dy
     let enemyList = []
-    for (const bot of visibleRobotMap){
+    for (const bot of visibleRobotMap) {
         // r.log(bot)
         if (bot.team !== r.me.team) {
             if (utils.getSquaredDistance(bot.x,bot.y,r.me.x,r.me.y) <= 64)
             {
-                if (bot.unit != SPECS.UNITS[SPECS.CHURCH] && bot.unit != SPECS.UNITS[SPECS.PILGRIM])
+                if (bot.unit !== SPECS.UNITS[SPECS.CHURCH] && bot.unit !== SPECS.UNITS[SPECS.PILGRIM])
                 {
                     enemyList.push(bot)
                 }
-              
             }
-           
-          
         }
     }
+
     let cur_dir = null
     let bestTotalInRange = 99999999
     let bestTotalDistance = 0
     
-
     for (const dir of utils.directions) {
-        r.log(cur_dir)
-        let tempLocation = [r.me.x + dir[0],r.me.y + dir[1]]
+        const tempLocation = [r.me.x + dir[0],r.me.y + dir[1]]
         if (utils.isEmpty(r,tempLocation[0],tempLocation[1])) {
-            let curResult = findInRangeTotalDistance(tempLocation,enemyList)
-            //curresult [0] is the total in range curresult [1] is total distanceto enemy            
-            if (curResult[0] < bestTotalInRange){
+            const curResult = findInRangeTotalDistance(tempLocation,enemyList)
+            //curresult [0] is the total in range curresult [1] is total distance to enemy            
+            if (curResult[0] < bestTotalInRange){  // try to move in direction of less enemy
                 cur_dir = dir
                 bestTotalInRange = curResult[0]
                 bestTotalDistance = curResult[1]               
 
             }
-            if (curResult[0] == bestTotalInRange){
+            else if (curResult[0] === bestTotalInRange){  // try to move in direction of more distance from enemy
                 if (curResult[1] > bestTotalDistance){
                     cur_dir = dir
                     bestTotalInRange = curResult[0]
                     bestTotalDistance = curResult[1]
                 }
             }
-
         }
     }     
-    r.log(cur_dir)
     return cur_dir
 }
-//return array like this [total within attack range, total distance]
-//find the total distance for comparing kiting options
-function findInRangeTotalDistance(tempLocation,enemyList){
+
+// return array like this [total within attack range, total distance]
+// find the total distance for comparing kiting options
+function findInRangeTotalDistance(tempLocation, enemyList){
     let totalInRange = 0
     let totalDistance = 0
-    for (let enemy of enemyList){
-        let tempDistance = utils.getSquaredDistance(tempLocation[0],tempLocation[1],enemy.x,enemy.y) 
-        if (enemy.unit == SPECS.PROPHET){
+    for (const enemy of enemyList){
+        const tempDistance = utils.getSquaredDistance(tempLocation[0], tempLocation[1], enemy.x, enemy.y) 
+        if (enemy.unit === SPECS.PROPHET){
             if (tempDistance <= 64){
                 totalInRange++
             }
         }
-        if (enemy.unit == SPECS.CRUSADER || enemy.unit == SPECS.PREACHER){
+        if (enemy.unit === SPECS.CRUSADER || enemy.unit === SPECS.PREACHER){
             if (tempDistance <= 49){
                 totalInRange++
             }
@@ -490,28 +424,26 @@ function findInRangeTotalDistance(tempLocation,enemyList){
     }
     return [totalInRange,totalDistance]
 }
-//can be optimized later
+
+// can be optimized later
 function setHeatMap(r,enemyRobotSq){    
-    let map_len = r.map[0].length
-    for (let enemy of enemyRobotSq){
-        r.log(enemy.unit)
-        if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS !=null){
-            if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS != 0){                
-                let heatRadius = (SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5)**2
-                let radius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS[1]**0.5
-                for (let j = 0; j < radius; j++) {
-                    for (let i = 0; i < radius; i++) {                
-                        if ((i*i+j*j) < (heatRadius)){
-                            if (!(enemy.x+i < 0 || enemy.x+i >= map_len || enemy.y+j < 0 || enemy.y+j >= map_len))
-                            {
-                                r.am.setEnemyHeat(enemy.x+i,enemy.y+j,5)
-                            }
-                            
-                        }                                
-                         
-                    }
+    const map_len = r.map[0].length
+    for (const enemy of enemyRobotSq){
+        let enemyRadius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS
+        if (enemy.unit === SPECS.PROPHET)
+            enemyRadius = enemyRadius[1]
+        if (enemyRadius !== null && enemyRadius !== 0) {
+            const radius = enemyRadius**0.5
+            for (let j = 0; j < radius; j++) {
+                for (let i = 0; i < radius; i++) {                
+                    if ((i*i + j*j) < (enemyRadius)){
+                        if (!(enemy.x + i < 0 || enemy.x + i >= map_len || enemy.y + j < 0 || enemy.y + j >= map_len))
+                        {
+                            r.am.setEnemyHeat(enemy.x + i, enemy.y + j, 5)
+                        }
+                    }                                
                 }
-            }   
+            }
         }     
     }
 

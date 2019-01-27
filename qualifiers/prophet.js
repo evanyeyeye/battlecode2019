@@ -307,7 +307,7 @@ function gang(r) {
         }
     }
     if (blocked.length >= 2 || ((blocked.length === 1 && twothird >= 2))) {  // try to move if a lot of sides are blocked     
-        for (const dir of shuffledDirections()) {
+        for (const dir of shuffledDirections().concat([[2, 0], [-2, 0], [0, 2], [0, -2]])) {
             if (utils.isStandable(r, r.me.x + dir[0], r.me.y + dir[1])) {
                 prevmove = dir
                 return dir
