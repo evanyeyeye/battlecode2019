@@ -37,6 +37,8 @@ var stand_pos
 var longest_signal = 2  // squared distance to radio for attack
 const crusader_threshold = 7  // 
 
+var producing = true
+
 export function churchTurn(r) {
 
     if (r.me.turn === 1) {
@@ -204,9 +206,38 @@ export function churchTurn(r) {
                 }
             }
         }
+    }
     //-------------------------OFFENSE BUILD------------------------------------
-    } else {
-        if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 1000) {
+
+    else if (producing == true){
+        for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
+            if (otherRobot.team === r.me.team) {
+                // recieve message
+
+                const decodedMsg = comms.decodeSignal(otherRobot.signal)
+                r.log("Pilgrim: recieved message: " + decodedMsg)             
+                
+                if (decodedMsg[2] == comms.KILLED)
+                {
+                    if (targetCastle != null)
+                    {
+                        if (targetCastle[0] == decodedMsg[0] && targetCastle[1] == decodedMsg[1] ){
+                            targetCastle = null
+                            offensive = false
+                            r.log(decodedMsg)
+                            producing =false
+
+                            r.log("Church: I see castle killed" + targetCastle)       
+                        } 
+                    }            
+                   
+                }
+            }
+        }
+
+        if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 1000) {  // save at least 1000
+            var buildDirection = findAttackDirection(r, targetCastle[0], targetCastle[1])
+
             if (buildDirection !== null) {
                 const offensive_pos = targetCastle
                 if (offensive_pos !== null) {

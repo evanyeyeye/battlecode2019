@@ -28,6 +28,35 @@ export function crusaderTurn(r) {
                     targetCastle = [decodedMsg[0], decodedMsg[1]]
                     r.log(decodedMsg)
                     r.log("Crusader: I hear to attack castle" + targetCastle)                    
+                }                
+            }
+        }
+    }
+    else{
+        for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
+            if (otherRobot.team === r.me.team && r.isRadioing(otherRobot)) {
+                // recieve message
+
+                const decodedMsg = comms.decodeSignal(otherRobot.signal)
+                r.log("Crusader: attack attack recieved message: " + decodedMsg)                
+                let castleTargetMineID = decodedMsg[0] // first id being encoded
+                if (decodedMsg[2] == comms.ATTACK)
+                {
+                    targetCastle = [decodedMsg[0], decodedMsg[1]]
+                    r.log(decodedMsg)
+                    r.log("Crusader: I hear to attack castle" + targetCastle)                    
+                }
+                if (decodedMsg[2] == comms.KILLED)
+                {
+                    if (targetCastle != null)
+                    {
+                        if (decodedMsg[0] == targetCastle && decodedMsg[1])
+                        {
+                            targetCastle = [decodedMsg[0], decodedMsg[1]]
+                            r.log(decodedMsg)
+                            r.log("Crusader: I killed castle" + targetCastle)
+                        }
+                    }                    
                 }
             }
         }
@@ -50,7 +79,10 @@ export function crusaderTurn(r) {
             return r.attack(attackTarget.x - r.me.x, attackTarget.y - r.me.y)
         }
     }
-
+    if (r.me.x == targetCastle[0] && r.me.y == targetCastle[1]){
+        let encoded = comms.encodeCastleKill(r.me.x,r.me.y)
+        r.signal (encoded, (r.me.map.length - 1)*(r.me.map.length - 1))
+    }
     const test = r.am.nextMove(targetCastle, 4)
     if (test === null)
         return
