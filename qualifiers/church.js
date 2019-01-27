@@ -92,6 +92,10 @@ export function churchTurn(r) {
     crusaderCounter = 0
     preacherCounter = 0
 
+    let dangerProphet = false
+    let dangerCrusader = false
+    let dangerPreacher = false
+
     for (const robot of r.getVisibleRobots()) { 
         if (robot.team === r.me.team && robot.id !== r.me.id) {
             if (robot.unit !== SPECS.PILGRIM)
@@ -113,6 +117,12 @@ export function churchTurn(r) {
             }
         }
          else if (robot.team !== r.me.team) {
+            if (robot.unit === SPECS.CRUSADER)
+                dangerCrusader = true
+            else if (robot.unit === SPECS.PROPHET)
+                dangerProphet = true
+            else if (robot.unit === SPECS.PREACHER)
+                dangerPreacher = true
             enemyCount += 1
             enemyDistance[robot.id] = utils.getManhattanDistance(r.me.x, r.me.y, robot.x, robot.y)
             enemyLocation[robot.id] = [r.me.x, r.me.y]
@@ -154,10 +164,19 @@ export function churchTurn(r) {
             }
         }
 
-        // build preachers
-        if (preacherCounter < 2 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
+        if (!(dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
+            ((danger || prophetCounter < r.me.turn / 25) && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
             if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
+                var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+                if (buildDirection != null) {
+                    r.log("Church: Built Prophet")
+                    return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
+                }
+            }
+        }
 
+        if (preacherCounter >= 2 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
+            if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
                 var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
                 if (buildDirection !== null) {
                     // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
@@ -171,9 +190,23 @@ export function churchTurn(r) {
                 }
             }
         }
-    }
 
+        // test build preachers
+        if (danger && preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
+            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+            if (buildDirection !== null) {
+                // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
+                const defensive_pos = forms.nextPosition(r, occupied_positions)
+                if (defensive_pos !== null) {
+                    r.log("Church: Built a Preacher, sending it to: " + defensive_pos)  // preacher counter increments when scanning friends
+                    r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
+                    occupied_positions.add(defensive_pos.toString())
+                    return r.buildUnit(SPECS.PREACHER, buildDirection[0], buildDirection[1])
+                }
+            }
+        }
     //-------------------------OFFENSE BUILD------------------------------------
+
     else if (producing == true){
         for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team === r.me.team) {
@@ -202,6 +235,7 @@ export function churchTurn(r) {
 
         if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 1000) {  // save at least 1000
             var buildDirection = findAttackDirection(r, targetCastle[0], targetCastle[1])
+
             if (buildDirection !== null) {
                 // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
                 const offensive_pos = targetCastle
@@ -210,7 +244,6 @@ export function churchTurn(r) {
                     r.signal(comms.encodeAttack(offensive_pos[0], offensive_pos[1]), 2)                    
                     return r.buildUnit(SPECS.CRUSADER, buildDirection[0], buildDirection[1])
                 }
-
             }
         }
     }

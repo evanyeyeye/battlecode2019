@@ -24,6 +24,8 @@ var castlePathField = null
 
 var processedCastleTalk = new Set()
 
+var latticeLocations = []
+
 var idealNumPilgrims = 0
 var numTeamCastles = 0  // number of castles on our team. For now, split mines and pilgrim production
 
@@ -36,26 +38,23 @@ var recievedMessages = {}
 var mine_range = 10
 var enemyCastleLocSent = true // initialize so you don't send too early
 
-var defense_center = null  // place to defend from fast approach by crusaders
-var occupied_positions = new Set()  // later make more intelligent to remove
+var defenseCenter = null  // place to defend from fast approach by crusaders
+var occupiedPositions = new Set()  // later make more intelligent to remove
 
 export function castleTurn(r) {
 
-    r.log("this turn is "+ r.me.turn)
-    if (r.me.turn >= 50 && r.me.turn % 100 == 50){
+    // r.log("this turn is "+ r.me.turn)
+    if (r.me.turn >= 50 && r.me.turn % 100 == 50)
         enemyCastleLocSent = false
-
-    }
-   
-  
 
     processedCastleTalk = new Set()
 
     if (r.me.turn === 1) {
-        r.log("I am a Castle")
+        r.log("Castle: I am a Castle")
         initializeCastle(r)    
         receiveCastleLocations(r)  // receive (first iteration)
         r.castleTalk(comms.CASTLE_GREETING)  // send greetings to other castles 
+        findLatticeLocations(r)
     }
 
     if (r.me.turn === 2) {
@@ -96,7 +95,8 @@ export function castleTurn(r) {
     let enemyLocation = {}
     let closestEnemy = -1
     let dangerProphet = false
-    let dangerCrusader =false
+    let dangerCrusader = false
+    let dangerPreacher = false
     let allyPreacherCount = 0
 
     let minesToIncrement = new Set()  // we want steady numbers
@@ -152,17 +152,19 @@ export function castleTurn(r) {
         } 
         if (robot.team === r.me.team) {
             if (utils.attackingUnits.has(robot.unit)) {
-                occupied_positions.add([robot.x, robot.y].toString())
+                occupiedPositions.add([robot.x, robot.y].toString())
                 allyCount += 1
             }
             if (robot.unit === SPECS.PREACHER)
                 allyPreacherCount++ 
         }
         else if (robot.team !== r.me.team) {
-            if (robot.unit == SPECS.CRUSADER)
+            if (robot.unit === SPECS.CRUSADER)
                 dangerCrusader = true
-            else if (robot.unit == SPECS.PROPHET)
+            else if (robot.unit === SPECS.PROPHET)
                 dangerProphet = true
+            else if (robot.unit === SPECS.PREACHER)
+                dangerPreacher = true
             enemyCount += 1
             enemyDistance[robot.id] = utils.getManhattanDistance(r.me.x, r.me.y, robot.x, robot.y)
             enemyLocation[robot.id] = [r.me.x, r.me.y]
@@ -234,13 +236,14 @@ export function castleTurn(r) {
 
     // ---------- BUILD ATTACKING TROOPS ----------
 
-
-    if ((danger && allyPreacherCount >= 2) || dangerProphet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
-        if (r.me.turn < 3 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
-
-            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+    if (!(dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
+        ((danger && allyPreacherCount >= 2) || dangerProphet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2))) {
+        if (r.me.turn <3||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             if (buildDirection != null) {
                 r.log("Castle: Built Prophet")
+                const latticeLocation = nextLatticeLocation(r)
+                if (latticeLocation)
+                    r.signal(comms.encodeStand(latticeLocation[0], latticeLocation[1]), 2)
                 return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
             }
         }
@@ -264,11 +267,11 @@ export function castleTurn(r) {
     if (danger && allyPreacherCount < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
-            const defensive_pos = forms.nextPosition(r, defense_center, occupied_positions)
-            if (defensive_pos !== null) {
-                r.log("Castle: Built Preacher, sending it to " + defensive_pos)
-                r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
-                occupied_positions.add(defensive_pos.toString())
+            const defensivePos = nextPosition(r, occupiedPositions)
+            if (defensivePos !== null) {
+                r.log("Castle: Built Preacher, sending it to " + defensivePos)
+                r.signal(comms.encodeStand(defensivePos[0], defensivePos[1]), 2)
+                occupiedPositions.add(defensivePos.toString())
                 return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
             }
         }
@@ -308,8 +311,8 @@ function initializeCastle(r) {
     // generate pathfield from castle location
     castlePathField = r.pm.getPathField([r.me.x, r.me.y])
     // populate mineStatus and sortedMines
-    var totalMines = initializeMines(r)
-    r.log("There are " + mineStatus.size + " reachable mines (" + totalMines + " total)")
+    initializeMines(r)
+    r.log("There are " + mineStatus.size + " mines")
     // determine number of pilgrims to build
     idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
 
@@ -317,85 +320,74 @@ function initializeCastle(r) {
     let fastMove = r.am.nextMove(enemy, 9, true)
     let slowMove = r.am.nextMove(enemy, 9, false)
     if (fastMove !== null)
-        defense_center = forms.findIterate(r, [r.me.x + fastMove[0], r.me.y + fastMove[1]])
-    if (defense_center === null && slowMove !== null)
-        defense_center = forms.findIterate(r, [r.me.x + slowMove[0], r.me.y + slowMove[1]])
-    if (defense_center === null)
-        defense_center = forms.naiveFindCenter(r, enemy)
-    r.log("Castle: my defense center is " + defense_center)
+        defenseCenter = forms.findIterate(r, [r.me.x + fastMove[0], r.me.y + fastMove[1]])
+    if (defenseCenter === null && slowMove !== null)
+        defenseCenter = forms.findIterate(r, [r.me.x + slowMove[0], r.me.y + slowMove[1]])
+    if (defenseCenter === null)
+        defenseCenter = naiveFindCenter(r, enemy)
+    r.log("Castle: my defense center is " + defenseCenter)
 }
 
 // populate mineStatus: deterministically label mines, store location & distance from castle
 // populate sortedMines: sort mineIDs by distance
 function initializeMines(r) {
-    let totalMines = 0
     let mineID = -1
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
-                if (castlePathField.isPointSet(i, j)) {  // if unreachable, completely ignore mine existence
-                    //find if on my side of symmetry or not
-                    let side = 0 //side 0 is my side, 1 is enemy side decide if it's on my side or not
-                    let maplen = r.karbonite_map.length
-                    //x ok y change after reflection horizontal
-                    if (r.mapSymmetry){
-                        side = 0
-                        //different side of the map
-                        if (Math.floor(j/maplen*2) != (Math.floor(r.me.y/maplen*2))){
-                            side = 1
-                        }
+                //find if on my side of symmetry or not
+                let side = 0 //side 0 is my side, 1 is enemy side decide if it's on my side or not
+                let maplen = r.karbonite_map.length
+                //x ok y change after reflection horizontal
+                if (r.mapSymmetry){
+                    side = 0
+                    //different side of the map
+                    if (Math.floor(j/maplen*2) != (Math.floor(r.me.y/maplen*2))){
+                        side = 1
                     }
-                    //x change y ok after reflection vertical
-                    else{
-                        side = 0
-                        //different side of the map
-                        if (Math.floor(i/maplen*2) != (Math.floor(r.me.x/maplen*2))){
-                            side = 1
-                        }
-                    }
-                    // calculate the order based on distance
-                    let tempDistance = castlePathField.getDistanceAtPoint(i, j)
-                    // on my side
-                    if (side == 0){
-                        let near = lengthNearMinesWithXY (r,i,j)
-                        // if it's resource dense on my side, prioritize
-                        if (near >= 8){
-                            //if more near better
-                            tempDistance = mine_range + 1 - near/64
-                        }
-                    }
-                    //on enemy side
-                    else{
-                        tempDistance = 9999 - tempDistance
-                    }
-                    //prefer karbonite sincei t's better early
-                    if (r.karbonite_map[j][i]){
-                        tempDistance -= 5
-
-                    }
-                    mineStatus.set(++mineID, {
-                        loc: [i, j],
-                        distance: tempDistance,
-                        activity: 0
-                    })
-                    sortedMines.push(mineID)
-                    mineToID[arrayToString([i,j])] = mineID                    
                 }
-                totalMines += 1
+                //x change y ok after reflection vertical
+                else{
+                    side = 0
+                    //different side of the map
+                    if (Math.floor(i/maplen*2) != (Math.floor(r.me.x/maplen*2))){
+                        side = 1
+                    }
+                }
+                // calculate the order based on distance
+                let tempDistance = castlePathField.getDistanceAtPoint(i, j)
+                // on my side
+                if (side == 0){
+                    let near = lengthNearMinesWithXY (r,i,j)
+                    // if it's resource dense on my side, prioritize
+                    if (near >= 8){
+                        //if more near better
+                        tempDistance = mine_range + 1 - near/64
+                    }
+                }
+                //on enemy side
+                else{
+                    tempDistance = 9999 - tempDistance
+                }
+                //prefer karbonite sincei t's better early
+                if (r.karbonite_map[j][i]){
+                    tempDistance -= 5
+
+                }
+                mineStatus.set(++mineID, {
+                    loc: [i, j],
+                    distance: tempDistance,
+                    activity: 0
+                })
+                sortedMines.push(mineID)
+                mineToID[arrayToString([i,j])] = mineID                    
             }
         }
     }
     // sort mines by distance from least to greatest
     sortedMines.sort((a, b) => {
-
         return mineStatus.get(a).distance - mineStatus.get(b).distance
     })
-    /*
-    r.log(sortedMines)
-    r.log("mine status is")
-    r.log(mineStatus)
-    */
-    return totalMines
 }
 
 // receive castle greeting on turn 2
@@ -421,14 +413,42 @@ function findCastleLocations(r) {
     for (const [castleID, castleLoc] of castleLocationBuilder.entries()) {
         castleStatus[r.me.team].push({
             loc: [castleLoc[0], castleLoc[1]],
-            distance: castlePathField.isPointSet(castleLoc[0], castleLoc[1]) ? castlePathField.getDistanceAtPoint(castleLoc[0], castleLoc[1]) : null
+            distance: castlePathField.getDistanceAtPoint(castleLoc[0], castleLoc[1])
         })
         const enemyCastleLoc = utils.reflectLocation(r, [castleLoc[0], castleLoc[1]])
         castleStatus[r.enemyTeam].push({
             loc: [enemyCastleLoc[0], enemyCastleLoc[1]],
-            distance: castlePathField.isPointSet(enemyCastleLoc[0], enemyCastleLoc[1]) ? castlePathField.getDistanceAtPoint(enemyCastleLoc[0], enemyCastleLoc[1]) : null
+            distance: castlePathField.getDistanceAtPoint(enemyCastleLoc[0], enemyCastleLoc[1])
         })
     }
+}
+
+function findLatticeLocations(r) {
+    const size = 2*SPECS.UNITS[SPECS.CASTLE].VISION_RADIUS+1
+    const orientation = (r.me.x + r.me.y) % 2
+    let x = r.me.x
+    let y = r.me.y
+    let direction = 0
+    let chain = 1
+    for (let i = 1; i < size; i++) {
+        for (let j = 0; j < ((i<size-1)?2:3); j++) {
+            for (let k = 0; k < chain; k++) {
+                if (utils.isEmpty(r, x, y, true) && !r.getFuelMap()[y][x] && !r.getKarboniteMap()[y][x] && (x + y) % 2 === orientation)
+                    latticeLocations.push([x, y])
+                switch (direction) {
+                    case 0: y++; break
+                    case 1: x++; break
+                    case 2: y--; break
+                    case 3: x--; break
+                }
+            }
+            direction = (direction+1) % 4
+        }
+        chain++
+    }
+    latticeLocations.sort((a, b) => {
+        return utils.getSquaredDistance(a[0], a[1], r.me.x, r.me.y) - utils.getSquaredDistance(b[0], b[1], r.me.x, r.me.y)
+    })
 }
 
 // returns conservative estimate of number of pilgrims we need to have to mine at every mine
@@ -548,4 +568,61 @@ function lengthNearMinesWithXY(r, x, y){
         }
     }
     return toRet
+}
+
+function nextLatticeLocation(r) {
+    for (const index in latticeLocations) {
+        const loc = latticeLocations[index]
+        if (r.getVisibleRobotMap()[loc[1]][loc[0]] === 0)
+            return loc
+    }
+    return null
+}
+
+// use defenseCenter and occupied set to return the next position for a defensive unit
+function nextPosition(r, occupied) {
+    if (defenseCenter !== null) {
+        const positions = forms.listPerpendicular(r, defenseCenter, [r.me.x, r.me.y])
+        for (const pos of positions) {
+            if (!occupied.has(pos)) {
+                return utils.stringToCoord(pos)
+            }
+        }
+    }
+    return naiveFindCenter(r, defenseCenter)
+}
+
+// find somewhere around the church to send preachers defensively
+// this does not work well at all
+function naiveFindCenter(r, enemyLoc) {
+    let i_min = 0
+    let i_max = 0
+    let j_min = 0
+    let j_max = 0
+    if (enemyLoc[0] - r.me.x > 0)  // horrible
+        i_max = 3
+    else if (enemyLoc[0] - r.me.x < 0)
+        i_min = -3
+    else {
+        i_max = 3
+        i_min = -3
+    }
+    if (enemyLoc[1] - r.me.y > 0)
+        j_max = 3
+    else if (enemyLoc[1] - r.me.y < 0)
+        j_min = -3
+    else {
+        j_max = 3
+        j_min = -3
+    }
+    // r.log("Church: finding center with i_max: " + i_max + " i_min: " + i_min + " j_max: " + j_max + " j_min: " + j_min)
+    for (let i = i_min; i <= i_max; i++) {
+        for (let j = j_min; j <= j_max; j++) {
+            const cx = r.me.x + i
+            const cy = r.me.y + j
+            if (utils.isStandable(r, cx, cy))
+                return [cx, cy]
+        }
+    }
+    return null  // hopefully this never happens
 }
