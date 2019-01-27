@@ -145,12 +145,14 @@ export default {
     },
 
     // checks if square is passable and is not occupied
-    // (x, y) must be in robot vision range 
-    isEmpty: function (r, x, y) {
+    // strict returns false for tiles outside of vision range
+    isEmpty: function (r, x, y, strict = false) {
         if (x < 0 || x >= r.map[0].length || y < 0 || y >= r.map.length)
             return false
         const passableMap = r.getPassableMap();
         const visibleRobotMap = r.getVisibleRobotMap();
+        if (strict)
+            return passableMap[y][x] && visibleRobotMap[y][x] === 0
         return passableMap[y][x] && visibleRobotMap[y][x] <= 0
     },
 
@@ -181,7 +183,7 @@ export default {
     },
 
     // checks the square is passable and is occupied
-    // (x, y) must be in robot vision range
+    // returns false if robot is out of vision range
     isOccupied: function (r, x, y) {
         if (x < 0 || x >= r.map[0].length || y < 0 || y >= r.map.length)
             return false
