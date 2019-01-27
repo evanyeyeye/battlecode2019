@@ -60,7 +60,7 @@ export function prophetTurn(r) {
                 }
             }
             else if (otherRobot.team === r.me.team && otherRobot.unit === SPECS.PROPHET && r.isRadioing(otherRobot)){
-                const decoded = comms.decodeSignal(message)
+                const decoded = comms.decodeSignal(message,64,16)
                 if (decoded[2] === comms.KILLED)
                 {
                     let killed = null

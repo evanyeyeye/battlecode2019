@@ -178,6 +178,7 @@ export function castleTurn(r) {
 
 
                     let signalToSend = comms.encodeSignal(mineID, 1, 64 , comms.ATTACK_MINE, 16)
+                    r.log(signalToSend)
 
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     
