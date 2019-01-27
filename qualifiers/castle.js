@@ -112,23 +112,21 @@ export function castleTurn(r) {
                     let decoded = comms.decodeCastleTalk(message)
                     if (decoded[1] === comms.CASTLETALK_ENEMY_SPOTTED) {  // danger danger danger!!
                         const coord = decoded[0]
-                        r.log("Castle: received coord of enemy: " + coord)
+                        // r.log("Castle: received coord of enemy: " + coord)
                         if (r.mapSymmetry) {  // sent x coordinate
                             if (Math.abs(coord - r.me.y) < 20) {
-                                sense_incoming = true
                                 danger = true
                                 r.log("Castle: DANGER DANGER, turn " + r.me.turn)
                             }
                         }
                         else {
                             if (Math.abs(coord - r.me.x) < 20) {
-                                sense_incoming = true
                                 danger = true
                                 r.log("Castle: DANGER DANGER,  turn " + r.me.turn)
                             }
                         }
                     }
-                    else {
+                    else if (decoded[1] === comms.CASTLETALK_GOING_MINE || decoded[1] === comms.CASTLETALK_ON_MINE){
                         //array 0 is id, 1 is 2 bit action in string
                         let messageMineID = decoded[0]
                         let receivedMine =  mineStatus.get(messageMineID)
@@ -188,29 +186,26 @@ export function castleTurn(r) {
     // ---------- BUILD PILGRIMS ----------
 
     if (!danger) {  // enough fuel to signal afterwards
-        if ( (1 < r.me.turn && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) || (r.karbonite > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50) && r.fuel > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 100) ))
+        if ( (1 < r.me.turn < 10 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) || (r.karbonite > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50) && r.fuel > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 100) ))
         { 
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
 
-            if (buildDirection != null) {
+            if (buildDirection !== null) {
                 //-------------every 50 turns after turn 400 try harass enemy  ---------          
-                if  (enemyCastleLocSent == false) {
-                    let visibleRobotMap= r.getVisibleRobotMap()
+                if  (enemyCastleLocSent == false && r.me.turn > 100) {  // after turn 100
+                    let visibleRobotMap = r.getVisibleRobotMap()
                     r.log("Castle: trying to send my symmetrical location")
-                    if (r.fuel>2 + SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL)
-                    {
-                        let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
-                        r.log('Castle: sent '+ curEnemyCastle)
-                        r.log(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]))
-                        r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]),2)
-                        enemyCastleLocSent =true
-                    }
+                    let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
+                    r.log('Castle: sent '+ curEnemyCastle)
+                    r.log(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]))
+                    r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]),2)
+                    enemyCastleLocSent = true
                     return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1]) 
                 }
                 //-------------actually building pilgrim -----------------
-                //// see if there is a mine for a pilgrim to go to
+                // see if there is a mine for a pilgrim to go to
                 const mineID = nextMineID(r)
-                if (mineID !== null){
+                if (mineID !== null) {
 
                     r.log("Built Pilgrim, trying to send it to " + mineID)
                     // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN

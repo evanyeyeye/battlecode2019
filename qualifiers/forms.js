@@ -14,6 +14,54 @@ export default {
         return [r.me.x + dx, r.me.y + dy]
     },
 
+    // return the next position for a defensive unit
+    nextPosition: function(r, defense_center, occupied) {
+        if (defense_center !== null) {
+            const positions = this.listPerpendicular(r, defense_center, [r.me.x, r.me.y])
+            for (const pos of positions) {
+                if (!occupied.has(pos)) {
+                    return utils.stringToCoord(pos)
+                }
+            }
+        }
+        return this.naiveFindCenter(r, defense_center)
+    },
+
+    // very bad function
+    // returns some location that might work as the defensive center
+    naiveFindCenter: function(r, enemyLoc) {
+        let i_min = 0
+        let i_max = 0
+        let j_min = 0
+        let j_max = 0
+        if (enemyLoc[0] - r.me.x > 0)  // horrible
+            i_max = 3
+        else if (enemyLoc[0] - r.me.x < 0)
+            i_min = -3
+        else {
+            i_max = 3
+            i_min = -3
+        }
+        if (enemyLoc[1] - r.me.y > 0)
+            j_max = 3
+        else if (enemyLoc[1] - r.me.y < 0)
+            j_min = -3
+        else {
+            j_max = 3
+            j_min = -3
+        }
+        // r.log("Church: finding center with i_max: " + i_max + " i_min: " + i_min + " j_max: " + j_max + " j_min: " + j_min)
+        for (let i = i_min; i <= i_max; i++) {
+            for (let j = j_min; j <= j_max; j++) {
+                const cx = r.me.x + i
+                const cy = r.me.y + j
+                if (utils.isStandable(r, cx, cy))
+                    return [cx, cy]
+            }
+        }
+        return null  // im assuming this never happens
+    },
+
     // returns list of STRING locations
     listPerpendicular: function(r, center, target) {
         let positions = []
