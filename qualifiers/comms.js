@@ -42,7 +42,6 @@ export default {
         return encoded
     },
 
-
     // encode message for attacking cordinate in x y
     
     encodeAttack: function (x, y,signallen) {
@@ -118,62 +117,60 @@ export default {
         return encoded
 
     },
+
     //decode castle talk message
-    decodeCastleTalk: function (msg){
-        let binary=msg.toString(2);       
-        let binarylen= binary.length
-        for (let i=0; i< 8- binarylen;i++){
-            binary="0"+binary
+    decodeCastleTalk: function (msg) {
+        let binary = msg.toString(2)     
+        let binarylen = binary.length
+        for (let i = 0; i < 8 - binarylen; i++){
+            binary = "0" + binary
         }     
         let bitsToGive = 6 // how many bits to give
         let firstMine = parseInt(binary.substring(0,bitsToGive),2)    
-        let action = binary.substring(bitsToGive,bitsToGive+2) 
+        let action = binary.substring(bitsToGive,bitsToGive + 2) 
         return [firstMine,action] 
 
     },
 
-
-
     // used to decode mine the 
-    // returns a list with mine1,mine2,action in order
+    // returns a list with mine1, mine2, action in order
     decodeSignal: function (message, totalMines, signallen) {
         let binary = message.toString(2);       
         let binarylen = binary.length
-        for (let i = 0; i < signallen - binarylen;i++){
+        for (let i = 0; i < signallen - binarylen; i++){
             binary = "0" + binary
         }     
-        if (binary[binary.length-1] =="1" && binary[binary.length-2] == "1")
-    {
-           
-        let numtaken = 64 // decide how many bits to give to mines
-        let bitsToGive = Math.ceil(Math.log2(numtaken)) // how many bits to give
-        let firstMine = binary.substring(0, bitsToGive)    
-        let action = binary.substring(bitsToGive,bitsToGive + 2)  
-        let mineID = parseInt(firstMine, 2);
-        let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive + 2 + bitsToGive), 2); 
-        //this is really giving (x,y,attack)  
-        return [mineID,mineID2, "1000"] 
-    }
-    if (binary[binary.length - 1] == "0" && binary[binary.length - 2] == "1")
-    {
-           
-        let numtaken = 64 // decide how many bits to give to mines
-        let bitsToGive = Math.ceil(Math.log2(numtaken)) // how many bits to give
-        let firstMine = binary.substring(0, bitsToGive)    
-        let action = binary.substring(bitsToGive,bitsToGive + 2)  
-        let mineID = parseInt(firstMine, 2);
-        let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive + 2 + bitsToGive), 2); 
-        //this is really giving (x,y,attack)  
-        return [mineID,mineID2, "1001"] 
-    }
-    else{
-        let bitsToGive = Math.ceil(Math.log2(totalMines)) // how many bits to give
-        let firstMine = binary.substring(0, bitsToGive)    
-        let action = binary.substring(bitsToGive, bitsToGive + 2)  
-        let mineID = parseInt(firstMine, 2);
-        let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive+2+bitsToGive), 2);   
-        return [mineID, mineID2,action]
-    }
+        if (binary[binary.length - 1] =="1" && binary[binary.length-2] == "1")
+        { 
+            let numtaken = 64 // decide how many bits to give to mines
+            let bitsToGive = Math.ceil(Math.log2(numtaken)) // how many bits to give
+            let firstMine = binary.substring(0, bitsToGive)    
+            let action = binary.substring(bitsToGive,bitsToGive + 2)  
+            let mineID = parseInt(firstMine, 2);
+            let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive + 2 + bitsToGive), 2); 
+            //this is really giving (x,y,attack)  
+            return [mineID,mineID2, "1000"] 
+        }
+        if (binary[binary.length - 1] == "0" && binary[binary.length - 2] == "1")
+        {
+               
+            let numtaken = 64 // decide how many bits to give to mines
+            let bitsToGive = Math.ceil(Math.log2(numtaken)) // how many bits to give
+            let firstMine = binary.substring(0, bitsToGive)    
+            let action = binary.substring(bitsToGive,bitsToGive + 2)  
+            let mineID = parseInt(firstMine, 2);
+            let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive + 2 + bitsToGive), 2); 
+            //this is really giving (x,y,attack)  
+            return [mineID, mineID2, "1001"] 
+        }
+        else{
+            let bitsToGive = Math.ceil(Math.log2(totalMines)) // how many bits to give
+            let firstMine = binary.substring(0, bitsToGive)    
+            let action = binary.substring(bitsToGive, bitsToGive + 2)  
+            let mineID = parseInt(firstMine, 2);
+            let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive+2+bitsToGive), 2);   
+            return [mineID, mineID2, action]
+        }
     },
 
 }

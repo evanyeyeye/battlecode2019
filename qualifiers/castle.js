@@ -438,24 +438,24 @@ function shuffledDirection() {
 }
 
 
-//returns a strinified version of an array
-//used to find location string using array
-//takes array of two index [x,y] and convert to string
+// returns a strinified version of an array
+// used to find location string using array
+// takes array of two index [x,y] and convert to string
 function arrayToString(array){
     return array[0].toString() + "," + array[1].toString()
 
 }
 
 
-//returns a list of nearby mine ids
-//used to find all near mine id so you can increase activity level wehn pilgirm sent
-//we want to not send pilgrim from castle unelss for exploration
-//find the id of all nearby mines so you can increase activity level 
+// returns a list of nearby mine ids
+// used to find all near mine id so you can increase activity level wehn pilgirm sent
+// we want to not send pilgrim from castle unelss for exploration
+// find the id of all nearby mines so you can increase activity level 
 function nearMines(r,mineID){
     let toRet = []
     let mapsize = r.map.length
     r.log('near mine of')
-   // r.log(mineID)    
+    // r.log(mineID)    
     let curMine=mineStatus.get(mineID)
     let mineLoc = curMine.loc //location array
     for (let i = -mine_range; i < mine_range; i++){        
@@ -468,24 +468,20 @@ function nearMines(r,mineID){
                 if (curLoc in mineToID){
                     toRet.push(mineToID[curLoc])
                 }               
-
             }
-
         }
     }
     return toRet
-
 }
 
-//returns length of near by mine for distance
-//used to find all near mine id so you can increase activity level wehn pilgirm sent
-//we want to not send pilgrim from castle unelss for exploration
-//find the id of all nearby mines so you can increase activity level 
-function lengthNearMinesWithXY(r,x, y){
+// returns length of near by mine for distance
+// used to find all near mine id so you can increase activity level when pilgirm sent
+// we want to not send pilgrim from castle unless for exploration
+// find the id of all nearby mines so you can increase activity level 
+function lengthNearMinesWithXY(r, x, y){
     let toRet = 0
     let mapsize = r.map.length    
     let mineLoc = [x,y]
-
 
     for (let i = -mine_range; i < mine_range; i++){        
         for (let j = -mine_range; j < mine_range; j++){
@@ -499,11 +495,7 @@ function lengthNearMinesWithXY(r,x, y){
                     }
                 }
             }               
-
         }
-
     }
     return toRet
 }
-    
-

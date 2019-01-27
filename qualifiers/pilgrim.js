@@ -24,7 +24,7 @@ export function pilgrimTurn(r) {
             if (otherRobot.team === r.me.team && (otherRobot.unit === SPECS.CASTLE || otherRobot.unit === SPECS.CHURCH) && r.isRadioing(otherRobot)) {
                 // recieve message
                 const decodedMsg = comms.decodeSignal(otherRobot.signal, Object.keys(idToMine).length, 16)
-                castleTargetMineID = decodedMsg[0] //first id being encoded
+                castleTargetMineID = decodedMsg[0] // first id being encoded
                 if (castleTargetMineID >= 900) {
                     continue
                 }
@@ -145,7 +145,7 @@ export function pilgrimTurn(r) {
         let seeChurch = false;
         let seeEnemy = false
         for (const otherRobot of r.getVisibleRobots()) { 
-            if (otherRobot.team === r.me.team && (otherRobot.unit === SPECS.CHURCH || otherRobot.unit === SPECS.CASTLE) && utils.getSquaredDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y) < 25){
+            if (otherRobot.team === r.me.team && (otherRobot.unit === SPECS.CHURCH || otherRobot.unit === SPECS.CASTLE) && utils.getSquaredDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y) < 49){
                 seeChurch = true
             }
             if (otherRobot.team !== r.me.team && otherRobot.unit !== SPECS.PILGRIM){
@@ -166,7 +166,7 @@ export function pilgrimTurn(r) {
                 for (const possibleDirection of churchDirections)
                 {
                     updateMines(r, [r.me.x + possibleDirection[0], r.me.y + possibleDirection[1]])  // update mine distances as being from the new location
-                    const nearbyMines = findNearMines(r, 25)
+                    const nearbyMines = findNearMines(r, 49)
                     temp_min = 0
                     for (const locations_mine of nearbyMines){
                         const tempLocation = locations_mine.split(",")
