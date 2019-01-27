@@ -20,34 +20,10 @@ export default {
     CASTLETALK_ON_MINE: "00",
     CASTLETALK_GOING_MINE: "01",
     CASTLETALK_SEND_TROOP: "10",
+    CASTLETALK_ENEMY_SPOTTED: "11",
 
-    // encode message for signaling
-    // action is a number
-    encodeSignal: function (mineID, mineID2, totalMines, action, signallen) {
-
-        let encoded_mine = (mineID).toString(2);
-        let encoded_mine2 = (mineID2).toString(2);
-        let bitsToGive = Math.ceil(Math.log2(totalMines)) // how many bits to give
-        let message = ""   
-        //fill up the empty spots 
-        for (let i = 0; i < bitsToGive - encoded_mine.length ;i++){
-            message += "0"
-        }   
-        message += encoded_mine    
-        message += action
-        //fill up the empty spots 
-        for (let i = 0; i < bitsToGive - encoded_mine2.length ;i++){
-            message += "0"
-        }  
-        message += encoded_mine2
-        let msglen = message.length
-        //fill up the empty spots
-        for (let i = 0; i < signallen - msglen ;i++){
-            message += "0"
-        }    
-        let encoded = parseInt(message, 2);
-        
-        return encoded
+    encodeGeneric: function(x, y, action) {
+        return this._encodeSignal(x, y, action)
     },
 
     encodeCastleKill: function(x, y) {
@@ -77,9 +53,24 @@ export default {
         loc2 = "0".repeat(loc_bits - loc2.length) + loc2
         return parseInt(loc1 + loc2 + four, 2)
     },
+
+    encodeCastleTalk: function(x, two, loc_bits = 6, signal_len = 8) {
+        let loc1 = x.toString(2)
+        loc1 = "0".repeat(loc_bits - loc1.length) + loc1
+        return parseInt(loc1 + two, 2)
+    },
+
+    decodeCastleTalk: function(message, loc_bits = 6, signal_len = 8) {
+        let binary = message.toString(2)
+        binary = "0".repeat(signal_len - binary.length) + binary
+        const b = binary.substring(0, loc_bits)
+        const action = binary.substring(loc_bits)
+        const loc = parseInt(b, 2)
+        return [loc, action]
+    },
     
-    // encode castle talk message
-    encodeCastleTalk: function(mineID, action){
+    // old encode castle talk message
+    _encodeCastleTalk: function(mineID, action){
         let encoded_mine=(mineID).toString(2);
         let bitsToGive = 6
         let message=""   
@@ -94,8 +85,8 @@ export default {
 
     },
 
-    //decode castle talk message
-    decodeCastleTalk: function (msg) {
+    // old decode castle talk message
+    _decodeCastleTalk: function (msg) {
         let binary = msg.toString(2)     
         let binarylen = binary.length
         for (let i = 0; i < 8 - binarylen; i++){

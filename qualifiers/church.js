@@ -124,16 +124,16 @@ export function churchTurn(r) {
 
 
                     r.signal(signalToSend, 2)  // tell the pilgrim which mine to go to, dictionary keys are strings
-                    r.castleTalk(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))  // let other castles know                            
+                    r.castleTalk(comms.encodeCastleTalk(mineID, comms.CASTLETALK_GOING_MINE))  // let other castles know                            
                     return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
                 }
             }
         }
     }
 
-    /*
+    
     // build prophets
-    if ( r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
+    if (preacherCounter >= 2 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
         if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
@@ -142,7 +142,7 @@ export function churchTurn(r) {
             }
         }
     }
-    */
+    
 
     // test build preachers
     if (preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL + 2) {
