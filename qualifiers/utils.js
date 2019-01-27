@@ -167,13 +167,13 @@ export default {
                 const ny = y + dir[1]
                 if (nx < 0 || nx >= r.map[0].length || ny < 0 || ny >= r.map.length)  // probably should make an isvalid method
                     continue
-                const possibleRobot = r.getVisibleRobotMap()[y + dir[1]][x + dir[0]]
+                const possibleRobot = r.getVisibleRobotMap()[ny][nx]
                 if (possibleRobot > 0) {
                     const type = r.getRobot(possibleRobot).unit
                     if (type === SPECS.CHURCH || type === SPECS.CASTLE) {
                         return false
                     }
-                    if (spread && type == r.me.unit)
+                    if (spread && type === r.me.unit)
                         return false
                 }
             }
@@ -231,6 +231,10 @@ export default {
             }    
         }
         return matrix
-    }
+    },
 
+    // from "x,y" to [x, y]
+    stringToCoord: function(str) {
+        return str.split(",").map((n) => parseInt(n))
+    },
 }   

@@ -14,6 +14,76 @@ export default {
         return [r.me.x + dx, r.me.y + dy]
     },
 
+    // returns list of STRING locations
+    listPerpendicular: function(r, center, target) {
+        let positions = []
+        let multiplier = 0
+        let side = this.LEFT
+        const [cx, cy] = center
+        const [tx, ty] = target
+        const px = tx - cx  // parallel change
+        const py = ty - cy
+
+        let dx = 0  // proportional amounts to move in y and x direction
+        let dy = 0
+
+        if (px === 0) {  // tangent is either straight left or straight right
+            if (side === this.LEFT)
+                dx = -py
+            else
+                dx = py
+        }
+        else if (py === 0) {  // tangent is either straight up or straight down
+            if (side === this.LEFT)
+                dy = -px
+            else
+                dy = px
+        }
+        else if (px * py >= 0) {  // positive slope
+            if (side === this.LEFT) {
+                dx = py
+                dy = -px
+            }
+            else {  // the robot has a steeper slope than the center relative to the target
+                dx = -py
+                dy = px
+            }
+        }
+        else {  // negative slope
+            if (side === this.LEFT) {
+                dx = -py
+                dy = px
+            }
+            else {
+                dx = py
+                dy = -px
+            }
+        }
+        const d = Math.sqrt(dx * dx + dy * dy)  // used for scaling dx/dy into sx/sy
+        const sx = dx / d  // unit vector
+        const sy = dy / d
+
+        let nextX = cx
+        let nextY = cy
+
+        let change_side = false
+        while (nextX >= 0 && nextX < r.map[0].length && nextY >= 0 && nextY < r.map.length) {  // have not searched to the correct position
+            nextX = Math.floor(cx + sx*multiplier)
+            nextY = Math.floor(cy + sy*multiplier)
+            if (utils.isStandable(r, nextX, nextY)) {  // this may not be deterministic, watch out! Hopefully close enough
+                positions.push([nextX, nextY].toString())  // only standable positions count
+            }
+            if (change_side) {
+                side = this.otherSide(side)
+                change_side = false
+            }
+            else {
+                multiplier += 1
+                change_side = true
+            }
+        }
+        return positions
+    },
     // given a center to build off, target to face, side to go into, and approximate position on that side with multiplier,
     // return a location to move to and build a line
     formPerpendicular: function(r, center, target, side, multiplier) {
@@ -26,19 +96,19 @@ export default {
         let dy = 0
 
         if (px === 0) {  // tangent is either straight left or straight right
-            if (side === LEFT)
+            if (side === this.LEFT)
                 dx = -py
             else
                 dx = py
         }
         else if (py === 0) {  // tangent is either straight up or straight down
-            if (side === LEFT)
+            if (side === this.LEFT)
                 dy = -px
             else
                 dy = px
         }
         else if (px * py >= 0) {  // positive slope
-            if (side === LEFT) {
+            if (side === this.LEFT) {
                 dx = py
                 dy = -px
             }
@@ -48,7 +118,7 @@ export default {
             }
         }
         else {  // negative slope
-            if (side === LEFT) {
+            if (side === this.LEFT) {
                 dx = -py
                 dy = px
             }
@@ -78,7 +148,7 @@ export default {
         return [nextX, nextY]
     },
 
-    // crawling toward target
+    // crawling toward target. Return a location somewhere in between
     findIterate: function(r, target, spread = false) {
         const changex = target[0] - r.me.x  // terrible names, but what can i do
         const changey = target[1] - r.me.y
@@ -110,5 +180,11 @@ export default {
                 dy--
         }
         return target  // nothing else, just pathfind here please
+    },
+
+    otherSide: function(side) {
+        if (side === this.LEFT)
+            return this.RIGHT
+        return this.LEFT
     },
 }

@@ -11,6 +11,8 @@ export default {
     ALL_IN: "1000",
     KILLED: "1001",
     DEFEND: "0010",
+    STAND: "0011",
+    ENEMY_SPOTTED: "0100",
 
     MINE: "0000",
     ATTACK: "0001",
@@ -48,94 +50,6 @@ export default {
         return encoded
     },
 
-    // encode message for attacking cordinate in x y
-    
-    /*
-    encodeAttack: function (x, y, signallen) {
-    let encoded_mine = x.toString(2);
-    let encoded_mine2 = y.toString(2);
-    let totalMines = 64 // decide how many bits to give to mines
-    let bitsToGive = Math.ceil(Math.log2(totalMines)) // how many bits to give
-    let message = ""   
-    //fill up the empty spots 
-    for (let i = 0; i < bitsToGive - encoded_mine.length ;i++){
-        message += "0"
-    }   
-    message += encoded_mine    
-    message += "00"
-    //fill up the empty spots 
-    for (let i = 0; i < bitsToGive - encoded_mine2.length ;i++){
-        message += "0"
-    }  
-    message += encoded_mine2
-    let msglen = message.length
-    //fill up the empty spots
-    for (let i = 0; i < signallen - msglen ;i++){
-        message += "1"
-    }    
-    
-    let encoded = parseInt(message, 2);
-    return encoded
-    },
-
-    encodeDefend: function (x, y, signallen) {
-    let encoded_mine = x.toString(2)  // x coordinate
-    let encoded_mine2 = y.toString(2)  // y coordinate
-    let totalMines = 64 // size of each coordinate in decimal
-    let bitsToGive = Math.ceil(Math.log2(totalMines)) // how many bits to give
-    let message = ""   
-    // pad most significant bits
-    for (let i = 0; i < bitsToGive - encoded_mine.length; i++){
-        message += "0"
-    }   
-    message += encoded_mine    
-    message += "00"  // for whatever reason theres spacing here
-    // pad most significant bits
-    for (let i = 0; i < bitsToGive - encoded_mine2.length ;i++){
-        message += "0"
-    }  
-    message += encoded_mine2
-    let msglen = message.length
-    //fill up the empty spots
-    for (let i = 0; i < signallen - msglen - 1 ;i++){
-        message += "0"
-    }    
-    encoded += "1"
-    let encoded = parseInt(message, 2);
-    return encoded
-    },
-
-    //killed castle
-    encodeCastleKill: function (x, y,signallen) {
-        let encoded_mine = x.toString(2);
-        let encoded_mine2 = y.toString(2);
-        let totalMines = 64 // decide how many bits to give to mines
-        let bitsToGive = Math.ceil(Math.log2(totalMines)) // how many bits to give
-        let message = ""   
-        //fill up the empty spots 
-        for (let i = 0; i < bitsToGive - encoded_mine.length ;i++){
-            message += "0"
-        }   
-        message += encoded_mine    
-        message += "00"
-        //fill up the empty spots 
-        for (let i = 0; i < bitsToGive - encoded_mine2.length ;i++){
-            message += "0"
-        }  
-        message += encoded_mine2
-        let msglen = message.length
-        //fill up the empty spots
-        for (let i = 0; i < signallen - 1 - msglen ;i++){
-            message += "1"
-    }    
-
-    message += "0"
-    let encoded = parseInt(message, 2);
-  
-    return encoded
-    },
-    */
-
     encodeCastleKill: function(x, y) {
         return this._encodeSignal(x, y, this.KILLED)
     },
@@ -146,6 +60,10 @@ export default {
 
     encodeDefend: function(x, y) {
         return this._encodeSignal(x, y, this.DEFEND)
+    },
+
+    encodeStand: function(x, y) {
+        return this._encodeSignal(x, y, this.STAND)
     },
 
     encodeMine: function(mine1, mine2 = 1) {  // mine 2 cannot be 0
@@ -199,62 +117,5 @@ export default {
         const loc1 = parseInt(b1, 2)
         const loc2 = parseInt(b2, 2)
         return [loc1, loc2, action]
-    }
-
-    /*
-    // used to decode mine the 
-    // returns a list with mine1, mine2, action in order
-    decodeSignal: function (message, totalMines = 64, signallen = 16) {
-        let binary = message.toString(2);       
-        let binarylen = binary.length
-        for (let i = 0; i < signallen - binarylen; i++){
-            binary = "0" + binary
-        }     
-        //for decoding
-        if (binary[binary.length-1] =="1" && binary[binary.length-2] == "1")  // attack location
-        {
-               
-            let numtaken = 64 // decide how many bits to give to mines
-            let bitsToGive = Math.ceil(Math.log2(numtaken)) // how many bits to give
-            let firstMine = binary.substring(0, bitsToGive)    
-            let action = binary.substring(bitsToGive,bitsToGive + 2)  
-            let mineID = parseInt(firstMine, 2);
-            let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive + 2 + bitsToGive), 2); 
-            //this is really giving (x,y,attack)  
-            return [mineID,mineID2, ALL_IN] 
-        }
-        if (binary[binary.length - 1] == "0" && binary[binary.length - 2] == "1")  // we killed this place!
-        {
-               
-            let numtaken = 64 // decide how many bits to give to mines
-            let bitsToGive = Math.ceil(Math.log2(numtaken)) // how many bits to give
-            let firstMine = binary.substring(0, bitsToGive)    
-            let action = binary.substring(bitsToGive,bitsToGive + 2)  
-            let mineID = parseInt(firstMine, 2);
-            let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive + 2 + bitsToGive), 2); 
-            //this is really giving (x,y,attack)  
-            return [mineID,mineID2, KILLED] 
-        }
-        if (binary[binary.length - 1] == "1" && binary[binary.length - 2] == "0")  // defend around here
-        {
-               
-            let numtaken = 64 // decide how many bits to give to mines
-            let bitsToGive = Math.ceil(Math.log2(numtaken)) // how many bits to give
-            let firstMine = binary.substring(0, bitsToGive)    
-            let action = binary.substring(bitsToGive,bitsToGive + 2)  
-            let mineID = parseInt(firstMine, 2);
-            let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive + 2 + bitsToGive), 2); 
-            //this is really giving (x,y,attack)  
-            return [mineID,mineID2, KILLED] 
-        }
-        else{
-            let bitsToGive = Math.ceil(Math.log2(totalMines)) // how many bits to give
-            let firstMine = binary.substring(0, bitsToGive)    
-            let action = binary.substring(bitsToGive, bitsToGive + 2)  
-            let mineID = parseInt(firstMine, 2);
-            let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive+2+bitsToGive), 2);   
-            return [mineID, mineID2,action]
-        }
     },
-    */
 }

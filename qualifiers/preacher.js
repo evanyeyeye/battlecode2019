@@ -1,4 +1,5 @@
 import {SPECS} from 'battlecode'
+import comms from './comms.js'
 import utils from './utils.js'
 
 var baseLocation = null  // location of the castle/church we are protecting
@@ -14,34 +15,38 @@ export function preacherTurn(r) {
         iDMines(r)
 
         // find the closest castle, probably built from there
-        for (const otherRobot of r.getVisibleRobots()) {
-            if (otherRobot.team === r.me.team && otherRobot.unit === SPECS.CASTLE && r.isRadioing(otherRobot)) {
-                // recieve message
-                const message = otherRobot.signal
-                const decoded = comms.decodeSignal(message, 64, 16)
-                if (decoded[2] === comms.ALL_IN) {
-                    targetCastle.push([decoded[0], decoded[1]])
+        for (const other of r.getVisibleRobots()) {  // find a nearby castle/church to defend. Ideally would sort by distance
+            if (other.team === r.me.team && (other.unit === SPECS.CASTLE || other.unit === SPECS.CHURCH) && r.isRadioing(other)) {
+                const message = other.signal
+                const[x, y, action] = comms.decodeSignal(message)
+                if (action === comms.STAND) {
+                    r.log("Preacher: Received message from base. Moving to: " + [x,y])
+                    baseLocation = [other.x, other.y]
+                    standLocation = [x, y]
+                    break
                 }
             }
         }
     }
 
-    if (baseLocation === null) {  // have to find a base location first
-        for (const other of r.getVisibleRobots()) {  // find a nearby castle/church to defend. Ideally would sort by distance
-            if (other.team === r.me.team && (other.unit === SPECS.CASTLE || other.unit === SPECS.CHURCH) ) {
-                baseLocation = [other.x, other.y]
-                break
-            }
-        }
-    }
-
-    communicatedEnemyLocations = new Set()
     // receive enemy locations here!
+    communicatedEnemyLocations = new Set()
 
     // priority is to attack
     let attack_candidates = []
     for (const other of r.getVisibleRobots()) {  // if its visible, its attackable. How convenient
-        if (other.team !== r.me.team) {  // there is an enemy!
+        if (other.team === r.me.team) {  // look for communications
+            if (r.isRadioing(other) && (other.unit === SPECS.CASTLE || other.unit === SPECS.CHURCH)) {
+                const message = other.signal
+                const [x, y, action] = comms.decodeSignal(message)
+                if (action === comms.DEFEND) {
+                    r.log("Preacher: moving to: " + [x,y])
+                    standLocation = [x, y]
+                    baseLocation = [other.x, other.y]
+                }
+            }
+        }
+        else {  // there is an enemy!
             attack_candidates.push([other.x, other.y])
             for (const dir of utils.directions) {
                 attack_candidates.push([other.x + dir[0], other.y + dir[1]])
@@ -67,24 +72,10 @@ export function preacherTurn(r) {
     }
 
     // otherwise move to a stationary position
-    if (baseLocation !== null && !settled && (standLocation === null) ) {  // need find a position to stand in
-        standLocation = findStandable(r, baseLocation)
-    }
-
-    if (!settled && standLocation !== null) {  // need to move into position
-        // r.log("Preacher: I am at " + r.me.x + "," + r.me.y + ", I want to move to " + standLocation)
-        if (r.me.x === standLocation[0] && r.me.y === standLocation[1])  // check if already in position
-            settled = true
-        const node = r.am.findPath(standLocation)
-        if (node === null){
-            r.log("Preacher: A*: no path to " + standLocation + " found")
-            return
-        }
-        if (r.fuel > SPECS.UNITS[SPECS.PREACHER].FUEL_PER_MOVE) {
-            const test = r.am.nextDirection(node)
-            if (utils.isEmpty(r, r.me.x + test[0], r.me.y + test[1]))
-                return r.move(test[0], test[1])
-        }
+    if (standLocation !== null && (r.me.x !== standLocation[0] || r.me.y !== standLocation[1]) ) {  // we are not where we should be
+        const test = r.am.nextMove(standLocation)
+        if (test !== null)
+            return r.move(test[0], test[1])
     }
     return
 }
