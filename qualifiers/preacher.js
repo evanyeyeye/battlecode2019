@@ -44,7 +44,8 @@ export function preacherTurn(r) {
                 const [x, y, action] = comms.decodeSignal(message)
                 if (action === comms.ATTACK) {
                     r.log("Preacher: moving to attack: " + [x,y])
-                    const test = r.am.nextMove([x, y])
+                    enemyLocation = [x, y]
+                    const test = r.am.nextMove([x, y], 4, true)
                     if (test !== null)
                         return r.move(test[0], test[1])
                     communicatedEnemyLocations.add([x, y].toString())
@@ -77,11 +78,14 @@ export function preacherTurn(r) {
             return  // doing nothing is probably better than moving
     }
 
-    if (r.me.health < prevHealth) {  // did i just get attacked?!
+    if (enemyLocation !== null && r.me.x === enemyLocation[0] && r.me.y === enemyLocation[1])  // theres nothing here
+        enemyLocation = null
+
+    if (r.me.health < prevHealth || enemyLocation !== null) {  // did i just get attacked?!
         prevHealth = r.me.health
         if (enemyLocation === null)
             enemyLocation = forms.moveParallel(r, baseLocation, standLocation)  // move further out from base
-        const test = r.am.nextMove(enemyLocation)
+        const test = r.am.nextMove(enemyLocation, 4, true)
         if (test !== null)
             return r.move(test[0], test[1])
     }
