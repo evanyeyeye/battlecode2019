@@ -184,13 +184,8 @@ export function churchTurn(r) {
                 var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
                 if (buildDirection !== null) {
                     // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
-                    const defensive_pos = forms.nextPosition(r, defense_center, occupied_positions)
-                    if (defensive_pos !== null) {
-                        r.log("Church: Built a Preacher, sending it to: " + defensive_pos)  // preacher counter increments when scanning friends
-                        r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
-                        occupied_positions.add(defensive_pos.toString())
-                        return r.buildUnit(SPECS.PREACHER, buildDirection[0], buildDirection[1])
-                    }
+                    r.log("Church: Built a Prophet")  // preacher counter increments when scanning friends
+                    return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
                 }
             }
         }
@@ -200,7 +195,7 @@ export function churchTurn(r) {
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection !== null) {
                 // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
-                const defensive_pos = forms.nextPosition(r, occupied_positions)
+                const defensive_pos = forms.nextPosition(r, defense_center, occupied_positions)
                 if (defensive_pos !== null) {
                     r.log("Church: Built a Preacher, sending it to: " + defensive_pos)  // preacher counter increments when scanning friends
                     r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
