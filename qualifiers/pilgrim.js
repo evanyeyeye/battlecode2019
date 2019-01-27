@@ -132,7 +132,9 @@ export function pilgrimTurn(r) {
     // old way to find mines
 
     // look at mines
-    let targetMine = idToMine[castleTargetMineID].split(",").map((n) => parseInt(n))
+    let targetMine = null
+    if (castleTargetMineID !== null)
+        targetMine = idToMine[castleTargetMineID].split(",").map((n) => parseInt(n))
 
     if (targetMine === null)
        targetMine = closestSafeMine(r)  // picks the closest mine to the base
@@ -179,7 +181,7 @@ export function pilgrimTurn(r) {
                         cur_best = possibleDirection
                     }
                 }
-                if (r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
+                if (cur_best !== null && r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
                 {
                     r.log("Pilgrim: church is built !!!!!! nice job")
                     return r.buildUnit(SPECS.CHURCH, cur_best[0], cur_best[1])
@@ -228,8 +230,8 @@ function updateMines(r, base) {
 
 // update which mines are occupied
 function checkMine(r) {
-    const merged = Object.assign({}, karboniteMines, fuelMines);
-    for (const curMine in merged) {
+    const merged = Object.assign({}, karboniteMines, fuelMines)
+    for (const [curMine, distance] of Object.entries(merged)) {
         let tempMine = curMine.split(",").map((n) => parseInt(n))
         if (utils.isOccupied(r, tempMine[0], tempMine[1])) {
             if (!occupiedLoc.has(tempMine.toString())){
