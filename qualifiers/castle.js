@@ -155,7 +155,7 @@ export function castleTurn(r) {
                 occupiedPositions.add([robot.x, robot.y].toString())
                 allyCount += 1
             }
-            if (robot.unit === SPECS.PREACER)
+            if (robot.unit === SPECS.PREACHER)
                 allyPreacherCount++ 
         }
         else if (robot.team !== r.me.team) {
@@ -192,7 +192,7 @@ export function castleTurn(r) {
 
             if (buildDirection !== null) {
                 //-------------every 50 turns after turn 400 try harass enemy  ---------          
-                if  (enemyCastleLocSent == false && r.me.turn > 100) {  // after turn 100
+                if  (enemyCastleLocSent == false && r.me.turn > 100 && r.fuel > 4000) {  // after turn 100, plenty of fuel
                     let visibleRobotMap = r.getVisibleRobotMap()
                     r.log("Castle: trying to send my symmetrical location")
                     let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
@@ -239,7 +239,6 @@ export function castleTurn(r) {
     if (!(dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
         ((danger && allyPreacherCount >= 2) || dangerProphet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2))) {
         if (r.me.turn <3||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
-            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
                 r.log("Castle: Built Prophet")
                 const latticeLocation = nextLatticeLocation(r)
