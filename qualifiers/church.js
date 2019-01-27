@@ -160,7 +160,7 @@ function findBuildDirection(r, x, y) {
 // populate mineStatus: deterministically label mines, store location & distance from castle
 // populate sortedMines: sort mineIDs by distance
 function initializeMines(r) {  // deterministically label mines, store distances from castle
-    let mineID = 0
+    let mineID = -1
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
