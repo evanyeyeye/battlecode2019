@@ -1,6 +1,7 @@
 import {SPECS} from 'battlecode'
 import utils from './utils.js'
 import comms from './comms.js'
+import forms from './forms.js'
 
 
 // maps mineID (starting from 1) to
@@ -35,8 +36,8 @@ var recievedMessages = {}
 var mine_range = 10
 var enemyCastleLocSent = true // initialize so you don't send too early
 
-
-
+var defense_center = null  // place to defend from fast approach by crusaders
+var occupied_positions = new Set()  // later make more intelligent to remove
 
 export function castleTurn(r) {
 
@@ -88,6 +89,7 @@ export function castleTurn(r) {
     }
 
     let danger = false
+    let sense_incoming = false
     let allyCount = 0
     let enemyCount = 0
     let enemyDistance = {}
@@ -106,25 +108,42 @@ export function castleTurn(r) {
             if (robot.team === r.me.team && robot.id !== r.me.id) {  // other friendly robot
                 // r.log("Received a message of " + message + " on turn " + r.me.turn)
                 recievedMessages[robot.id] = message  // unused
-                if (message < 255) {  // castle is indicating that it sent a pilgrim to this mine                   
+                if (message < 255) {  // message
                     let decoded = comms.decodeCastleTalk(message)
-                    //array 0 is id, 1 is 2 bit action in string
-
-                    let messageMineID = decoded[0]
-                    let receivedMine =  mineStatus.get(messageMineID)
-                    receivedMine.activity += 10     
-                    // /r.log("received pilgrim going to " + messageMineID)
-
-                    if (receivedMine.distance > mine_range){
-                        let near = nearMines(r,messageMineID)
-                        for (let tempMineID of near){
-                            let tempMineStatus = mineStatus.get(tempMineID) 
-                            //r.log(tempMineStatus)
-                            tempMineStatus.activity += 10               
-                        }                      
+                    if (decoded[1] === comms.CASTLETALK_ENEMY_SPOTTED) {  // danger danger danger!!
+                        const coord = decoded[0]
+                        r.log("Castle: received coord of enemy: " + coord)
+                        if (r.mapSymmetry) {  // sent x coordinate
+                            if (Math.abs(coord - r.me.y) < 20) {
+                                sense_incoming = true
+                                danger = true
+                                r.log("Castle: DANGER DANGER, turn " + r.me.turn)
+                            }
+                        }
+                        else {
+                            if (Math.abs(coord - r.me.x) < 20) {
+                                sense_incoming = true
+                                danger = true
+                                r.log("Castle: DANGER DANGER,  turn " + r.me.turn)
+                            }
+                        }
                     }
+                    else {
+                        //array 0 is id, 1 is 2 bit action in string
+                        let messageMineID = decoded[0]
+                        let receivedMine =  mineStatus.get(messageMineID)
+                        receivedMine.activity += 10     
+                        // /r.log("received pilgrim going to " + messageMineID)
 
-                    // r.log("acknowledged another castle")
+                        if (receivedMine.distance > mine_range){
+                            let near = nearMines(r,messageMineID)
+                            for (let tempMineID of near){
+                                let tempMineStatus = mineStatus.get(tempMineID) 
+                                //r.log(tempMineStatus)
+                                tempMineStatus.activity += 10               
+                            }                      
+                        }
+                    }
                 }
                 else if (!(r.me.turn <= 3 && castleLocationBuilder.has(robot.id))) {  // pilgrim is already there and mining
                     // mineStatus.get(message).activity += 1
@@ -134,8 +153,10 @@ export function castleTurn(r) {
             }
         } 
         if (robot.team === r.me.team) {
-            if (utils.attackingUnits.has(robot.unit))
+            if (utils.attackingUnits.has(robot.unit)) {
+                occupied_positions.add([robot.x, robot.y].toString())
                 allyCount += 1
+            }
             if (robot.unit === SPECS.PREACER)
                 allyPreacherCount++ 
         }
@@ -199,9 +220,9 @@ export function castleTurn(r) {
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     
                     if (r.me.turn <= 4)                        
-                        initialActivityQueue.push(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))
+                        initialActivityQueue.push(comms.encodeCastleTalk(mineID, comms.CASTLETALK_GOING_MINE))
 
-                    else r.castleTalk(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))  // let other castles know
+                    else r.castleTalk(comms.encodeCastleTalk(mineID, comms.CASTLETALK_GOING_MINE))  // let other castles know
 
                     mineStatus.get(parseInt(mineID)).activity += 10  // update yourself
                     pilgrimCounter++
@@ -218,8 +239,10 @@ export function castleTurn(r) {
 
     // ---------- BUILD ATTACKING TROOPS ----------
 
-    if (dangerProphet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
-        if (r.me.turn <3||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
+
+    if ((danger && allyPreacherCount >= 2) || dangerProphet || (!danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
+        if (r.me.turn <3||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
+
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
                 r.log("Castle: Built Prophet")
@@ -246,10 +269,13 @@ export function castleTurn(r) {
     if (danger && allyPreacherCount < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
-            r.log("Castle: Built Preacher")
-            // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
-            // crusaderCounter++
-            return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
+            const defensive_pos = nextPosition(r, occupied_positions)
+            if (defensive_pos !== null) {
+                r.log("Castle: Built Preacher, sending it to " + defensive_pos)
+                r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
+                occupied_positions.add(defensive_pos.toString())
+                return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
+            }
         }
     }
 
@@ -291,6 +317,17 @@ function initializeCastle(r) {
     r.log("There are " + mineStatus.size + " reachable mines (" + totalMines + " total)")
     // determine number of pilgrims to build
     idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
+
+    let enemy = utils.reflectLocation(r, [r.me.x, r.me.y])
+    let fastMove = r.am.nextMove(enemy, 9, true)
+    let slowMove = r.am.nextMove(enemy, 9, false)
+    if (fastMove !== null)
+        defense_center = forms.findIterate(r, [r.me.x + fastMove[0], r.me.y + fastMove[1]])
+    if (defense_center === null && slowMove !== null)
+        defense_center = forms.findIterate(r, [r.me.x + slowMove[0], r.me.y + slowMove[1]])
+    if (defense_center === null)
+        defense_center = naiveFindCenter(r, enemy)
+    r.log("Castle: my defense center is " + defense_center)
 }
 
 // populate mineStatus: deterministically label mines, store location & distance from castle
@@ -516,4 +553,52 @@ function lengthNearMinesWithXY(r, x, y){
         }
     }
     return toRet
+}
+
+// use defense_center and occupied set to return the next position for a defensive unit
+function nextPosition(r, occupied) {
+    if (defense_center !== null) {
+        const positions = forms.listPerpendicular(r, defense_center, [r.me.x, r.me.y])
+        for (const pos of positions) {
+            if (!occupied.has(pos)) {
+                return utils.stringToCoord(pos)
+            }
+        }
+    }
+    return naiveFindCenter(r, defense_center)
+}
+
+// find somewhere around the church to send preachers defensively
+// this does not work well at all
+function naiveFindCenter(r, enemyLoc) {
+    let i_min = 0
+    let i_max = 0
+    let j_min = 0
+    let j_max = 0
+    if (enemyLoc[0] - r.me.x > 0)  // horrible
+        i_max = 3
+    else if (enemyLoc[0] - r.me.x < 0)
+        i_min = -3
+    else {
+        i_max = 3
+        i_min = -3
+    }
+    if (enemyLoc[1] - r.me.y > 0)
+        j_max = 3
+    else if (enemyLoc[1] - r.me.y < 0)
+        j_min = -3
+    else {
+        j_max = 3
+        j_min = -3
+    }
+    // r.log("Church: finding center with i_max: " + i_max + " i_min: " + i_min + " j_max: " + j_max + " j_min: " + j_min)
+    for (let i = i_min; i <= i_max; i++) {
+        for (let j = j_min; j <= j_max; j++) {
+            const cx = r.me.x + i
+            const cy = r.me.y + j
+            if (utils.isStandable(r, cx, cy))
+                return [cx, cy]
+        }
+    }
+    return null  // hopefully this never happens
 }

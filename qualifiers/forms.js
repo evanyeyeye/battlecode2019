@@ -72,15 +72,17 @@ export default {
             nextY = Math.floor(cy + sy*multiplier)
             if (utils.isStandable(r, nextX, nextY)) {  // this may not be deterministic, watch out! Hopefully close enough
                 positions.push([nextX, nextY].toString())  // only standable positions count
+                if (change_side) {
+                    side = this.otherSide(side)
+                    change_side = false
+                }
+                else {
+                    multiplier += 1
+                    change_side = true
+                }
             }
-            if (change_side) {
-                side = this.otherSide(side)
-                change_side = false
-            }
-            else {
+            else
                 multiplier += 1
-                change_side = true
-            }
         }
         return positions
     },

@@ -227,7 +227,7 @@ export class AStar {
             if (this.heatMap[y][x] !== null) {
                 const attackable = this.heatMap[y][x][0]
                 const heat = this.heatMap[y][x][1]
-                if (attackable || heat > 0) {  // avoid this location anyways cuz we marked it as attackable
+                if (attackable && heat > 0) {  // avoid this location anyways cuz we marked it as attackable
                     this.heatMap[y][x][1]--
                     this.heatMap[y][x][2] = currentTurn
                     return false

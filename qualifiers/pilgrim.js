@@ -88,7 +88,13 @@ export function pilgrimTurn(r) {
             {
                 enemyRobotList.push(otherRobot)
             }
-            
+            // castle talk about enemy position
+            if (r.mapSymmetry) {  // x coordinate
+                r.castleTalk(comms.encodeCastleTalk(otherRobot.y, comms.CASTLETALK_ENEMY_SPOTTED))
+            }
+            else {  // y coordinate
+                r.castleTalk(comms.encodeCastleTalk(otherRobot.x, comms.CASTLETALK_ENEMY_SPOTTED))
+            }
         }
     }
 
@@ -171,9 +177,11 @@ export function pilgrimTurn(r) {
     if (targetMine === null)
        targetMine = closestSafeMine(r)  // picks the closest mine to the base
 
+      // useless now maybe
     if (targetMine !== null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) <= 2) {
         r.castleTalk(comms.encodeCastleTalk(mineToID[targetMine[0].toString() + ',' + targetMine[1].toString()], comms.CASTLETALK_ON_MINE))  // when close to mine, let castle update activity
     }
+    
 
     // check if on top of mine
     if ((targetMine !== null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) === 0) && r.fuel >= SPECS.MINE_FUEL_COST) {
