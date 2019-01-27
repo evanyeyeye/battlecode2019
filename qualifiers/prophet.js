@@ -36,6 +36,10 @@ export function prophetTurn(r) {
                 // recieve message
                 const message = robot.signal
                 const decoded = comms.decodeSignal(message, 64, 16)
+                r.log("TESTING")
+                r.log(decoded[2])
+                r.log(latticeLocation)
+                r.log(!latticeLocation)
                 if (decoded[2] === comms.STAND && !latticeLocation) {
                     latticeLocation = [decoded[0], decoded[1]]
                     r.log(latticeLocation)
