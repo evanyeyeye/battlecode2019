@@ -37,10 +37,12 @@ var enemyCastleLocSent = true // initialize so you don't send too early
 
 
 
+
 export function castleTurn(r) {
     r.log("this turn is "+ r.me.turn)
     if (r.me.turn >= 50 && r.me.turn % 50 == 0){
         enemyCastleLocSent = false
+
     }
    
   
@@ -186,8 +188,8 @@ export function castleTurn(r) {
                     // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
 
 
-                    let signalToSend = comms.encodeSignal(mineID, 1, 64 , comms.ATTACK_MINE, 16)
-                    r.log(signalToSend)
+                    let signalToSend = comms.encodeMine(mineID)
+                    r.log("Castle, sending pilgrim the message: " + signalToSend)
 
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     

@@ -27,8 +27,9 @@ export function pilgrimTurn(r) {
         for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team === r.me.team && (otherRobot.unit === SPECS.CASTLE || otherRobot.unit === SPECS.CHURCH) && r.isRadioing(otherRobot)) {
                 // recieve message
-                let decodedMsg = comms.decodeSignal(otherRobot.signal, 64, 16)
-                r.log(decodedMsg)
+
+                const decodedMsg = comms.decodeSignal(otherRobot.signal)
+                r.log("Pilgrim: recieved message: " + decodedMsg)                
                 castleTargetMineID = decodedMsg[0] // first id being encoded
                 if (decodedMsg[2] == comms.ALL_IN)
                 {
@@ -38,10 +39,14 @@ export function pilgrimTurn(r) {
                    
                 }
                 else{         
-
-                    r.log("Pilgrim: Received a target mine: " + castleTargetMineID)
-                    const toCastleTalk = comms.encodeCastleTalk(castleTargetMineID, comms.CASTLETALK_GOING_MINE)
-                    r.castleTalk(toCastleTalk)  // acknowledge being sent to this mine, castle handles this now
+                        if (castleTargetMineID >= 900 || decodedMsg[2] !== comms.MINE) {
+                            continue
+                        r.log("Pilgrim: Received a target mine: " + castleTargetMineID)
+                        const toCastleTalk = comms.encodeCastleTalk(castleTargetMineID, comms.CASTLETALK_GOING_MINE)
+                        r.castleTalk(toCastleTalk)  // acknowledge being sent to this mine, castle handles this now
+   
+                          
+                    }
                 }
             }
         }
@@ -155,11 +160,6 @@ export function pilgrimTurn(r) {
         targetMine = idToMine[castleTargetMineID].split(",").map((n) => parseInt(n))
     }
 
-    
-
-    //check if moving to castle when attacking
-    
-
     if (targetMine === null)
        targetMine = closestSafeMine(r)  // picks the closest mine to the base
 
@@ -205,7 +205,7 @@ export function pilgrimTurn(r) {
                         cur_best = possibleDirection
                     }
                 }
-                if (r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
+                if (cur_best !== null && r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
                 {
                     r.log("Pilgrim: church is built !!!!!! nice job")
                     return r.buildUnit(SPECS.CHURCH, cur_best[0], cur_best[1])
@@ -303,8 +303,8 @@ function updateMines(r, base) {
 
 // update which mines are occupied
 function checkMine(r) {
-    const merged = Object.assign({}, karboniteMines, fuelMines);
-    for (const curMine in merged) {
+    const merged = Object.assign({}, karboniteMines, fuelMines)
+    for (const [curMine, distance] of Object.entries(merged)) {
         let tempMine = curMine.split(",").map((n) => parseInt(n))
         if (utils.isOccupied(r, tempMine[0], tempMine[1])) {
             if (!occupiedLoc.has(tempMine.toString())){
@@ -429,12 +429,14 @@ function findInRangeTotalDistance(tempLocation, enemyList){
 }
 
 // can be optimized later
-function setHeatMap(r,enemyRobotSq){    
+function setHeatMap(r,enemyRobotSq){  
+ 
     const map_len = r.map[0].length
    // r.log(enemyRobotSq)  
    // let markedheat = []  
     for (let enemy of enemyRobotSq){
         let enemyRadius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS
+
         if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS !=null){
             if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS != 0){                  
                 const radius = enemyRadius[1]**0.5
@@ -449,9 +451,8 @@ function setHeatMap(r,enemyRobotSq){
                         }                                
                     }
                 }                
+
             }
         }    
     }
-    //r.log(markedheat)
-
 }
