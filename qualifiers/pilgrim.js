@@ -41,13 +41,14 @@ export function pilgrimTurn(r) {
                 else{         
                         if (castleTargetMineID >= 900 || decodedMsg[2] !== comms.MINE) {
                             continue
+                        }
                         r.log("Pilgrim: Received a target mine: " + castleTargetMineID)
                         const toCastleTalk = comms.encodeCastleTalk(castleTargetMineID, comms.CASTLETALK_GOING_MINE)
                         r.castleTalk(toCastleTalk)  // acknowledge being sent to this mine, castle handles this now
    
                           
                     }
-                }
+                
             }
         }
     }

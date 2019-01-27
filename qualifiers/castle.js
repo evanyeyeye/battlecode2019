@@ -112,6 +112,7 @@ export function castleTurn(r) {
                     let messageMineID = decoded[0]
                     let receivedMine =  mineStatus.get(messageMineID)
                     receivedMine.activity += 10     
+                    // /r.log("received pilgrim going to " + messageMineID)
 
                     if (receivedMine.distance > mine_range){
                         let near = nearMines(r,messageMineID)
