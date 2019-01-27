@@ -199,7 +199,7 @@ export function pilgrimTurn(r) {
 }
 
 function iDMines(r) {  // deterministically label mines
-    let counter = 0
+    let counter = -1
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]){
