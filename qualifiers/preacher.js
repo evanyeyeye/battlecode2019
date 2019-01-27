@@ -1,6 +1,7 @@
 import {SPECS} from 'battlecode'
 import comms from './comms.js'
 import utils from './utils.js'
+import forms from './forms.js'
 
 var baseLocation = null  // location of the castle/church we are protecting
 var settled = false  // we are in position
@@ -8,6 +9,8 @@ var standLocation = null
 var communicatedEnemyLocations = new Set()  // probably has to remake every turn
 var mineID = {}  // maps location of mine to its ID
 var idToMine = {}
+var prevHealth = 60  // hard coded bad
+var enemyLocation = null  // will path there maybe
 
 export function preacherTurn(r) {
     if (r.me.turn === 1) {
@@ -39,14 +42,17 @@ export function preacherTurn(r) {
             if (r.isRadioing(other) && (other.unit === SPECS.CASTLE || other.unit === SPECS.CHURCH)) {
                 const message = other.signal
                 const [x, y, action] = comms.decodeSignal(message)
-                if (action === comms.DEFEND) {
-                    r.log("Preacher: moving to: " + [x,y])
-                    standLocation = [x, y]
-                    baseLocation = [other.x, other.y]
+                if (action === comms.ATTACK) {
+                    r.log("Preacher: moving to attack: " + [x,y])
+                    const test = r.am.nextMove([x, y])
+                    if (test !== null)
+                        return r.move(test[0], test[1])
+                    communicatedEnemyLocations.add([x, y].toString())
                 }
             }
         }
         else {  // there is an enemy!
+            enemyLocation = [other.x, other.y]
             attack_candidates.push([other.x, other.y])
             for (const dir of utils.directions) {
                 attack_candidates.push([other.x + dir[0], other.y + dir[1]])
@@ -71,12 +77,22 @@ export function preacherTurn(r) {
             return  // doing nothing is probably better than moving
     }
 
+    if (r.me.health < prevHealth) {  // did i just get attacked?!
+        prevHealth = r.me.health
+        if (enemyLocation === null)
+            enemyLocation = forms.moveParallel(r, baseLocation, standLocation)  // move further out from base
+        const test = r.am.nextMove(enemyLocation)
+        if (test !== null)
+            return r.move(test[0], test[1])
+    }
+
     // otherwise move to a stationary position
     if (standLocation !== null && (r.me.x !== standLocation[0] || r.me.y !== standLocation[1]) ) {  // we are not where we should be
         const test = r.am.nextMove(standLocation)
         if (test !== null)
             return r.move(test[0], test[1])
     }
+
     return
 }
 
