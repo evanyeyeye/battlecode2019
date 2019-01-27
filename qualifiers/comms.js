@@ -46,7 +46,7 @@ export default {
 
     // encode message for attacking cordinate in x y
     
-    encodeAttack: function (x, y,signallen) {
+    encodeAttack: function (x, y, signallen) {
     let encoded_mine = x.toString(2);
     let encoded_mine2 = y.toString(2);
     let totalMines = 64 // decide how many bits to give to mines
@@ -104,6 +104,7 @@ export default {
   
     return encoded
     },
+    
     //encode castle talk message
     encodeCastleTalk: function(mineID, action){
         let encoded_mine=(mineID-1).toString(2);

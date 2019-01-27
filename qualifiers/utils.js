@@ -156,8 +156,8 @@ export default {
         return passableMap[y][x] && visibleRobotMap[y][x] <= 0
     },
 
-    // checks if square is passable, not occupied, and not a mine
-    // for use with defensive units
+    // checks if square is passable, not occupied, not a mine, and not next to a castle/church.
+    // if spread, not next to a unit of the same type
     isStandable: function(r, x, y, spread = false) {
         if (x < 0 || x >= r.map[0].length || y < 0 || y >= r.map.length)
             return false
