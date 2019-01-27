@@ -138,7 +138,7 @@ export class AStar {
             for (const [dx, dy] of this.getDirections(v, radius, fast)) {
                 const x = v.x + dx
                 const y = v.y + dy
-                if (this.probablyIsEmpty(x, y) || (x == target[0] && y == target[1])) {  // either empty, or passable and is target
+                if (this.probablyIsEmpty(x, y) || (x === target[0] && y === target[1])) {  // either empty or is target
                     let dg = 1  // additional cost to move to the next tile
                     if (fast)
                         dg = Math.abs(dx) + Math.abs(dy)  // bad

@@ -21,48 +21,41 @@ export function crusaderTurn(r) {
                 // recieve message
 
                 const decodedMsg = comms.decodeSignal(otherRobot.signal)
-                r.log("crusader: attack attack recieved message: " + decodedMsg)                
+                r.log("Crusader: attack attack recieved message: " + decodedMsg)                
                 let castleTargetMineID = decodedMsg[0] // first id being encoded
                 if (decodedMsg[2] == comms.ATTACK)
                 {
                     targetCastle = [decodedMsg[0], decodedMsg[1]]
                     r.log(decodedMsg)
-                    r.log("Pilgrim: I hear to attack castle" + targetCastle)                    
-                   
+                    r.log("Crusader: I hear to attack castle" + targetCastle)                    
                 }
-               
             }
         }
-        
-        
     }
-    let enemyRobotsCount =0
-    for (let otherRobot of r.getVisibleRobots()) {      
 
-        let distance = utils.getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
+    let enemyRobotsCount = 0
+    for (const otherRobot of r.getVisibleRobots()) {      
+        const distance = utils.getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         if (otherRobot.team != r.me.team) {
             enemyRobotsCount ++
-        }
-            
-        
+        }   
     }
 
     if (enemyRobotsCount > 0)
     {
         let attackTarget = findAttack(r);
-        if (attackTarget != null)
+        if (attackTarget !== null)
         {
             r.log("CRUSADER: found to attack! Enemy is " + attackTarget.unit + " at " + attackTarget.x + "," + attackTarget.y)
             return r.attack(attackTarget.x - r.me.x, attackTarget.y - r.me.y)
         }
     }
-    const test = r.am.nextMove(targetCastle)
+
+    const test = r.am.nextMove(targetCastle, 4)
     if (test === null)
         return
     else
         return r.move(test[0], test[1])
-
-    
     return
 }
 

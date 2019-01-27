@@ -79,12 +79,12 @@ export function pilgrimTurn(r) {
                 }
             }
             if (otherRobot.unit == SPECS.CRUSADER || otherRobot.unit === SPECS.PREACHER){
-                if (sqdis <= 49){
+                if (sqdis <= 16){
                     senseDanger = true
                 }
             }
             enemyRobots[otherRobot.id] = distance
-            if (otherRobot.unit != SPECS.PILGRIM )
+            if (otherRobot.unit !== SPECS.PILGRIM )
             {
                 enemyRobotList.push(otherRobot)
             }
@@ -177,8 +177,8 @@ export function pilgrimTurn(r) {
     if (targetMine === null)
        targetMine = closestSafeMine(r)  // picks the closest mine to the base
 
-      // useless now maybe
-    if (targetMine !== null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) <= 2) {
+    // almost useless
+    if (targetMine !== null && targetCastle === null && utils.getManhattanDistance(r.me.x, r.me.y, targetMine[0], targetMine[1]) <= 2) {
         r.castleTalk(comms.encodeCastleTalk(mineToID[targetMine[0].toString() + ',' + targetMine[1].toString()], comms.CASTLETALK_ON_MINE))  // when close to mine, let castle update activity
     }
     
@@ -191,7 +191,7 @@ export function pilgrimTurn(r) {
             if (otherRobot.team === r.me.team && (otherRobot.unit === SPECS.CHURCH || otherRobot.unit === SPECS.CASTLE) && utils.getSquaredDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y) < 49){
                 seeChurch = true
             }
-            if (otherRobot.team !== r.me.team && otherRobot.unit !== SPECS.PILGRIM){
+            if (otherRobot.team !== r.me.team && otherRobot.unit !== SPECS.PILGRIM) {
                 seeEnemy = true
             }
         }
@@ -230,6 +230,7 @@ export function pilgrimTurn(r) {
         }
         return r.mine()
     }
+
     if (targetMine === null) {
         targetMine = baseLocation
     }
@@ -238,8 +239,8 @@ export function pilgrimTurn(r) {
     const test = r.am.nextMove(targetMine)    
     if (test === null)
     {
-        //reached a place where you can't get to castle
-        if (targetCastle != null){
+        // reached a place where you can't get to castle
+        if (targetCastle !== null){
             r.log("can have offensive church here")
             //-------------------------------FOR ATTACKING CHURHC---------------------------
             if (r.karbonite >= SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel >= SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
@@ -304,6 +305,7 @@ export function pilgrimTurn(r) {
 
         }
 
+        targetMine = baseLocation  // idk
         return
     }
     return r.move(test[0], test[1])
@@ -404,13 +406,11 @@ function kite(r){
     let enemyVector = [0, 0];  // total dx, dy
     let enemyList = []
     for (const bot of visibleRobotMap) {
-        if (bot.team !== r.me.team) {
-            if (utils.getSquaredDistance(bot.x, bot.y, r.me.x, r.me.y) <= 100)
-            {
-                if (bot.unit !== SPECS.UNITS[SPECS.CHURCH] && bot.unit !== SPECS.UNITS[SPECS.PILGRIM])
-                {
-                    enemyList.push(bot)
-                }
+        if (bot.team !== r.me.team && bot.unit !== SPECS.PILGRIM && bot.unit !== SPECS.CHURCH) {
+            if (utils.getSquaredDistance(bot.x, bot.y, r.me.x, r.me.y) <= SPECS.UNITS[bot.unit].ATTACK_RADIUS[1])  // only in attack range
+            {   
+                r.log("Pilgrim: pushing into list " + bot.x + "," + bot.y)
+                enemyList.push(bot)
             }
         }
     }
@@ -421,7 +421,7 @@ function kite(r){
     for (const dir of utils.directions) {
         const tempLocation = [r.me.x + dir[0], r.me.y + dir[1]]
         if (utils.isEmpty(r,tempLocation[0],tempLocation[1])) {
-            const [curTotal, curDist] = findInRangeTotalDistance(tempLocation,enemyList)
+            const [curTotal, curDist] = findInRangeTotalDistance(tempLocation, enemyList)
             //curresult [0] is the total in range curresult [1] is total distance to enemy            
             if (curTotal < bestTotalInRange){  // try to move in direction of less enemy
                 cur_dir = dir
@@ -454,7 +454,7 @@ function findInRangeTotalDistance(tempLocation, enemyList){
             }
         }
         if (enemy.unit === SPECS.CRUSADER || enemy.unit === SPECS.PREACHER){
-            if (tempDistance <= 49){
+            if (tempDistance <= 16){
                 totalInRange++
             }
         }
@@ -467,27 +467,24 @@ function findInRangeTotalDistance(tempLocation, enemyList){
 function setHeatMap(r,enemyRobotSq){  
  
     const map_len = r.map[0].length
-   // r.log(enemyRobotSq)  
-   // let markedheat = []  
-    for (let enemy of enemyRobotSq){
-        let enemyRadius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS
+    // r.log(enemyRobotSq)  
+    // let markedheat = []  
+    for (const enemy of enemyRobotSq){
+        const enemyRadius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS
+        if (enemyRadius !== null && enemyRadius !== 0){
+            const radius = enemyRadius[1]**0.5
+            for (let j = -radius; j <= radius; j++) {
+                for (let i = -radius; i <= radius; i++) {                
+                    if ((i*i + j*j) <= (enemyRadius[1])){
+                        if (!(enemy.x + i < 0 || enemy.x + i >= map_len || enemy.y + j < 0 || enemy.y + j >= map_len))
+                        {
+                            r.am.setEnemyHeat(enemy.x + i, enemy.y + j, 50)
+                           // markedheat.push([enemy.x + i, enemy.y + j])
+                        }
+                    }                                
+                }
+            }                
 
-        if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS !=null){
-            if (SPECS.UNITS[enemy.unit].ATTACK_RADIUS != 0){                  
-                const radius = enemyRadius[1]**0.5
-                for (let j = -radius; j <= radius; j++) {
-                    for (let i = -radius; i <= radius; i++) {                
-                        if ((i*i + j*j) <= (enemyRadius[1])){
-                            if (!(enemy.x + i < 0 || enemy.x + i >= map_len || enemy.y + j < 0 || enemy.y + j >= map_len))
-                            {
-                                r.am.setEnemyHeat(enemy.x + i, enemy.y + j, 15)
-                               // markedheat.push([enemy.x + i, enemy.y + j])
-                            }
-                        }                                
-                    }
-                }                
-
-            }
         }    
     }
 }

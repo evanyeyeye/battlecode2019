@@ -74,7 +74,7 @@ export function churchTurn(r) {
         if (defense_center === null && slowMove !== null)
             defense_center = forms.findIterate(r, [r.me.x + slowMove[0], r.me.y + slowMove[1]])
         if (defense_center === null)
-            defense_center = naiveFindCenter(r, enemy)
+            defense_center = forms.naiveFindCenter(r, enemy)
         r.log("Church: my defense center is " + defense_center)
     }
 
@@ -132,7 +132,7 @@ export function churchTurn(r) {
     if (offensive == false){
          //-------------------------DENFENSE BUILD------------------------------------
         if (! danger && (pilgrimCounter < idealNumPilgrims ) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
-            if (r.me.turn < 5 || (r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200)){       
+            if (r.me.turn < 1 || (r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200)) {  // always save  
                 var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
                 if (buildDirection != null) {
                     // see if there is a mine for a pilgrim to go to
@@ -163,7 +163,7 @@ export function churchTurn(r) {
                 var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
                 if (buildDirection !== null) {
                     // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
-                    const defensive_pos = nextPosition(r, occupied_positions)
+                    const defensive_pos = forms.nextPosition(r, defense_center, occupied_positions)
                     if (defensive_pos !== null) {
                         r.log("Church: Built a Preacher, sending it to: " + defensive_pos)  // preacher counter increments when scanning friends
                         r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
@@ -282,56 +282,4 @@ function nextMineID(r) {  // uses resource-blind ids
         }
     }
     return null
-}
-
-// use defense_center and occupied set to return the next position for a defensive unit
-function nextPosition(r, occupied) {
-    if (defense_center !== null) {
-        const positions = forms.listPerpendicular(r, defense_center, [r.me.x, r.me.y])
-        for (const pos of positions) {
-            if (!occupied.has(pos)) {
-                return utils.stringToCoord(pos)
-            }
-        }
-    }
-    return naiveFindCenter(r, defense_center)
-}
-
-// find somewhere around the church to send preachers defensively
-// this does not work well at all
-function naiveFindCenter(r, enemyLoc) {
-    let i_min = 0
-    let i_max = 0
-    let j_min = 0
-    let j_max = 0
-    if (enemyLoc[0] - r.me.x > 0) {  // horrible
-        i_max = 3
-    }
-    else if (enemyLoc[0] - r.me.x < 0) {
-        i_min = -3
-    }
-    else {
-        i_max = 3
-        i_min = -3
-    }
-    if (enemyLoc[1] - r.me.y > 0) {
-        j_max = 3
-    }
-    else if (enemyLoc[1] - r.me.y < 0) {
-        j_min = -3
-    }
-    else {
-        j_max = 3
-        j_min = -3
-    }
-    // r.log("Church: finding center with i_max: " + i_max + " i_min: " + i_min + " j_max: " + j_max + " j_min: " + j_min)
-    for (let i = i_min; i <= i_max; i++) {
-        for (let j = j_min; j <= j_max; j++) {
-            const cx = r.me.x + i
-            const cy = r.me.y + j
-            if (utils.isStandable(r, cx, cy))
-                return [cx, cy]
-        }
-    }
-    return null  // hopefully this never happens
 }
