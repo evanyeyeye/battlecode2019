@@ -17,6 +17,7 @@ var buildingFort = false
 var targetCastle = null
 var buildNow = false
 var targetMine = null
+var builtChurch = false
 
 
 export function pilgrimTurn(r) {
@@ -93,6 +94,25 @@ export function pilgrimTurn(r) {
 
     // change heat map can be optimized
     setHeatMap(r,enemyRobotList)  // marks off squares based on range of enemy robots
+
+
+
+    //// ---------- KITE IF SENSE DANGER ----------
+   
+    // decaying kite count
+    if (kiteCount > 0 )
+    {
+        kiteCount--;
+    }
+    if (senseDanger){
+        r.log("Pilgrim: calculating kite")
+        const kiteAction = kite(r)
+        if (kiteAction !== null){
+            kiteCount += 7
+            return r.move(kiteAction[0], kiteAction[1])
+            //return kiteAction
+        }
+    }   
     
     // ---------- MOVING BACK TO BASE ----------
 
@@ -123,6 +143,8 @@ export function pilgrimTurn(r) {
         }
 
         // return to church/castle
+        if (utils.getManhattanDistance(r.me.x,r.me.y,baseLocation[0],baseLocation[1]) >30)
+            return
         
         let test = r.am.nextMove(baseLocation)
         if (test === null) {
@@ -131,22 +153,7 @@ export function pilgrimTurn(r) {
         return r.move(test[0], test[1])
     }
 
-    //// ---------- KITE IF SENSE DANGER ----------
-   
-    // decaying kite count
-    if (kiteCount > 0 )
-    {
-        kiteCount--;
-    }
-    if (senseDanger){
-        r.log("Pilgrim: calculating kite")
-        const kiteAction = kite(r)
-        if (kiteAction !== null){
-            kiteCount += 7
-            return r.move(kiteAction[0], kiteAction[1])
-            //return kiteAction
-        }
-    }    
+     
     
     //-----------------MOVE TO TARGET MINE TO TRY BUILD CHURCH ---------------
     
@@ -206,7 +213,7 @@ export function pilgrimTurn(r) {
                         cur_best = possibleDirection
                     }
                 }
-                if (cur_best !== null && r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
+                if (cur_best !== null && r.karbonite >= SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel >= SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
                 {
                     r.log("Pilgrim: church is built !!!!!! nice job")
                     return r.buildUnit(SPECS.CHURCH, cur_best[0], cur_best[1])
@@ -227,7 +234,7 @@ export function pilgrimTurn(r) {
         if (targetCastle != null){
             r.log("can have offensive church here")
             //-------------------------------FOR ATTACKING CHURHC---------------------------
-            if (r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
+            if (r.karbonite >= SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel >= SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
             {
                 let buildingDirections = []                
                 for (const dir of utils.directions) {
@@ -253,17 +260,35 @@ export function pilgrimTurn(r) {
                 let maxDis = 0
                 let minDir = null
                 for (let dir of buildingDirections){
-                    if (utils.getManhattanDistance(r, r.me.x + dir[0], r.me.y + dir[1],targetCastle[0], targetCastle[1]) > maxDis)
+                    if (utils.getManhattanDistance(r.me.x + dir[0], r.me.y + dir[1],targetCastle[0], targetCastle[1]) > maxDis)
                     {
-                        minDis = utils.getManhattanDistance(r, r.me.x + dir[0], r.me.y + dir[1],targetCastle[0], targetCastle[1])
+
+                        maxDis = utils.getManhattanDistance(r.me.x + dir[0], r.me.y + dir[1],targetCastle[0], targetCastle[1])
                         minDir = dir
+                        r.log("max dis is " + maxDis)
+                        r.log("church direction "+ dir)
                     }                        
 
                 
                     if (minDir != null)
                     {
-                        r.log("Pilgrim: offensive church is built !!!!!! yeahhh")
-                        return r.buildUnit(SPECS.CHURCH, buildingDirections[0][0], buildingDirections[0][1])
+                        
+                        if (builtChurch == false)
+                        {
+                            r.log("Pilgrim: offensive church is built !!!!!! yeahhh")
+                            builtChurch = true
+                            r.log('Pilgirm: sent to offensive church'+ targetCastle)
+                            r.log(comms.encodeAttack(targetCastle[0],targetCastle[1]))
+                            r.signal(comms.encodeAttack(targetCastle[0],targetCastle[1]),2)
+
+
+                            return r.buildUnit(SPECS.CHURCH, buildingDirections[0][0], buildingDirections[0][1])
+                        }
+                        else{
+                            return
+                        }
+
+                        
                     }
                 }
             }
