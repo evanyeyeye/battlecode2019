@@ -7,12 +7,12 @@ export default {
     CHANGE_ATTACK_MINE: "10",  // change from current action to attack
     CHANGE_ZONE_BUILD: "11",  // change from current action zonescout
 
-    BUILDING_CHURCH: "999",
+    BUILDING_CHURCH: "0001",
     ALL_IN: "1000",
     KILLED: "1001",
     DEFEND: "0010",
     STAND: "0011",
-    ENEMY_SPOTTED: "0100",
+    ENEMY_HERE: "0100",
 
     MINE: "0000",
     ATTACK: "0001",
@@ -68,36 +68,6 @@ export default {
         const loc = parseInt(b, 2)
         return [loc, action]
     },
-    
-    // old encode castle talk message
-    _encodeCastleTalk: function(mineID, action){
-        let encoded_mine=(mineID).toString(2);
-        let bitsToGive = 6
-        let message=""   
-        //fill up the empty spots 
-        for (let i=0; i<bitsToGive - encoded_mine.length ;i++){
-            message+="0"
-        }   
-        message += encoded_mine    
-        message += action
-        let encoded = parseInt(message, 2);
-        return encoded
-
-    },
-
-    // old decode castle talk message
-    _decodeCastleTalk: function (msg) {
-        let binary = msg.toString(2)     
-        let binarylen = binary.length
-        for (let i = 0; i < 8 - binarylen; i++){
-            binary = "0" + binary
-        }     
-        let bitsToGive = 6 // how many bits to give
-        let firstMine = parseInt(binary.substring(0,bitsToGive),2)    
-        let action = binary.substring(bitsToGive,bitsToGive+2) 
-        return [firstMine ,action] 
-    },
-
 
     decodeSignal: function (message, loc_bits = 6, signal_len = 16) {
         let binary = message.toString(2)

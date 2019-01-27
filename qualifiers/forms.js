@@ -65,59 +65,58 @@ export default {
     // returns list of STRING locations
     listPerpendicular: function(r, center, target) {
         let positions = []
-        let multiplier = 0
+        let left_multiplier = 0
+        let right_multiplier = 0
         let side = this.LEFT
         const [cx, cy] = center
         const [tx, ty] = target
         const px = tx - cx  // parallel change
         const py = ty - cy
 
-        let dx = 0  // proportional amounts to move in y and x direction
-        let dy = 0
+        let ldx = 0  // proportional amounts to move in y and x direction
+        let ldy = 0
+        let rdx = 0
+        let rdy = 0
 
         if (px === 0) {  // tangent is either straight left or straight right
-            if (side === this.LEFT)
-                dx = -py
-            else
-                dx = py
+            ldx = -py
+            rdx = py
         }
         else if (py === 0) {  // tangent is either straight up or straight down
-            if (side === this.LEFT)
-                dy = -px
-            else
-                dy = px
+            ldy = -px
+            rdy = px
         }
         else if (px * py >= 0) {  // positive slope
-            if (side === this.LEFT) {
-                dx = py
-                dy = -px
-            }
-            else {  // the robot has a steeper slope than the center relative to the target
-                dx = -py
-                dy = px
-            }
+            ldx = py
+            ldy = -px
+            rdx = -py
+            rdy = px
         }
         else {  // negative slope
-            if (side === this.LEFT) {
-                dx = -py
-                dy = px
-            }
-            else {
-                dx = py
-                dy = -px
-            }
+            ldx = -py
+            ldy = px
+            rdx = py
+            rdy = -px
         }
-        const d = Math.sqrt(dx * dx + dy * dy)  // used for scaling dx/dy into sx/sy
-        const sx = dx / d  // unit vector
-        const sy = dy / d
+        const d = Math.sqrt(ldx * ldx + ldy * ldy)  // used for scaling dx/dy into sx/sy
+        const lsx = ldx / d  // unit vector
+        const lsy = ldy / d
+        const rsx = rdx / d
+        const rsy = rdy / d
 
         let nextX = cx
         let nextY = cy
 
         let change_side = false
         while (nextX >= 0 && nextX < r.map[0].length && nextY >= 0 && nextY < r.map.length) {  // have not searched to the correct position
-            nextX = Math.floor(cx + sx*multiplier)
-            nextY = Math.floor(cy + sy*multiplier)
+            if (side === this.LEFT) {
+                nextX = Math.floor(cx + lsx*left_multiplier)  // this is so bad, please change so 1 dynamic multiplier does stuff
+                nextY = Math.floor(cy + lsy*left_multiplier)
+            }
+            else {
+                nextX = Math.floor(cx + rsx*right_multiplier)
+                nextY = Math.floor(cy + rsy*right_multiplier)
+            }
             if (utils.isStandable(r, nextX, nextY)) {  // this may not be deterministic, watch out! Hopefully close enough
                 positions.push([nextX, nextY].toString())  // only standable positions count
                 if (change_side) {
@@ -125,12 +124,19 @@ export default {
                     change_side = false
                 }
                 else {
-                    multiplier += 1
+                    if (side === this.LEFT)
+                        left_multiplier += 1
+                    else
+                        right_multiplier += 1
                     change_side = true
                 }
             }
-            else
-                multiplier += 1
+            else {
+                if (side === this.LEFT)
+                    left_multiplier += 1
+                else
+                    right_multiplier += 1
+            }
         }
         return positions
     },

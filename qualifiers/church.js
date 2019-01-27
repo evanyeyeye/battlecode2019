@@ -153,11 +153,8 @@ export function churchTurn(r) {
             }
         }
 
-
-
-    
-    // build prophets
-        if (preacherCounter >= 2 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
+        // build preachers
+        if (preacherCounter < 2 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
             if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
 
                 var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
@@ -176,8 +173,8 @@ export function churchTurn(r) {
     }
 
     //-------------------------OFFENSE BUILD------------------------------------
-    else{
-        if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 2) {
+    else {
+        if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 1000) {  // save at least 1000
             var buildDirection = findAttackDirection(r, targetCastle[0], targetCastle[1])
             if (buildDirection !== null) {
                 // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
