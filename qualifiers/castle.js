@@ -174,7 +174,7 @@ export function castleTurn(r) {
                     {
                         let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
                         r.log('Castle: sent '+ curEnemyCastle)
-                        r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1],16),2)
+                        r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1],comms.ALL_IN))
                         enemyCastleLocSent =true
                     }
                     return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1]) 
