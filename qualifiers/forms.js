@@ -77,4 +77,38 @@ export default {
         }
         return [nextX, nextY]
     },
+
+    // crawling toward target
+    findIterate: function(r, target, spread = false) {
+        const changex = target[0] - r.me.x  // terrible names, but what can i do
+        const changey = target[1] - r.me.y
+        let dx = 0
+        let dy = 0
+        if (changex > 0)  // lol
+            dx = 1
+        else if (changex < 0)
+            dx = -1
+        if (changey > 0)
+            dy = 1
+        else if (changey < 0)
+            dy = -1
+        // r.log("I want to iterate to: " + target + " dx: " + dx + " dy: " + dy)
+        while ( (r.me.x + dx !== target[0]) || (r.me.y + dy !== target[1]) ) {
+            const midx = r.me.x + dx
+            const midy = r.me.y + dy
+            // r.log("Preacher: Looking at " + midx + "," + midy)
+            if (utils.isStandable(r, midx, midy, spread)) {
+                return [midx, midy]
+            }
+            if (midx < target[0])  // increment, terribly
+                dx++
+            else if (midx > target[0])
+                dx--
+            if (midy < target[1])
+                dy++
+            else if (midy > target[1])
+                dy--
+        }
+        return target  // nothing else, just pathfind here please
+    },
 }

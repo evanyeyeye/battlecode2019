@@ -46,7 +46,7 @@ export function castleTurn(r) {
         {
             let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
             r.log('Castle: sent '+ curEnemyCastle)
-            r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1],16),(visibleRobotMap[0].length-1)*(visibleRobotMap[0].length-1)*2)
+            r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]), (visibleRobotMap[0].length-1)*(visibleRobotMap[0].length-1)*2)
             enemyCastleLocSent =true
         } 
     }
@@ -177,8 +177,8 @@ export function castleTurn(r) {
                     // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
 
 
-                    let signalToSend = comms.encodeSignal(mineID, 1, 64 , comms.ATTACK_MINE, 16)
-                    r.log(signalToSend)
+                    let signalToSend = comms.encodeMine(mineID)
+                    r.log("Castle, sending pilgrim the message: " + signalToSend)
 
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     

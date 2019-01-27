@@ -23,9 +23,10 @@ export function pilgrimTurn(r) {
         for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team === r.me.team && (otherRobot.unit === SPECS.CASTLE || otherRobot.unit === SPECS.CHURCH) && r.isRadioing(otherRobot)) {
                 // recieve message
-                const decodedMsg = comms.decodeSignal(otherRobot.signal, 64, 16)
+                const decodedMsg = comms.decodeSignal(otherRobot.signal)
+                r.log("Pilgrim: recieved message: " + decodedMsg)
                 castleTargetMineID = decodedMsg[0] // first id being encoded
-                if (castleTargetMineID >= 900) {
+                if (castleTargetMineID >= 900 || decodedMsg[2] !== comms.MINE) {
                     continue
                 }
                 r.log("Pilgrim: Received a target mine: " + castleTargetMineID)
@@ -357,7 +358,7 @@ function setHeatMap(r,enemyRobotSq){
     const map_len = r.map[0].length
     for (const enemy of enemyRobotSq){
         let enemyRadius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS
-        if (enemy.unit === SPECS.PROPHET)
+        if (enemy.unit !== SPECS.CHURCH && enemy.unit !== SPECS.PILGRIM)
             enemyRadius = enemyRadius[1]
         if (enemyRadius !== null && enemyRadius !== 0) {
             const radius = enemyRadius**0.5

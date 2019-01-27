@@ -26,6 +26,8 @@ var preacherCounter = 0
 var mineToID = {}
 
 var mine_range = 10
+var defense_center1 = null  // place to defend from fast approach by crusaders
+var defense_center2 = null  // place to defend from slow approach
 
 export function churchTurn(r) {
 
@@ -40,6 +42,13 @@ export function churchTurn(r) {
         numMines = calculateNumMines(r, mine_range)  
         // determine number of pilgrims to build
         idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
+
+        // find the centers for preacher defenders to stand in
+        let enemy = [r.map[0].length - r.me.x, r.map.length - r.me.y]
+        let fastMove = r.am.nextMove(enemy, 9, true)
+        let slowMove = r.am.nextMove(enemy, 9, false)
+        if (fastMove !== null)
+            defense_center1 = forms.findIterate(r, enemy)
     }
 
     let danger = false
@@ -121,7 +130,7 @@ export function churchTurn(r) {
     /*
     // test build crusaders
     // if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
-    if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
+    if (crusaderCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Church: Built Crusader")
@@ -132,9 +141,9 @@ export function churchTurn(r) {
     }
     */
 
-    /*
+    
     // test build preachers
-    if (r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
+    if (preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Church: Built a Preacher")
@@ -143,7 +152,7 @@ export function churchTurn(r) {
             return r.buildUnit(SPECS.PREACHER, buildDirection[1], buildDirection[0])
         }
     }
-    */
+    
     return
 }
 

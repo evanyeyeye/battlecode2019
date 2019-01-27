@@ -106,41 +106,10 @@ function findStandable(r, base) {
             node = node.child
             const adjusted = findIterate(r, [node.x, node.y], true)
             if (adjusted !== null) {
-                // r.log("Preacher: WOO THE PATHFINDING ACTUALLY WORKED??")
                 return adjusted
             }
         }
-        /*
-        let node_jr = node  // temp
-        while (node.parent != null && (node.parent.x !== r.me.x || node.parent.y !== r.me.y)) {  // go to the node following current location
-            node_jr = node  // end at 2 steps from current position
-            node = node.parent
-        }
-        node = node_jr  // temp
-        target = [node.x, node.y]  // this is a very short distance, maybe expand a little?
-        r.log("Preacher: pathfound far target: " + target)
-        const adjusted = findIterate(r, target, true)
-        r.log("Preacher: pathfound iterated target: " + adjusted)
-        if (adjusted !== null) {
-            r.log("Preacher: WOO THE PATHFINDING ACTUALLY WORKED??")
-            return adjusted
-        }
-        */
     }
-
-    // no way to pathfind for some reason
-    // r.log("Preacher: I can't pathfind to opposite location. Iteratively finding a place to stand")
-    /*
-    if (adjacent_base <= 1) {
-        for (const dir of utils.directions) {  // very dumb to be recalculating
-            const tx = x + dir[0]
-            const ty = y + dir[1]
-            if (utils.isStandable(r, tx, ty))
-                return [tx, ty]
-        }
-    }
-    */
-    // r.log("Preacher: No good ideal or adjacent target to stand on!!")
     return findIterate(r, opposite, true) // absolutely horrible but idk
 }
 
@@ -213,6 +182,8 @@ function numAdjacentWeighted(r, x, y) {  // ideally could receive targeting info
     let num = 0
     for (let dx = -1; dx <= 1; dx ++) {  // iterate through adjacent squares. unlike utils this includes the square itself i guess
         for (let dy = -1; dy <= 1; dy ++) {
+            if (x + dx < 0 || x + dx >= r.map[0].length || y + dy < 0 || y + dy >= r.map.length)
+                continue
             const robotID = r.getVisibleRobotMap()[y + dy][x + dx]
             if (robotID > 0) {
                 const other = r.getRobot(robotID)
