@@ -19,8 +19,8 @@ export default {
 
     CASTLETALK_ON_MINE: "00",
     CASTLETALK_GOING_MINE: "01",
-    CASTLETALK_SEND_TROOP: "10",
-    CASTLETALK_ENEMY_SPOTTED: "11",
+    CASTLETALK_ENEMY_SPOTTED: "10",
+    CASTLETALK_SAVE: "11",
 
     encodeGeneric: function(x, y, action) {
         return this._encodeSignal(x, y, action)

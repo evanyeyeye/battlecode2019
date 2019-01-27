@@ -31,7 +31,7 @@ export function pilgrimTurn(r) {
                 const decodedMsg = comms.decodeSignal(otherRobot.signal)
                 r.log("Pilgrim: recieved message: " + decodedMsg)                
                 castleTargetMineID = decodedMsg[0] // first id being encoded
-                if (decodedMsg[2] == comms.ALL_IN)
+                if (decodedMsg[2] == comms.ATTACK)
                 {
                     targetCastle = [decodedMsg[0], decodedMsg[1]]
                     r.log(decodedMsg)
@@ -144,7 +144,7 @@ export function pilgrimTurn(r) {
     {
         kiteCount--;
     }
-    if (senseDanger && (kiteCount <=21)){
+    if (senseDanger){
         r.log("Pilgrim: calculating kite")
         const kiteAction = kite(r)
         if (kiteAction !== null){
@@ -152,7 +152,7 @@ export function pilgrimTurn(r) {
             return r.move(kiteAction[0], kiteAction[1])
             //return kiteAction
         }
-    }
+    }    
     
     //-----------------MOVE TO TARGET MINE TO TRY BUILD CHURCH ---------------
     
@@ -233,6 +233,7 @@ export function pilgrimTurn(r) {
     {
         //reached a place where you can't get to castle
         if (targetCastle != null){
+            r.log("can have offensive church here")
             //-------------------------------FOR ATTACKING CHURHC---------------------------
             if (r.karbonite > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CHURCH].CONSTRUCTION_FUEL + 2)
             {
@@ -454,7 +455,7 @@ function setHeatMap(r,enemyRobotSq){
                         if ((i*i + j*j) <= (enemyRadius[1])){
                             if (!(enemy.x + i < 0 || enemy.x + i >= map_len || enemy.y + j < 0 || enemy.y + j >= map_len))
                             {
-                                r.am.setEnemyHeat(enemy.x + i, enemy.y + j, 5)
+                                r.am.setEnemyHeat(enemy.x + i, enemy.y + j, 15)
                                // markedheat.push([enemy.x + i, enemy.y + j])
                             }
                         }                                

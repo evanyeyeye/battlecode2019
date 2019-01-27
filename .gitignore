@@ -1,5 +1,6 @@
 /.idea
 *.iml
+*.swp
 /initial_js_test
 *.bc19
 upload.sh

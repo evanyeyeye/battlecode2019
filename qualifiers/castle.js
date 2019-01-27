@@ -40,8 +40,9 @@ var defense_center = null  // place to defend from fast approach by crusaders
 var occupied_positions = new Set()  // later make more intelligent to remove
 
 export function castleTurn(r) {
+
     r.log("this turn is "+ r.me.turn)
-    if (r.me.turn >= 50 && r.me.turn % 50 == 0){
+    if (r.me.turn >= 50 && r.me.turn % 100 == 50){
         enemyCastleLocSent = false
 
     }
@@ -198,7 +199,8 @@ export function castleTurn(r) {
                     {
                         let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
                         r.log('Castle: sent '+ curEnemyCastle)
-                        r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1],comms.ALL_IN))
+                        r.log(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]))
+                        r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]),2)
                         enemyCastleLocSent =true
                     }
                     return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1]) 
