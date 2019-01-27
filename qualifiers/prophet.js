@@ -22,32 +22,35 @@ var state = null  // the current plan ocne receive all in from castle go all in
 var targetCastle=[]
 
 var settled = false  // temp way to check if i should move or not
+var latticeLocation = null
 
 export function prophetTurn(r) {
-    if (r.me.turn == 1) {
 
+    if (r.me.turn == 1) {
         r.log("Prophet: I am a Prophet")
         iDMines(r)
 
         // find the closest castle, probably built from there
-        for (const otherRobot of r.getVisibleRobots()) {
-            if (otherRobot.team === r.me.team && otherRobot.unit === SPECS.CASTLE && r.isRadioing(otherRobot)) {
+        for (const robot of r.getVisibleRobots()) {
+            if (robot.team === r.me.team && robot.unit === SPECS.CASTLE && r.isRadioing(robot)) {
                 // recieve message
-                const message = otherRobot.signal
+                const message = robot.signal
                 const decoded = comms.decodeSignal(message, 64, 16)
-                if (decoded[2] === comms.ATTACK)
-                {
-                    targetCastle.push([decoded[0], decoded[1]])
+                if (decoded[2] === comms.STAND && !latticeLocation) {
+                    latticeLocation = [decoded[0], decoded[1]]
+                    r.log(latticeLocation)
                 }
+                else if (decoded[2] === comms.ATTACK)
+                    targetCastle.push([decoded[0], decoded[1]])
             }
         }
     }
 
     //this part of the code looks for target castle and remove things
     else {
-        for (const otherRobot of r.getVisibleRobots()) {
-            const message = otherRobot.signal  // get any messages
-            if (otherRobot.team === r.me.team && otherRobot.unit === SPECS.CASTLE && r.isRadioing(otherRobot)) {  // castle sending message
+        for (const robot of r.getVisibleRobots()) {
+            const message = robot.signal  // get any messages
+            if (robot.team === r.me.team && robot.unit === SPECS.CASTLE && r.isRadioing(robot)) {  // castle sending message
                 // recieve message               
                 const decoded = comms.decodeSignal(message,64,16)
                 if (decoded[2] === comms.ALL_IN)
@@ -59,7 +62,7 @@ export function prophetTurn(r) {
                     */
                 }
             }
-            else if (otherRobot.team === r.me.team && otherRobot.unit === SPECS.PROPHET && r.isRadioing(otherRobot)){
+            else if (robot.team === r.me.team && robot.unit === SPECS.PROPHET && r.isRadioing(robot)){
                 const decoded = comms.decodeSignal(message,64,16)
                 if (decoded[2] === comms.KILLED)
                 {
@@ -83,18 +86,18 @@ export function prophetTurn(r) {
     enemyRobots = {}
 
     // look around
-    for (let otherRobot of r.getVisibleRobots()) {   	
+    for (let robot of r.getVisibleRobots()) {   	
 
-        let distance = utils.getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
-        if (otherRobot.team === r.me.team) {
+        let distance = utils.getManhattanDistance(r.me.x, r.me.y, robot.x, robot.y)
+        if (robot.team === r.me.team) {
             // set closest friendly castle or church as base 
-            if (otherRobot.unit === SPECS.CASTLE || otherRobot.unit === SPECS.CHURCH) {
-                baseLocation = [otherRobot.x, otherRobot.y]
+            if (robot.unit === SPECS.CASTLE || robot.unit === SPECS.CHURCH) {
+                baseLocation = [robot.x, robot.y]
             }	
-            friendlyRobots[otherRobot.id] = distance
+            friendlyRobots[robot.id] = distance
         }
         else {
-            enemyRobots[otherRobot.id] = distance
+            enemyRobots[robot.id] = distance
         }
     }
 
@@ -138,6 +141,12 @@ export function prophetTurn(r) {
         }
     }
 
+    if (latticeLocation) {
+        const moveDirection = r.am.nextMove(latticeLocation)
+        if (moveDirection)
+            return r.move(moveDirection[0], moveDirection[1])
+        return null
+    }
     // found target location to go all in
 
     if (targetCastle.length > 0) {

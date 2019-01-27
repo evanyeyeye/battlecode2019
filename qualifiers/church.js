@@ -70,6 +70,10 @@ export function churchTurn(r) {
     crusaderCounter = 0
     preacherCounter = 0
 
+    let dangerProphet = false
+    let dangerCrusader = false
+    let dangerPreacher = false
+
     for (const robot of r.getVisibleRobots()) { 
         if (robot.team === r.me.team && robot.id !== r.me.id) {
             if (robot.unit !== SPECS.PILGRIM)
@@ -91,6 +95,12 @@ export function churchTurn(r) {
             }
         }
          else if (robot.team !== r.me.team) {
+            if (robot.unit === SPECS.CRUSADER)
+                dangerCrusader = true
+            else if (robot.unit === SPECS.PROPHET)
+                dangerProphet = true
+            else if (robot.unit === SPECS.PREACHER)
+                dangerPreacher = true
             enemyCount += 1
             enemyDistance[robot.id] = utils.getManhattanDistance(r.me.x, r.me.y, robot.x, robot.y)
             enemyLocation[robot.id] = [r.me.x, r.me.y]
@@ -133,7 +143,8 @@ export function churchTurn(r) {
 
     
     // build prophets
-    if (preacherCounter >= 2 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
+    if (!(dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
+        ((danger || prophetCounter < r.me.turn / 25) && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
         if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
@@ -145,7 +156,7 @@ export function churchTurn(r) {
     
 
     // test build preachers
-    if (preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL + 2) {
+    if (danger && preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection !== null) {
             // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
