@@ -33,23 +33,19 @@ var crusaderCounter = 0
 var recievedMessages = {}
 
 var mine_range = 10
-var enemyCastleLocSent = false
+var enemyCastleLocSent = true // initialize so you don't send too early
+
+
 
 
 export function castleTurn(r) {
+    r.log("this turn is "+ r.me.turn)
+    if (r.me.turn >= 50 && r.me.turn % 50 == 0){
+        enemyCastleLocSent = false
 
-   
-    if (r.me.turn > 800 && enemyCastleLocSent == false && r.fuel>2000) {
-        let visibleRobotMap= r.getVisibleRobotMap()
-        r.log("Castle: trying to send my symmetrical location")
-        if (r.fuel>Math.ceil(visibleRobotMap[0].length*1.415))
-        {
-            let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
-            r.log('Castle: sent '+ curEnemyCastle)
-            r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]), (visibleRobotMap[0].length-1)*(visibleRobotMap[0].length-1)*2)
-            enemyCastleLocSent =true
-        } 
     }
+   
+  
 
     processedCastleTalk = new Set()
 
@@ -165,11 +161,26 @@ export function castleTurn(r) {
     // ---------- BUILD PILGRIMS ----------
 
     if (!danger) {  // enough fuel to signal afterwards
-        if ( (1 < r.me.turn < 10 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) || (r.karbonite > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50) && r.fuel > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 100) ))
+        if ( (1 < r.me.turn && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) || (r.karbonite > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50) && r.fuel > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 100) ))
         { 
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+
             if (buildDirection != null) {
-                // see if there is a mine for a pilgrim to go to
+                //-------------every 50 turns after turn 400 try harass enemy  ---------          
+                if  (enemyCastleLocSent == false) {
+                    let visibleRobotMap= r.getVisibleRobotMap()
+                    r.log("Castle: trying to send my symmetrical location")
+                    if (r.fuel>2 + SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL)
+                    {
+                        let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
+                        r.log('Castle: sent '+ curEnemyCastle)
+                        r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1],comms.ALL_IN))
+                        enemyCastleLocSent =true
+                    }
+                    return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1]) 
+                }
+                //-------------actually building pilgrim -----------------
+                //// see if there is a mine for a pilgrim to go to
                 const mineID = nextMineID(r)
                 if (mineID !== null){
 
