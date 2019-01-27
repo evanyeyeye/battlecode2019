@@ -179,13 +179,14 @@ export function castleTurn(r) {
                     r.log("Built Pilgrim, trying to send it to " + mineID)
                     // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
 
-                    let signalToSend = comms.encodeSignal(mineID, 0, mineStatus.size, comms.ATTACK_MINE, 16)
+                    let signalToSend = comms.encodeSignal(mineID, 1, 64 , comms.ATTACK_MINE, 16)
                                
                     r.log(signalToSend)
                     r.signal(signalToSend,2)  // tell the pilgrim which mine to go to, dictionary keys are strings
                     
                     if (r.me.turn <= 4)                        
                         initialActivityQueue.push(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))
+
                     else r.castleTalk(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))  // let other castles know
 
                     mineStatus.get(parseInt(mineID)).activity += 10  // update yourself

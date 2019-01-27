@@ -40,6 +40,7 @@ export default {
             message += "0"
         }    
         let encoded = parseInt(message, 2);
+        
         return encoded
     },
 
