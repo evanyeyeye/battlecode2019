@@ -31,7 +31,11 @@ var defense_center = null  // place to defend from fast approach by crusaders
 var occupied_positions = new Set()  // later make more intelligent to remove
 var offensive = false
 
+var occupied_setup = new Set()  // exclusively for crusaders
 var targetCastle = null
+var stand_pos
+var longest_signal = 2  // squared distance to radio for attack
+const crusader_threshold = 7  // 
 
 export function churchTurn(r) {
 
@@ -47,8 +51,9 @@ export function churchTurn(r) {
                 {
                     targetCastle = [decodedMsg[0], decodedMsg[1]]
                     offensive = true
-                    r.log(decodedMsg)
-
+                    stand_pos = forms.findIterate(r, targetCastle)
+                    if (stand_pos === null)
+                        stand_pos = targetCastle  // just send them to the castle i guess
                     r.log("Church: I am an offensive center" + targetCastle)                    
                    
                 }
@@ -177,7 +182,6 @@ export function churchTurn(r) {
         if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 1000) {  // save at least 1000
             var buildDirection = findAttackDirection(r, targetCastle[0], targetCastle[1])
             if (buildDirection !== null) {
-                // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
                 const offensive_pos = targetCastle
                 if (offensive_pos !== null) {
                     r.log("OFFENSIVE Church: Built a CRUSADER, sending it to: " + offensive_pos)  // preacher counter increments when scanning friends

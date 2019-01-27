@@ -7,7 +7,7 @@ export default {
     CHANGE_ATTACK_MINE: "10",  // change from current action to attack
     CHANGE_ZONE_BUILD: "11",  // change from current action zonescout
 
-    BUILDING_CHURCH: "0001",
+    BUILDING_CHURCH: "1111",
     ALL_IN: "1000",
     KILLED: "1001",
     DEFEND: "0010",
