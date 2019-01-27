@@ -18,8 +18,9 @@ export default {
     // encode message for signaling
     // action is a number
     encodeSignal: function (mineID, mineID2, totalMines, action, signallen) {
-        let encoded_mine = mineID.toString(2);
-        let encoded_mine2 = mineID2.toString(2);
+
+        let encoded_mine = (mineID-1).toString(2);
+        let encoded_mine2 = (mineID2-1).toString(2);
         let bitsToGive = Math.ceil(Math.log2(totalMines)) // how many bits to give
         let message = ""   
         //fill up the empty spots 
@@ -105,7 +106,7 @@ export default {
     },
     //encode castle talk message
     encodeCastleTalk: function(mineID, action){
-        let encoded_mine=mineID.toString(2);
+        let encoded_mine=(mineID-1).toString(2);
         let bitsToGive = 6
         let message=""   
         //fill up the empty spots 
@@ -128,7 +129,7 @@ export default {
         let bitsToGive = 6 // how many bits to give
         let firstMine = parseInt(binary.substring(0,bitsToGive),2)    
         let action = binary.substring(bitsToGive,bitsToGive+2) 
-        return [firstMine,action] 
+        return [firstMine + 1,action] 
 
     },
 
@@ -152,7 +153,7 @@ export default {
         let mineID = parseInt(firstMine, 2);
         let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive + 2 + bitsToGive), 2); 
         //this is really giving (x,y,attack)  
-        return [mineID,mineID2, "1000"] 
+        return [mineID+1,mineID2+1, "1000"] 
     }
     if (binary[binary.length - 1] == "0" && binary[binary.length - 2] == "1")
     {
@@ -164,7 +165,7 @@ export default {
         let mineID = parseInt(firstMine, 2);
         let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive + 2 + bitsToGive), 2); 
         //this is really giving (x,y,attack)  
-        return [mineID,mineID2, "1001"] 
+        return [mineID+1,mineID2+1, "1001"] 
     }
     else{
         let bitsToGive = Math.ceil(Math.log2(totalMines)) // how many bits to give
@@ -172,7 +173,7 @@ export default {
         let action = binary.substring(bitsToGive, bitsToGive + 2)  
         let mineID = parseInt(firstMine, 2);
         let mineID2 = parseInt(binary.substring(bitsToGive + 2, bitsToGive+2+bitsToGive), 2);   
-        return [mineID, mineID2,action]
+        return [mineID+1, mineID2+1,action]
     }
     },
 

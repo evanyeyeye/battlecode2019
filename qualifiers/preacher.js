@@ -5,10 +5,26 @@ var baseLocation = null  // location of the castle/church we are protecting
 var settled = false  // we are in position
 var standLocation = null
 var communicatedEnemyLocations = new Set()  // probably has to remake every turn
+var mineID = {}  // maps location of mine to its ID
+var idToMine = {}
 
 export function preacherTurn(r) {
     if (r.me.turn === 1) {
         r.log("Preacher: I am a preacher")
+        iDMines(r)
+
+        // find the closest castle, probably built from there
+        for (const otherRobot of r.getVisibleRobots()) {
+            if (otherRobot.team === r.me.team && otherRobot.unit === SPECS.CASTLE && r.isRadioing(otherRobot)) {
+                // recieve message
+                const message = otherRobot.signal
+                const decoded = comms.decodeSignal(message, 64, 16)
+                if (decoded[2] === comms.ALL_IN)
+                {
+                    targetCastle.push([decoded[0], decoded[1]])
+                }
+            }
+        }
     }
 
     if (baseLocation === null) {  // have to find a base location first
@@ -209,4 +225,18 @@ function numAdjacentWeighted(r, x, y) {  // ideally could receive targeting info
         }
     }
     return num
+}
+
+function iDMines(r) {  // deterministically label mines
+    let counter = 0
+    for (let j = 0; j < r.karbonite_map.length; j++) {
+        for (let i = 0; i < r.karbonite_map[0].length; i++) {
+            if (r.karbonite_map[j][i] || r.fuel_map[j][i]){
+                // r.log("Pilgrim: Mine at " + [i, j] + " is " + counter)
+                mineID[[i, j]] = counter
+                idToMine[counter] = [i,j]
+                counter++
+            }
+        }
+    }
 }
