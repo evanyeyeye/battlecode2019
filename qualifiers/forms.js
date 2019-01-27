@@ -2,8 +2,8 @@ import {SPECS} from 'battlecode'
 import utils from './utils.js'
 
 export default {
-    LEFT = 0
-    RIGHT = 1
+    LEFT: 0,
+    RIGHT: 1,
 
     // returns an incremental location to move toward the target parallely relative to center
     moveParallel: function(r, center, target) {
@@ -12,7 +12,7 @@ export default {
         const dx = tx - cx
         const dy = ty - cy
         return [r.me.x + dx, r.me.y + dy]
-    }
+    },
 
     // given a center to build off, target to face, side to go into, and approximate position on that side with multiplier,
     // return a location to move to and build a line
