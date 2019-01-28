@@ -32,17 +32,12 @@ export function prophetTurn(r) {
 
         // find the closest castle, probably built from there
         for (const robot of r.getVisibleRobots()) {
-            if (robot.team === r.me.team && robot.unit === SPECS.CASTLE && r.isRadioing(robot)) {
+            if (robot.team === r.me.team && (robot.unit === SPECS.CASTLE || robot.unit === SPECS.CHURCH) && r.isRadioing(robot)) {
                 // recieve message
                 const message = robot.signal
-                const decoded = comms.decodeSignal(message, 64, 16)
-                r.log("TESTING")
-                r.log(decoded[2])
-                r.log(latticeLocation)
-                r.log(!latticeLocation)
+                const decoded = comms.decodeSignal(message)
                 if (decoded[2] === comms.STAND && !latticeLocation) {
                     latticeLocation = [decoded[0], decoded[1]]
-                    r.log(latticeLocation)
                 }
                 else if (decoded[2] === comms.ATTACK)
                     targetCastle.push([decoded[0], decoded[1]])
@@ -54,7 +49,7 @@ export function prophetTurn(r) {
     else {
         for (const robot of r.getVisibleRobots()) {
             const message = robot.signal  // get any messages
-            if (robot.team === r.me.team && robot.unit === SPECS.CASTLE && r.isRadioing(robot)) {  // castle sending message
+            if (robot.team === r.me.team &&  (robot.unit === SPECS.CASTLE || robot.unit === SPECS.CHURCH) && r.isRadioing(robot)) {  // castle sending message
                 // recieve message               
                 const decoded = comms.decodeSignal(message,64,16)
                 if (decoded[2] === comms.ALL_IN)

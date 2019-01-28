@@ -15,6 +15,9 @@ const sortedMines = []  // sorted array of mineIDs ascending by distance
 
 var churchPathField = null
 
+const latticeLocations = []
+const usedLatticeLocations = {}
+
 var numMines = 0  // numMines is number of close mines
 var idealNumPilgrims = 0  // number of pilgrims to create
 
@@ -42,6 +45,7 @@ var producing = true
 export function churchTurn(r) {
 
     if (r.me.turn === 1) {
+        findLatticeLocations(r)
         for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team === r.me.team && r.isRadioing(otherRobot)) {
                 // recieve message
@@ -176,6 +180,10 @@ export function churchTurn(r) {
                 var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
                 if (buildDirection != null) {
                     r.log("Church: Built Prophet")
+                    const latticeLocation = nextLatticeLocation(r)
+                    if (latticeLocation) {
+                        r.signal(comms.encodeStand(latticeLocation[0], latticeLocation[1]), 2)
+                    }
                     return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
                 }
             }
@@ -312,6 +320,49 @@ function calculateNumPilgrims(r) {
     }
     r.log("Church: im going to try to make " + num + " pilgrims")
     return num
+}
+
+function findLatticeLocations(r) {
+    const size = 2*SPECS.UNITS[SPECS.CHURCH].VISION_RADIUS+1
+    const orientation = (r.me.x + r.me.y) % 2
+    let x = r.me.x
+    let y = r.me.y
+    let direction = 0
+    let chain = 1
+    for (let i = 1; i < size; i++) {
+        for (let j = 0; j < ((i<size-1)?2:3); j++) {
+            for (let k = 0; k < chain; k++) {
+                if (utils.isEmpty(r, x, y, true) && !r.getFuelMap()[y][x] && !r.getKarboniteMap()[y][x] && (x + y) % 2 === orientation)
+                    latticeLocations.push([x, y])
+                switch (direction) {
+                    case 0: y++; break
+                    case 1: x++; break
+                    case 2: y--; break
+                    case 3: x--; break
+                }
+            }
+            direction = (direction+1) % 4
+        }
+        chain++
+    }
+    latticeLocations.sort((a, b) => {
+        return utils.getSquaredDistance(a[0], a[1], r.me.x, r.me.y) - utils.getSquaredDistance(b[0], b[1], r.me.x, r.me.y)
+    })
+}
+
+function nextLatticeLocation(r) {
+    for (const index in latticeLocations) {
+        const loc = latticeLocations[index]
+        if (usedLatticeLocations.hasOwnProperty(loc) && usedLatticeLocations[loc] > 0) {
+            usedLatticeLocations[loc]--
+            continue
+        }
+        if (r.getVisibleRobotMap()[loc[1]][loc[0]] === 0) {
+            usedLatticeLocations[loc] = churchPathField.getDistanceAtPoint(loc[0], loc[1]) + 4
+            return loc
+        }
+    }
+    return null
 }
 
 function nextMineID(r) {  // uses resource-blind ids
