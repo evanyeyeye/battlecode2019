@@ -161,8 +161,11 @@ export function castleTurn(r) {
         else if (robot.team !== r.me.team) {
             if (robot.unit === SPECS.CRUSADER)
                 dangerCrusader = true
-            else if (robot.unit === SPECS.PROPHET)
+            else if (robot.unit === SPECS.PROPHET) {
                 dangerProphet = true
+                // signal for help i guess
+                r.signal(comms.encodeAttack(robot.x, robot.y), 4)
+            }
             else if (robot.unit === SPECS.PREACHER)
                 dangerPreacher = true
             enemyCount += 1
