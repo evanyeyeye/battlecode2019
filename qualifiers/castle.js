@@ -196,7 +196,7 @@ export function castleTurn(r) {
 
             if (buildDirection !== null) {
                 //-------------every 50 turns after turn 400 try harass enemy  ---------          
-                if  (enemyCastleLocSent == false && r.me.turn > 100 && r.fuel > 4000) {  // after turn 100, plenty of fuel
+                if  (enemyCastleLocSent == false && r.me.turn > 100 && r.fuel > 2500) {  // after turn 100, plenty of fuel
                     let visibleRobotMap = r.getVisibleRobotMap()
                     r.log("Castle: trying to send my symmetrical location")
                     let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])

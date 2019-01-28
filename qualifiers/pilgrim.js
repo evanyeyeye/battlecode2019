@@ -65,8 +65,10 @@ export function pilgrimTurn(r) {
         const sqdis = utils.getSquaredDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         const distance = utils.getManhattanDistance(r.me.x, r.me.y, otherRobot.x, otherRobot.y)
         if (otherRobot.team === r.me.team) {
+
             // set closest friendly castle or church as base
-            if ( (otherRobot.unit === SPECS.CASTLE || otherRobot.unit == SPECS.CHURCH) && (baseLocation === null  || distance < (utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1])) )) {
+            if ( (otherRobot.unit === SPECS.CASTLE || otherRobot.unit === SPECS.CHURCH) && (baseLocation === null  || distance < (utils.getManhattanDistance(r.me.x, r.me.y, baseLocation[0], baseLocation[1])) )) {
+
                 baseLocation = [otherRobot.x, otherRobot.y]
                 updateMines(r, baseLocation)  // refresh mines based on distance to base castle location
             }
@@ -87,13 +89,13 @@ export function pilgrimTurn(r) {
             if (otherRobot.unit !== SPECS.PILGRIM )
             {
                 enemyRobotList.push(otherRobot)
-            }
-            // castle talk about enemy position
-            if (r.mapSymmetry) {  // x coordinate
-                r.castleTalk(comms.encodeCastleTalk(otherRobot.y, comms.CASTLETALK_ENEMY_SPOTTED))
-            }
-            else {  // y coordinate
-                r.castleTalk(comms.encodeCastleTalk(otherRobot.x, comms.CASTLETALK_ENEMY_SPOTTED))
+                // castle talk about enemy position
+                if (r.mapSymmetry) {  // x coordinate
+                    r.castleTalk(comms.encodeCastleTalk(otherRobot.y, comms.CASTLETALK_ENEMY_SPOTTED))
+                }
+                else {  // y coordinate
+                    r.castleTalk(comms.encodeCastleTalk(otherRobot.x, comms.CASTLETALK_ENEMY_SPOTTED))
+                }
             }
         }
     }
@@ -470,21 +472,23 @@ function setHeatMap(r,enemyRobotSq){
     // r.log(enemyRobotSq)  
     // let markedheat = []  
     for (const enemy of enemyRobotSq){
-        const enemyRadius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS
-        if (enemyRadius !== null && enemyRadius !== 0){
-            const radius = enemyRadius[1]**0.5
-            for (let j = -radius; j <= radius; j++) {
-                for (let i = -radius; i <= radius; i++) {                
-                    if ((i*i + j*j) <= (enemyRadius[1])){
-                        if (!(enemy.x + i < 0 || enemy.x + i >= map_len || enemy.y + j < 0 || enemy.y + j >= map_len))
-                        {
-                            r.am.setEnemyHeat(enemy.x + i, enemy.y + j, 50)
-                           // markedheat.push([enemy.x + i, enemy.y + j])
-                        }
-                    }                                
-                }
-            }                
+        if (enemy.unit != null){
+            const enemyRadius = SPECS.UNITS[enemy.unit].ATTACK_RADIUS
+            if (enemyRadius !== null && enemyRadius !== 0){
+                const radius = enemyRadius[1]**0.5
+                for (let j = -radius; j <= radius; j++) {
+                    for (let i = -radius; i <= radius; i++) {                
+                        if ((i*i + j*j) <= (enemyRadius[1])){
+                            if (!(enemy.x + i < 0 || enemy.x + i >= map_len || enemy.y + j < 0 || enemy.y + j >= map_len))
+                            {
+                                r.am.setEnemyHeat(enemy.x + i, enemy.y + j, 50)
+                               // markedheat.push([enemy.x + i, enemy.y + j])
+                            }
+                        }                                
+                    }
+                }                
 
-        }    
+            } 
+        }   
     }
 }

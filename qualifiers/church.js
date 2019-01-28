@@ -47,11 +47,11 @@ export function churchTurn(r) {
     if (r.me.turn === 1) {
         findLatticeLocations(r)
         for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
-            if (otherRobot.team === r.me.team) {
+            if (otherRobot.team === r.me.team && r.isRadioing(otherRobot)) {
                 // recieve message
 
                 const decodedMsg = comms.decodeSignal(otherRobot.signal)
-                r.log("Pilgrim: recieved message: " + decodedMsg)             
+                r.log("Church: recieved message: " + decodedMsg)             
                 
                 if (decodedMsg[2] == comms.ATTACK)
                 {
@@ -219,11 +219,11 @@ export function churchTurn(r) {
 
     else if (producing == true){
         for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
-            if (otherRobot.team === r.me.team) {
+            if (otherRobot.team === r.me.team && r.isRadioing(otherRobot)) {
                 // recieve message
 
                 const decodedMsg = comms.decodeSignal(otherRobot.signal)
-                r.log("Pilgrim: recieved message: " + decodedMsg)             
+                r.log("Church: recieved message: " + decodedMsg)             
                 
                 if (decodedMsg[2] == comms.KILLED)
                 {
@@ -231,7 +231,7 @@ export function churchTurn(r) {
                     {
                         if (targetCastle[0] == decodedMsg[0] && targetCastle[1] == decodedMsg[1] ){
                             targetCastle = null
-                            offensive = false
+                            
                             r.log(decodedMsg)
                             producing =false
 
