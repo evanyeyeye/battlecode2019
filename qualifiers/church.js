@@ -170,8 +170,8 @@ export function churchTurn(r) {
             }
         }
 
-        if (!(dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
-            ((danger || prophetCounter < r.me.turn / 25) && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
+        if (!((dangerCrusader || dangerPreacher) && r.me.turn <= 50 && preacherCounter < 2) && 
+            (danger && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2)) {
             if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
                 var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
                 if (buildDirection != null) {
@@ -181,19 +181,8 @@ export function churchTurn(r) {
             }
         }
 
-        if (preacherCounter >= 2 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2) {
-            if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
-                var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-                if (buildDirection !== null) {
-                    // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
-                    r.log("Church: Built a Prophet")  // preacher counter increments when scanning friends
-                    return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
-                }
-            }
-        }
-
         // test build preachers
-        if (danger && preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
+        if ((dangerCrusader || dangerPreacher) && preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
             var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection !== null) {
                 // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
