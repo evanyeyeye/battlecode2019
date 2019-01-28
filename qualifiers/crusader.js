@@ -12,6 +12,7 @@ var fast = false  // fast movement
 var my_side = Math.floor(Math.random()*2)  // pick random side of line
 var multiplier = 1  // monotonically increase position in line
 var targetCastle =null
+var done = false
 
 export function crusaderTurn(r) {
     if (r.me.turn === 1) {
@@ -50,9 +51,10 @@ export function crusaderTurn(r) {
                 {
                     if (targetCastle != null)
                     {
-                        if (decodedMsg[0] == targetCastle && decodedMsg[1])
+                        if (decodedMsg[0] == targetCastle[0] && decodedMsg[1]== targetCastle[1])
                         {
                             targetCastle = [decodedMsg[0], decodedMsg[1]]
+                            done = true
                             r.log(decodedMsg)
                             r.log("Crusader: I killed castle" + targetCastle)
                         }
@@ -80,10 +82,15 @@ export function crusaderTurn(r) {
         }
     }
     if (r.me.x == targetCastle[0] && r.me.y == targetCastle[1]){
+        r.log("killed castle, encoding")
         let encoded = comms.encodeCastleKill(r.me.x,r.me.y)
-        r.signal (encoded, (r.me.map.length - 1)*(r.me.map.length - 1))
+        r.log(encoded)
+        r.signal (encoded, (r.map.length - 1)*(r.map.length - 1))
     }
     const test = r.am.nextMove(targetCastle, 4)
+    if (done == true){
+        return
+    }
     if (test === null)
         return
     else
