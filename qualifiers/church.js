@@ -38,7 +38,7 @@ var occupied_setup = new Set()  // exclusively for crusaders
 var targetCastle = null
 var stand_pos = null
 var longest_distance  // squared distance to radio for attack
-var numCrusaderProd = 0
+const crusader_threshold = 7  // 
 
 var producing = true
 
@@ -175,7 +175,7 @@ export function churchTurn(r) {
         }
 
         if (!(dangerCrusader && r.me.turn <= 50 && preacherCounter < 2) && 
-            (danger || (prophetCount < r.me.turn / 20 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2))) {
+            (danger || (prophetCounter < r.me.turn / 20 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2))) {
             if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
                 var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
                 if (buildDirection != null) {
@@ -231,30 +231,12 @@ export function churchTurn(r) {
                 }
             }
         }
-        if (numCrusaderProd >= 7) {
-            if (targetCastle !== null) {
-                r.signal(comms.encodeAttack(targetCastle[0], targetCastle[1]), longest_distance ** 0.5)
-                occupied_setup = new Set()
-                numCrusaderProd = 0
-                longest_distance = 0
-            }
-            return
-        }
+
         if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 1000) {  // save at least 1000
             var buildDirection = findAttackDirection(r, targetCastle[0], targetCastle[1])
 
             if (buildDirection !== null) {
                 const offensive_pos = targetCastle
-                const next = forms.nextPosition(r, stand_pos, occupied_setup, targetCastle)
-                if (next !== null) {
-                    r.signal(comms.encodeAttack(next[0], next[1]), 2)
-                    numCrusaderProd++
-                    occupied_setup.add(next.toString())
-                    const d = utils.getSquaredDistance(r.me.x, r.me.y, next[0], next[1])
-                    if (d > longest_distance)
-                        longest_distance = d
-                    return r.buildUnit(SPECS.CRUSADER, buildDirection[0], buildDirection[1])
-                }
                 if (offensive_pos !== null) {
                     r.log("OFFENSIVE Church: Built a CRUSADER, sending it to: " + offensive_pos)  // preacher counter increments when scanning friends
                     r.signal(comms.encodeAttack(offensive_pos[0], offensive_pos[1]), 2)                    

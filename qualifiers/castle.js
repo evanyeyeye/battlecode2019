@@ -240,15 +240,14 @@ export function castleTurn(r) {
 
     // ---------- BUILD ATTACKING TROOPS ----------
 
-    if (!((dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
-        (danger || (r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2))) {
+    if (!(dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
+        (danger || (r.me.turn / 10 > prophetCounter && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2))) {
         if (r.me.turn < 3 ||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             if (buildDirection != null) {
                 r.log("Castle: Built Prophet")
                 const latticeLocation = nextLatticeLocation(r)
                 r.log(latticeLocation)
                 if (latticeLocation) {
-                    r.log("IM && ")
                     r.signal(comms.encodeStand(latticeLocation[0], latticeLocation[1]), 2)
                 }
                 return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
