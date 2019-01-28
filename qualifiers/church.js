@@ -33,8 +33,8 @@ var offensive = false
 
 var occupied_setup = new Set()  // exclusively for crusaders
 var targetCastle = null
-var stand_pos
-var longest_signal = 2  // squared distance to radio for attack
+var stand_pos = null
+var longest_distance  // squared distance to radio for attack
 const crusader_threshold = 7  // 
 
 var producing = true

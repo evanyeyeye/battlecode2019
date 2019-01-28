@@ -11,6 +11,7 @@ var mineID = {}  // maps location of mine to its ID
 var idToMine = {}
 var prevHealth = 60  // hard coded bad
 var enemyLocation = null  // will path there maybe
+var fast
 
 export function preacherTurn(r) {
     if (r.me.turn === 1) {
@@ -32,6 +33,8 @@ export function preacherTurn(r) {
         }
     }
 
+    if (25 < r.me.turn < 300)
+        fast = true
     // receive enemy locations here!
     communicatedEnemyLocations = new Set()
 
@@ -45,7 +48,7 @@ export function preacherTurn(r) {
                 if (action === comms.ATTACK) {
                     r.log("Preacher: moving to attack: " + [x,y])
                     enemyLocation = [x, y]
-                    const test = r.am.nextMove([x, y], 4, true)
+                    const test = r.am.nextMove([x, y], 4, fast)
                     if (test !== null)
                         return r.move(test[0], test[1])
                     communicatedEnemyLocations.add([x, y].toString())
@@ -85,7 +88,7 @@ export function preacherTurn(r) {
         prevHealth = r.me.health
         if (enemyLocation === null)
             enemyLocation = forms.moveParallel(r, baseLocation, standLocation)  // move further out from base
-        const test = r.am.nextMove(enemyLocation, 4, true)
+        const test = r.am.nextMove(enemyLocation, 4, fast)
         if (test !== null)
             return r.move(test[0], test[1])
     }
