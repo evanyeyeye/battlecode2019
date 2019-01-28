@@ -240,7 +240,7 @@ export function castleTurn(r) {
 
     // ---------- BUILD ATTACKING TROOPS ----------
 
-    if (!((dangerCrusader|| dangerPreacher) && r.me.turn <= 50 && allyPreacherCount < 2) && 
+    if (!((dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
         (danger || (r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2))) {
         if (r.me.turn < 3 ||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
             if (buildDirection != null) {
