@@ -15,12 +15,24 @@ export default {
     },
 
     // return the next position for a defensive unit
-    nextPosition: function(r, defense_center, occupied) {
-        if (defense_center !== null) {
-            const positions = this.listPerpendicular(r, defense_center, [r.me.x, r.me.y])
-            for (const pos of positions) {
-                if (!occupied.has(pos)) {
-                    return utils.stringToCoord(pos)
+    nextPosition: function(r, defense_center, occupied, target = null) {
+        if (target === null) {
+            if (defense_center !== null) {
+                const positions = this.listPerpendicular(r, defense_center, [r.me.x, r.me.y])
+                for (const pos of positions) {
+                    if (!occupied.has(pos)) {
+                        return utils.stringToCoord(pos)
+                    }
+                }
+            }
+        }
+        else {
+            if (defense_center !== null) {
+                const positions = this.listPerpendicular(r, defense_center, target)
+                for (const pos of positions) {
+                    if (!occupied.has(pos)) {
+                        return utils.stringToCoord(pos)
+                    }
                 }
             }
         }
@@ -63,7 +75,7 @@ export default {
     },
 
     // returns list of STRING locations
-    listPerpendicular: function(r, center, target) {
+    listPerpendicular: function(r, center, target, spread) {
         let positions = []
         let left_multiplier = 0
         let right_multiplier = 0

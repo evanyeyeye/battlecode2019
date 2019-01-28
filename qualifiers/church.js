@@ -38,7 +38,7 @@ var occupied_setup = new Set()  // exclusively for crusaders
 var targetCastle = null
 var stand_pos = null
 var longest_distance  // squared distance to radio for attack
-const crusader_threshold = 7  // 
+var numCrusaderProd = 0
 
 var producing = true
 
@@ -231,12 +231,30 @@ export function churchTurn(r) {
                 }
             }
         }
-
+        if (numCrusaderProd >= 7) {
+            if (targetCastle !== null) {
+                r.signal(comms.encodeAttack(targetCastle[0], targetCastle[1]), longest_distance ** 0.5)
+                occupied_setup = new Set()
+                numCrusaderProd = 0
+                longest_distance = 0
+            }
+            return
+        }
         if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 1000) {  // save at least 1000
             var buildDirection = findAttackDirection(r, targetCastle[0], targetCastle[1])
 
             if (buildDirection !== null) {
                 const offensive_pos = targetCastle
+                const next = forms.nextPosition(r, stand_pos, occupied_setup, targetCastle)
+                if (next !== null) {
+                    r.signal(comms.encodeAttack(next[0], next[1]), 2)
+                    numCrusaderProd++
+                    occupied_setup.add(next.toString())
+                    const d = utils.getSquaredDistance(r.me.x, r.me.y, next[0], next[1])
+                    if (d > longest_distance)
+                        longest_distance = d
+                    return r.buildUnit(SPECS.CRUSADER, buildDirection[0], buildDirection[1])
+                }
                 if (offensive_pos !== null) {
                     r.log("OFFENSIVE Church: Built a CRUSADER, sending it to: " + offensive_pos)  // preacher counter increments when scanning friends
                     r.signal(comms.encodeAttack(offensive_pos[0], offensive_pos[1]), 2)                    
