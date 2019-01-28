@@ -81,8 +81,9 @@ export function crusaderTurn(r) {
             return r.attack(attackTarget.x - r.me.x, attackTarget.y - r.me.y)
         }
     }
-    if (r.me.x == targetCastle[0] && r.me.y == targetCastle[1]){
+    if (r.me.x == targetCastle[0] && r.me.y == targetCastle[1] && done ==false){
         r.log("killed castle, encoding")
+        done =true
         let encoded = comms.encodeCastleKill(r.me.x,r.me.y)
         r.log(encoded)
         r.signal (encoded, (r.map.length - 1)*(r.map.length - 1))
