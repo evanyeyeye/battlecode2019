@@ -24,7 +24,8 @@ var castlePathField = null
 
 var processedCastleTalk = new Set()
 
-var latticeLocations = []
+const latticeLocations = []
+const usedLatticeLocations = {}
 
 var idealNumPilgrims = 0
 var numTeamCastles = 0  // number of castles on our team. For now, split mines and pilgrim production
@@ -579,8 +580,14 @@ function lengthNearMinesWithXY(r, x, y){
 function nextLatticeLocation(r) {
     for (const index in latticeLocations) {
         const loc = latticeLocations[index]
-        if (r.getVisibleRobotMap()[loc[1]][loc[0]] === 0)
+        if (usedLatticeLocations.hasOwnProperty(loc) && usedLatticeLocations[loc] > 0) {
+            usedLatticeLocations[loc]--
+            continue
+        }
+        if (r.getVisibleRobotMap()[loc[1]][loc[0]] === 0) {
+            usedLatticeLocations[loc] = castlePathField.getDistanceAtPoint(loc[0], loc[1]) + 4
             return loc
+        }
     }
     return null
 }
