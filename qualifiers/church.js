@@ -3,9 +3,6 @@ import utils from './utils.js'
 import comms from './comms.js'
 import forms from './forms.js'
 
-const KARBONITE =  0
-const FUEL = 1
-
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
 // distance: pathfield distance from this castle to mine (ideal)
@@ -28,17 +25,17 @@ var preacherCounter = 0
 
 var mineToID = {}
 
-var mine_range = 10
+var mineRange = 10
 
 var defense_center = null  // place to defend from fast approach by crusaders
-var occupied_positions = new Set()  // later make more intelligent to remove
+var occupiedPositions = new Set()  // later make more intelligent to remove
 var offensive = false
 
 var occupied_setup = new Set()  // exclusively for crusaders
 var targetCastle = null
-var stand_pos = null
+var standPos = null
 var longest_distance  // squared distance to radio for attack
-const crusader_threshold = 7  // 
+const crusader_threshold = 7
 
 var producing = true
 
@@ -51,28 +48,28 @@ export function churchTurn(r) {
                 // recieve message
 
                 const decodedMsg = comms.decodeSignal(otherRobot.signal)
-                r.log("Church: recieved message: " + decodedMsg)             
+                // r.log("Church: recieved message: " + decodedMsg)             
                 
                 if (decodedMsg[2] == comms.ATTACK)
                 {
                     targetCastle = [decodedMsg[0], decodedMsg[1]]
                     offensive = true
-                    stand_pos = forms.findIterate(r, targetCastle)
-                    if (stand_pos === null)
-                        stand_pos = targetCastle  // just send them to the castle i guess
-                    r.log("Church: I am an offensive center" + targetCastle)                    
+                    standPos = forms.findIterate(r, targetCastle)
+                    if (standPos === null)
+                        standPos = targetCastle  // just send them to the castle i guess
+                    // r.log("Church: I am an offensive center" + targetCastle)                    
                    
                 }
             }
         }
-        r.log("I am a Church")
+        r.log("Church: I am a Church")
         // generate pathfield from castle location
         churchPathField = r.pm.getPathField([r.me.x, r.me.y])
         // populate mineStatus and sortedMines
         initializeMines(r)
-        r.log("Church: There are " + mineStatus.size + " mines")
+        // r.log("Church: There are " + mineStatus.size + " mines")
         // calculate number of mines within range
-        numMines = calculateNumMines(r, mine_range)  
+        numMines = calculateNumMines(r, mineRange)  
         // determine number of pilgrims to build
         idealNumPilgrims = calculateNumPilgrims(r) // split map with opponent
 
@@ -86,7 +83,7 @@ export function churchTurn(r) {
             defense_center = forms.findIterate(r, [r.me.x + slowMove[0], r.me.y + slowMove[1]])
         if (defense_center === null)
             defense_center = forms.naiveFindCenter(r, enemy)
-        r.log("Church: my defense center is " + defense_center)
+        // r.log("Church: my defense center is " + defense_center)
     }
 
     let danger = false
@@ -108,8 +105,7 @@ export function churchTurn(r) {
 
     for (const robot of r.getVisibleRobots()) { 
         if (robot.team === r.me.team && robot.id !== r.me.id) {
-            if (robot.unit !== SPECS.PILGRIM)
-            {
+            if (robot.unit !== SPECS.PILGRIM) {
                 allyCount += 1
                 if (robot.unit === SPECS.PREACHER) 
                     preacherCounter++
@@ -117,16 +113,14 @@ export function churchTurn(r) {
                     crusaderCounter++
                 if (robot.unit === SPECS.PROPHET)
                     prophetCounter++
-            }
-            else{
-                pilgrimCounter++;
-                if (r.fuel_map[robot.y][robot.x] || r.karbonite_map[robot.y][robot.x]){
-                    let cur_id = mineToID[robot.x.toString() +',' + robot.y.toString()]
+            } else {
+                pilgrimCounter++
+                if (r.fuel_map[robot.y][robot.x] || r.karbonite_map[robot.y][robot.x]) {
+                    let cur_id = mineToID[[robot.x, robot.y]]
                     mineStatus.get(cur_id).activity = 10  // update yourself 
                 }    
             }
-        }
-         else if (robot.team !== r.me.team) {
+        } else if (robot.team !== r.me.team) {
             if (robot.unit === SPECS.CRUSADER)
                 dangerCrusader = true
             else if (robot.unit === SPECS.PROPHET)
@@ -136,38 +130,31 @@ export function churchTurn(r) {
             enemyCount += 1
             enemyDistance[robot.id] = utils.getManhattanDistance(r.me.x, r.me.y, robot.x, robot.y)
             enemyLocation[robot.id] = [r.me.x, r.me.y]
-            if (closestEnemy === -1 || enemyDistance[robot.id] < enemyDistance[closestEnemy]) {
+            if (closestEnemy === -1 || enemyDistance[robot.id] < enemyDistance[closestEnemy])
                 closestEnemy = robot.id
-            }
-            if (enemyCount > allyCount) {
+            if (enemyCount > allyCount)
                 danger = true
-            }
         }
     }
 
-    //-----------------OFFENSIVE CENTER BUILD -------------------
-    // ---------- START BUILDING STUFF ----------
-    
+    // ----- OFFENSIVE CENTER BUILD -----
+    // ----- START BUILDING STUFF -----
 
-    // r.log("I'm church there are this many pilgrims count: "+pilgrimCounter)
-    if (offensive == false){
+    // r.log("Church: Pilgrim count: " + pilgrimCounter)
+    if (!offensive) {
          //-------------------------DENFENSE BUILD------------------------------------
-        if (! danger && (pilgrimCounter < idealNumPilgrims ) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
+        if (!danger && (pilgrimCounter < idealNumPilgrims ) && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) {  // enough fuel to signal afterwards
             if (r.me.turn < 1 || (r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 200)) {  // always save  
-                var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-                if (buildDirection != null) {
+                var buildDirection = utils.findBuildDirection(r, r.me.x, r.me.y)
+                if (buildDirection) {
                     // see if there is a mine for a pilgrim to go to
                     const mineID = nextMineID(r)
-                    if (mineID !== null){
-                        r.log("Church: Built Pilgrim, trying to send it to " + mineID)
+                    if (mineID){
+                        // r.log("Church: Built Pilgrim, trying to send it to " + mineID)
                         // mineStatus.get(mineID).activity += 10  // TODO: NOT OPTIMAL, SHOULD CHANGE SO PILGRIM SIGNALS BACK ACKNOWLEDGEMENT, ALL CASTLES KNOW THEN
-                        
-
                         let signalToSend = comms.encodeMine(mineID)
-
-
                         r.signal(signalToSend, 2)  // tell the pilgrim which mine to go to, dictionary keys are strings
-                        r.castleTalk(comms.encodeCastleTalk(mineID,comms.CASTLETALK_GOING_MINE))  // let other castles know                            
+                        r.castleTalk(comms.encodeCastleTalk(mineID, comms.CASTLETALK_GOING_MINE))  // let other castles know                            
                         return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1])
                     }
                 }
@@ -176,14 +163,13 @@ export function churchTurn(r) {
 
         if (!(dangerCrusader && r.me.turn <= 50 && preacherCounter < 2) && 
             (danger || (prophetCounter < r.me.turn / 20 && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2))) {
-            if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
-                var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-                if (buildDirection != null) {
-                    r.log("Church: Built Prophet")
+            if (r.me.turn < 10 || (r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE + 50 && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)) {
+                var buildDirection = utils.findBuildDirection(r, r.me.x, r.me.y)
+                if (buildDirection) {
+                    // r.log("Church: Built Prophet")
                     const latticeLocation = nextLatticeLocation(r)
-                    if (latticeLocation) {
+                    if (latticeLocation)
                         r.signal(comms.encodeStand(latticeLocation[0], latticeLocation[1]), 2)
-                    }
                     return r.buildUnit(SPECS.PROPHET, buildDirection[0], buildDirection[1])
                 }
             }
@@ -191,55 +177,43 @@ export function churchTurn(r) {
 
         // test build preachers
         if ((dangerCrusader || dangerPreacher) && preacherCounter < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
-            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
-            if (buildDirection !== null) {
+            var buildDirection = utils.findBuildDirection(r, r.me.x, r.me.y)
+            if (buildDirection) {
                 // r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
-                const defensive_pos = forms.nextPosition(r, defense_center, occupied_positions)
-                if (defensive_pos !== null) {
-                    r.log("Church: Built a Preacher, sending it to: " + defensive_pos)  // preacher counter increments when scanning friends
-                    r.signal(comms.encodeStand(defensive_pos[0], defensive_pos[1]), 2)
-                    occupied_positions.add(defensive_pos.toString())
+                const defensivePos = forms.nextPosition(r, defense_center, occupiedPositions)
+                if (defensivePos) {
+                    // r.log("Church: Built a Preacher, sending it to: " + defensivePos)  // preacher counter increments when scanning friends
+                    // r.signal(comms.encodeStand(defensivePos[0], defensivePos[1]), 2)
+                    occupiedPositions.add(defensivePos.toString())
                     return r.buildUnit(SPECS.PREACHER, buildDirection[0], buildDirection[1])
                 }
             }
         }
-    }
-    //-------------------------OFFENSE BUILD------------------------------------
-
-    else if (producing == true){
+    } else if (producing) {  // ------ OFFENSE BUILD ------
         for (const otherRobot of r.getVisibleRobots()) {  // may be bad for optimization?
             if (otherRobot.team === r.me.team && r.isRadioing(otherRobot)) {
                 // recieve message
-
                 const decodedMsg = comms.decodeSignal(otherRobot.signal)
-                r.log("Church: recieved message: " + decodedMsg)             
-                
-                if (decodedMsg[2] == comms.KILLED)
-                {
-                    if (targetCastle != null)
-                    {
-                        if (targetCastle[0] == decodedMsg[0] && targetCastle[1] == decodedMsg[1] ){
+                // r.log("Church: recieved message: " + decodedMsg)             
+                if (decodedMsg[2] === comms.KILLED) {
+                    if (targetCastle) {
+                        if (targetCastle[0] === decodedMsg[0] && targetCastle[1] === decodedMsg[1]) {
                             targetCastle = null
-                            
-                            r.log(decodedMsg)
-                            producing =false
-
-                            r.log("Church: I see castle killed" + targetCastle)       
+                            // r.log(decodedMsg)
+                            producing = false
+                            // r.log("Church: I see castle killed" + targetCastle)       
                         } 
                     }            
-                   
                 }
             }
         }
-
         if (r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL + 1000) {  // save at least 1000
             var buildDirection = findAttackDirection(r, targetCastle[0], targetCastle[1])
-
             if (buildDirection !== null) {
-                const offensive_pos = targetCastle
-                if (offensive_pos !== null) {
-                    r.log("OFFENSIVE Church: Built a CRUSADER, sending it to: " + offensive_pos)  // preacher counter increments when scanning friends
-                    r.signal(comms.encodeAttack(offensive_pos[0], offensive_pos[1]), 2)                    
+                const offensivePos = targetCastle
+                if (offensivePos) {
+                    // r.log("OFFENSIVE Church: Built a CRUSADER, sending it to: " + offensivePos)  // preacher counter increments when scanning friends
+                    r.signal(comms.encodeAttack(offensivePos[0], offensivePos[1]), 2)                    
                     return r.buildUnit(SPECS.CRUSADER, buildDirection[0], buildDirection[1])
                 }
             }
@@ -249,29 +223,18 @@ export function churchTurn(r) {
     return
 }
 
-function findAttackDirection (r,x,y){
+function findAttackDirection (r, x, y) {
     let minDis = 9999
     let minDir = null
     for (const dir of utils.directions) {
         if (utils.isEmpty(r, r.me.x + dir[0], r.me.y + dir[1])) {
-            if (utils.getManhattanDistance(r.me.x + dir[0], r.me.y + dir[1] ,x ,y) < minDis)
-            {
-                minDis = utils.getManhattanDistance(r.me.x + dir[0], r.me.y + dir[1] ,x ,y)
+            if (utils.getManhattanDistance(r.me.x + dir[0], r.me.y + dir[1], x, y) < minDis) {
+                minDis = utils.getManhattanDistance(r.me.x + dir[0], r.me.y + dir[1], x, y)
                 minDir = dir                
             }
         }
     }
     return minDir
-}
-
-// TODO: specifically tune for troops
-function findBuildDirection(r, x, y) {
-    for (const dir of utils.directions) {
-        if (utils.isEmpty(r, x + dir[0], y + dir[1])) {
-            return dir
-        }
-    }
-    return null
 }
 
 // populate mineStatus: deterministically label mines, store location & distance from castle
@@ -313,17 +276,16 @@ function calculateNumMines(r, range) {
 // Theres usually different ratios of mines i think, but for every 2-mine grouping it would be distance * 2 / 10 + 2 i think
 function calculateNumPilgrims(r) {
     let num = 0
-    for (const entry of sortedMines) {  // take only a portion of the closest mines
-        if (mineStatus.get(entry).distance < mine_range) {
-            num++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
-        }
-    }
+    for (const entry of sortedMines)  // take only a portion of the closest mines
+        if (mineStatus.get(entry).distance < mineRange)
+            num++  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
     r.log("Church: im going to try to make " + num + " pilgrims")
     return num
 }
 
+// following the meta
 function findLatticeLocations(r) {
-    const size = 2*SPECS.UNITS[SPECS.CHURCH].VISION_RADIUS+1
+    const size = 2 * SPECS.UNITS[SPECS.CHURCH].VISION_RADIUS + 1
     const orientation = (r.me.x + r.me.y) % 2
     let x = r.me.x
     let y = r.me.y
@@ -358,7 +320,7 @@ function nextLatticeLocation(r) {
             continue
         }
         if (r.getVisibleRobotMap()[loc[1]][loc[0]] === 0) {
-            usedLatticeLocations[loc] = churchPathField.getDistanceAtPoint(loc[0], loc[1]) + 4
+            usedLatticeLocations[loc] = churchPathField.getDistanceAtPoint(loc[0], loc[1]) + 4  // 4 is random
             return loc
         }
     }
@@ -370,12 +332,11 @@ function nextMineID(r) {  // uses resource-blind ids
     // use sortedMines with mineStatus to decide the next mine to send a pilgrim toward
     for (const mineID of sortedMines) {
         const mine = mineStatus.get(mineID)
-        if (robomap[mine.loc[1]][mine.loc[0]] == 0)
-        {
+        if (robomap[mine.loc[1]][mine.loc[0]] == 0) {
             mine.activity = 0
-        // r.log("Church: ID of " + id + " has activity of " + mine.activity)
-        if (mine.activity === 0 && mine.distance < mine_range) // no pilgrim activity here yet, temp way to cutoff distance
-            return mineID
+            // r.log("Church: ID of " + id + " has activity of " + mine.activity)
+            if (mine.activity === 0 && mine.distance < mineRange)  // no pilgrim activity here yet, temp way to cutoff distance
+                return mineID
         }
     }
     return null

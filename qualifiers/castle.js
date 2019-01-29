@@ -3,14 +3,13 @@ import utils from './utils.js'
 import comms from './comms.js'
 import forms from './forms.js'
 
-
 // maps mineID (starting from 1) to
 // loc: [x, y] location of mine
 // distance: pathfield distance from this castle to mine
 // activity: heuristic for pilgrims at mine, assigning adds 10, subtract/add 1 per turn based on mining
 const mineStatus = new Map()
 const sortedMines = []  // sorted array of mineIDs ascending by distance
-var mineToGoOrder = [] //sorted array of mineID order, it's different because it build church
+var mineToGoOrder = [] // sorted array of mineID order, it's different because it build church
 var mineToID = {}  // maps string location to id, convenience
 
 // team: array of 1-3 objects with castle info
@@ -201,8 +200,8 @@ export function castleTurn(r) {
                     r.log("Castle: trying to send my symmetrical location")
                     let curEnemyCastle=utils.reflectLocation(r,[r.me.x,r.me.y])
                     r.log('Castle: sent '+ curEnemyCastle)
-                    r.log(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]))
-                    r.signal(comms.encodeAttack(curEnemyCastle[0],curEnemyCastle[1]),2)
+                    // r.log(comms.encodeAttack(curEnemyCastle[0], curEnemyCastle[1]))
+                    r.signal(comms.encodeSignal(curEnemyCastle[0], curEnemyCastle[1], comms.ATTACK_CHURCH), 2)
                     enemyCastleLocSent = true
                     return r.buildUnit(SPECS.PILGRIM, buildDirection[0], buildDirection[1]) 
                 }
@@ -274,7 +273,7 @@ export function castleTurn(r) {
     if ((dangerPreacher || dangerCrusader) && allyPreacherCount < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
         var buildDirection = utils.findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
-            const defensivePos = nextPosition(r, occupiedPositions)
+            const defensivePos = forms.nextPosition(r, defenseCenter, occupiedPositions)
             if (defensivePos !== null) {
                 r.log("Castle: Built Preacher, sending it to " + defensivePos)
                 r.signal(comms.encodeStand(defensivePos[0], defensivePos[1]), 2)
@@ -301,7 +300,8 @@ export function castleTurn(r) {
     }
     if (attackClosestLocation)
         return r.attack(attackClosestLocation[0] - r.me.x, attackClosestLocation[1] - r.me.y)
-    return
+    
+    return 
 }
 
 
@@ -322,7 +322,7 @@ function initializeCastle(r) {
     if (defenseCenter === null && slowMove !== null)
         defenseCenter = forms.findIterate(r, [r.me.x + slowMove[0], r.me.y + slowMove[1]])
     if (defenseCenter === null)
-        defenseCenter = naiveFindCenter(r, enemy)
+        defenseCenter = forms.naiveFindCenter(r, enemy)
     r.log("Castle: my defense center is " + defenseCenter)
 }
 
@@ -463,10 +463,8 @@ function calculateNumPilgrims(r) {
     // r.log("Castle: sortedmines"+sortedMines)
     for (const mineID of sortedMines) {  // take only a portion of the closest mines
         const mine = mineStatus.get(mineID)
-        if (mine.distance < mine_range) {
-            // r.log("Castle: distance is "+mine.distance)
-            num++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
-        }
+        if (mine.distance < mine_range)
+            num++  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
     }
     // r.log("Castle: im going to try to make " + num + " pilgrims")
     return num
@@ -540,52 +538,4 @@ function lengthNearMinesWithXY(r, x, y) {
         }
     }
     return toRet
-}
-
-// use defenseCenter and occupied set to return the next position for a defensive unit
-function nextPosition(r, occupied) {
-    if (defenseCenter !== null) {
-        const positions = forms.listPerpendicular(r, defenseCenter, [r.me.x, r.me.y])
-        for (const pos of positions) {
-            if (!occupied.has(pos)) {
-                return utils.stringToCoord(pos)
-            }
-        }
-    }
-    return naiveFindCenter(r, defenseCenter)
-}
-
-// find somewhere around the church to send preachers defensively
-// this does not work well at all
-function naiveFindCenter(r, enemyLoc) {
-    let i_min = 0
-    let i_max = 0
-    let j_min = 0
-    let j_max = 0
-    if (enemyLoc[0] - r.me.x > 0)  // horrible
-        i_max = 3
-    else if (enemyLoc[0] - r.me.x < 0)
-        i_min = -3
-    else {
-        i_max = 3
-        i_min = -3
-    }
-    if (enemyLoc[1] - r.me.y > 0)
-        j_max = 3
-    else if (enemyLoc[1] - r.me.y < 0)
-        j_min = -3
-    else {
-        j_max = 3
-        j_min = -3
-    }
-    // r.log("Church: finding center with i_max: " + i_max + " i_min: " + i_min + " j_max: " + j_max + " j_min: " + j_min)
-    for (let i = i_min; i <= i_max; i++) {
-        for (let j = j_min; j <= j_max; j++) {
-            const cx = r.me.x + i
-            const cy = r.me.y + j
-            if (utils.isStandable(r, cx, cy))
-                return [cx, cy]
-        }
-    }
-    return null  // hopefully this never happens
 }

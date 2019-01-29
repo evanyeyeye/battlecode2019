@@ -114,6 +114,23 @@ export default {
         return this.directionToCost[dir]
     },
 
+    squaredRadiusToRadius: {
+        100: 10,
+        81: 9,
+        64: 8,
+        49: 7,
+        36: 6,
+        25: 5,
+        16: 4,
+        9: 3,
+        4: 2,
+        1: 1
+    },
+
+    squareRootRadius: function(num) {
+        return this.squaredRadiusToRadius[num]
+    },
+
     // try to move in dir
     // if occupied, try to move in adjacent left and right dirs
     // returns null if movement failed
@@ -257,4 +274,4 @@ export default {
     stringToCoord: function(str) {
         return str.split(",").map((n) => parseInt(n))
     }
-}   
+}
