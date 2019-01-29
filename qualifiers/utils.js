@@ -121,7 +121,6 @@ export default {
     tryMoveRotate: function (r, dir) {
         if (dir === [0, 0] || dir.includes(2) || dir.includes(-2))
             return null
-
         const x = r.me.x
         const y = r.me.y
         for (const n of [0, 1, -1]) {
@@ -210,7 +209,7 @@ export default {
             this.absCache.set(dy, Math.abs(dy))
         return this.absCache.get(dx) + this.absCache.get(dy)
     },
-    //this gives squared not the square root
+
     squaredCache: new Map(),
     getSquaredDistance: function (x1, y1, x2, y2) {
         const dx = x2 - x1
@@ -236,5 +235,5 @@ export default {
     // from "x,y" to [x, y]
     stringToCoord: function(str) {
         return str.split(",").map((n) => parseInt(n))
-    },
+    }
 }   
