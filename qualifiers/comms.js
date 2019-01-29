@@ -78,5 +78,5 @@ export default {
         const loc1 = parseInt(b1, 2)
         const loc2 = parseInt(b2, 2)
         return [loc1, loc2, action]
-    },
+    }
 }
