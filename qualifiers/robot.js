@@ -13,7 +13,7 @@ class MyRobot extends BCAbstractRobot {
 
     constructor() {
         super()
-        this.step = 0
+        this.step = 0  // why we have this? the world shall never know
     }
 
     turn() {

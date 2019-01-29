@@ -1,7 +1,7 @@
-import {SPECS} from 'battlecode'
 import utils from './utils.js'
 
 export default {
+
     LEFT: 0,
     RIGHT: 1,
 
@@ -19,8 +19,8 @@ export default {
         if (target === null)
             target = [r.me.x, r.me.y]  // technically facing the wrong way, but also not really
         else {
-            if (defense_center !== null) {
-                const positions = this.listPerpendicular(r, defense_center, target)
+            if (defenseCenter !== null) {
+                const positions = this.listPerpendicular(r, defenseCenter, target)
                 for (const pos of positions) {
                     if (!occupied.has(pos)) {
                         return utils.stringToCoord(pos)
@@ -28,7 +28,7 @@ export default {
                 }
             }
         }
-        return this.naiveFindCenter(r, defense_center)
+        return this.naiveFindCenter(r, defenseCenter)
     },
 
     // very bad function
@@ -246,5 +246,5 @@ export default {
         if (side === this.LEFT)
             return this.RIGHT
         return this.LEFT
-    },
+    }
 }

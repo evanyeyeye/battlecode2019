@@ -1,13 +1,12 @@
 import utils from './utils.js'
 
-
 // stores direction to move in, distance to target
 class PathPoint {
 
     constructor(dir, dist) {
         this.direction = dir
         this.dist = dist
-        this.optimal = false  // is my distance truly correct
+        this.optimal = false  // is my distance truly correct (lol probably still wrong after true)
     }
 }
 
@@ -25,9 +24,6 @@ export class PathField {
         return x >= 0 && x < this.map[0].length && y >= 0 && y < this.map.length
     }
 
-    // please always call before using getDirectionAtPoint or getDistanceAtPoint
-    // if returns false on a passable square, means terrain is disjointed
-    // (not completely accurate because BFS doesn't account for large steps, but will prevent errors)
     isPointSet(x, y) {
         return this.field[y][x] != null
     }
