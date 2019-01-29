@@ -15,25 +15,20 @@ export default {
     },
 
     // return the next position for a defensive unit
-    nextPosition: function(r, defenseCenter, occupied, target = null) {
+    nextPosition: function(r, defenseCenter, occupied, target=null) {
         if (target === null) {
             if (defenseCenter !== null) {
                 const positions = this.listPerpendicular(r, defenseCenter, [r.me.x, r.me.y])
-                for (const pos of positions) {
-                    if (!occupied.has(pos)) {
+                for (const pos of positions)
+                    if (!occupied.has(pos))
                         return utils.stringToCoord(pos)
-                    }
-                }
             }
-        }
-        else {
+        } else {
             if (defenseCenter !== null) {
                 const positions = this.listPerpendicular(r, defenseCenter, target)
-                for (const pos of positions) {
-                    if (!occupied.has(pos)) {
+                for (const pos of positions)
+                    if (!occupied.has(pos))
                         return utils.stringToCoord(pos)
-                    }
-                }
             }
         }
         return this.naiveFindCenter(r, defenseCenter)

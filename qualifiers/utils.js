@@ -198,6 +198,28 @@ export default {
         return isAttackingUnit && isWithinRange
     },
 
+    findBuildDirection: function (r, x, y) {
+        for (const dir of this.shuffledDirections()) {
+            if (this..isEmpty(r, x + dir[0], y + dir[1])) {
+                return dir
+            }
+        }
+        return null
+    },
+
+    // shuffles random direction order
+    shuffledDirections: function () {
+        let directions = this.directions
+        for (let i = 0; i <= (directions.length - 1); i++) {
+            let index = Math.floor(Math.random() * (i + 1))
+            // swapping
+            let x = directions[i]
+            directions[i] = directions[index]
+            directions[index] = x
+        }
+        return directions
+    }
+
     absCache: new Map(),
     getManhattanDistance: function (x1, y1, x2, y2) {
         const dx = x2 - x1

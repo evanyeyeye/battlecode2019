@@ -192,7 +192,7 @@ export function castleTurn(r) {
     if (!danger) {  // enough fuel to signal afterwards
         if ( (1 < r.me.turn < 10 && r.karbonite > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 2) || (r.karbonite > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_KARBONITE+50) && r.fuel > (SPECS.UNITS[SPECS.PILGRIM].CONSTRUCTION_FUEL + 100) ))
         { 
-            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+            var buildDirection = utils.findBuildDirection(r, r.me.x, r.me.y)
 
             if (buildDirection !== null) {
                 //-------------every 50 turns after turn 400 try harass enemy  ---------          
@@ -243,7 +243,7 @@ export function castleTurn(r) {
     if (!(dangerCrusader && r.me.turn <= 50 && allyPreacherCount < 2) && 
         (danger || (r.me.turn / 10 > prophetCounter && r.me.turn > 1 && r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 2))) {
         if (r.me.turn < 3 ||(r.karbonite > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_KARBONITE+50&&r.fuel > SPECS.UNITS[SPECS.PROPHET].CONSTRUCTION_FUEL + 200)){
-            var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+            var buildDirection = utils.findBuildDirection(r, r.me.x, r.me.y)
             if (buildDirection != null) {
                 r.log("Castle: Built Prophet")
                 const latticeLocation = nextLatticeLocation(r)
@@ -260,7 +260,7 @@ export function castleTurn(r) {
     /*
     // build crusaders
     if (danger && r.karbonite > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.CRUSADER].CONSTRUCTION_FUEL) {
-        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+        var buildDirection = utils.findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             r.log("Built Crusader")
             r.signal(parseInt(generateMeme(enemyLocation[closestEnemy])), 2)
@@ -272,7 +272,7 @@ export function castleTurn(r) {
 
     // build preachers if panicking
     if ((dangerPreacher || dangerCrusader) && allyPreacherCount < 2 && r.karbonite > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_KARBONITE && r.fuel > SPECS.UNITS[SPECS.PREACHER].CONSTRUCTION_FUEL) {
-        var buildDirection = findBuildDirection(r, r.me.x, r.me.y)
+        var buildDirection = utils.findBuildDirection(r, r.me.x, r.me.y)
         if (buildDirection != null) {
             const defensivePos = nextPosition(r, occupiedPositions)
             if (defensivePos !== null) {
@@ -304,15 +304,6 @@ export function castleTurn(r) {
     return
 }
 
-// TODO: specifically tune for troops
-function findBuildDirection(r, x, y) {
-    for (const dir of shuffledDirection()) {
-        if (utils.isEmpty(r, x + dir[0], y + dir[1])) {
-            return dir
-        }
-    }
-    return null
-}
 
 function initializeCastle(r) {
     // generate pathfield from castle location
@@ -342,52 +333,42 @@ function initializeMines(r) {
     for (let j = 0; j < r.karbonite_map.length; j++) {
         for (let i = 0; i < r.karbonite_map[0].length; i++) {
             if (r.karbonite_map[j][i] || r.fuel_map[j][i]) {
-                //find if on my side of symmetry or not
-                let side = 0 //side 0 is my side, 1 is enemy side decide if it's on my side or not
+                // find if on my side of symmetry or not
+                let side = 0 // side 0 is my side, 1 is enemy side decide if it's on my side or not
                 let maplen = r.karbonite_map.length
-                //x ok y change after reflection horizontal
-                if (r.mapSymmetry){
+                if (r.mapSymmetry) {  // x ok y change after reflection horizontal
                     side = 0
-                    //different side of the map
-                    if (Math.floor(j/maplen*2) != (Math.floor(r.me.y/maplen*2))){
+                    // different side of the map
+                    if (Math.floor(j/maplen*2) !== (Math.floor(r.me.y/maplen*2)))
                         side = 1
-                    }
-                }
-                //x change y ok after reflection vertical
-                else{
+                } else {  // x change y ok after reflection vertical
                     side = 0
-                    //different side of the map
-                    if (Math.floor(i/maplen*2) != (Math.floor(r.me.x/maplen*2))){
+                    // different side of the map
+                    if (Math.floor(i/maplen*2) !== (Math.floor(r.me.x/maplen*2))) {
                         side = 1
                     }
                 }
                 // calculate the order based on distance
                 let tempDistance = castlePathField.getDistanceAtPoint(i, j)
                 // on my side
-                if (side == 0){
-                    let near = lengthNearMinesWithXY (r,i,j)
+                if (side == 0) {
+                    let near = lengthNearMinesWithXY(r,i,j)
                     // if it's resource dense on my side, prioritize
-                    if (near >= 8){
-                        //if more near better
-                        tempDistance = mine_range + 1 - near/64
-                    }
-                }
-                //on enemy side
-                else{
+                    if (near >= 8) 
+                        tempDistance = mine_range + 1 - near/64  // if more near better
+                } else {  // on enemy side
                     tempDistance = 9999 - tempDistance
                 }
-                //prefer karbonite sincei t's better early
-                if (r.karbonite_map[j][i]){
+                // prefer karbonite since it's better early
+                if (r.karbonite_map[j][i])
                     tempDistance -= 5
-
-                }
                 mineStatus.set(++mineID, {
                     loc: [i, j],
                     distance: tempDistance,
                     activity: 0
                 })
                 sortedMines.push(mineID)
-                mineToID[arrayToString([i,j])] = mineID                    
+                mineToID[[i, j]] = mineID                    
             }
         }
     }
@@ -430,8 +411,9 @@ function findCastleLocations(r) {
     }
 }
 
+// following the meta
 function findLatticeLocations(r) {
-    const size = 2*SPECS.UNITS[SPECS.CASTLE].VISION_RADIUS+1
+    const size = 2 * SPECS.UNITS[SPECS.CASTLE].VISION_RADIUS + 1
     const orientation = (r.me.x + r.me.y) % 2
     let x = r.me.x
     let y = r.me.y
@@ -449,132 +431,13 @@ function findLatticeLocations(r) {
                     case 3: x--; break
                 }
             }
-            direction = (direction+1) % 4
+            direction = (direction + 1) % 4
         }
         chain++
     }
     latticeLocations.sort((a, b) => {
         return utils.getSquaredDistance(a[0], a[1], r.me.x, r.me.y) - utils.getSquaredDistance(b[0], b[1], r.me.x, r.me.y)
     })
-}
-
-// returns conservative estimate of number of pilgrims we need to have to mine at every mine
-// DOES NOT ACCOUNT FOR MINING MULTIPLE RESOURCES WHICH IS A MUCH BETTER IDEA
-// Theres usually different ratios of mines i think, but for every 2-mine grouping it would be distance * 2 / 10 + 2 i think
-function calculateNumPilgrims(r) {
-    let num = 0
-  //  r.log("Castle: sortedmines"+sortedMines)
-    for (const mineID of sortedMines) {  // take only a portion of the closest mines
-        const mine = mineStatus.get(mineID)
-        if (mine.distance < mine_range) {
-           // r.log("Castle: distance is "+mine.distance)
-            num ++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
-        }
-    }
-    r.log("Castle: im going to try to make " + num + " pilgrims")
-    return num
-}
-
-function nextMineID(r) {  // uses resource-blind ids
-    // use sortedMines with mineStatus to decide the next mine to send a pilgrim toward
-    for (const mineID of sortedMines) {
-        const mine = mineStatus.get(mineID)
-        // /r.log("Castle: ID of " + mineID + " has activity of " + mine.activity)
-        if (mine.activity === 0) // no pilgrim activity here yet, temp way to cutoff distance
-        {            
-            // if close to castle no need to descrease activity
-            
-            if (mine.distance > mine_range){
-                let near = nearMines(r,mineID)
-                for (let tempMineID of near){
-                    let tempMineStatus = mineStatus.get(tempMineID) 
-                    //increase nearby activity
-                    tempMineStatus.activity += 10               
-                }
-                
-            }
-            return mineID
-        }
-    }
-    return null
-}
-
-//shuffle a random direction to check
-function shuffledDirection() {
-    let directions = utils.directions
-    let index = null
-    let x = null
-    for (let i = 0; i <= (directions.length - 1); i++) {
-        index = Math.floor(Math.random() * (i + 1))
-        //swapping
-        x = directions[i]
-        directions[i] = directions[index]
-        directions[index] = x
-    }
-    return directions
-}
-
-
-// returns a strinified version of an array
-// used to find location string using array
-// takes array of two index [x,y] and convert to string
-function arrayToString(array){
-    return array[0].toString() + "," + array[1].toString()
-
-}
-
-
-// returns a list of nearby mine ids
-// used to find all near mine id so you can increase activity level wehn pilgirm sent
-// we want to not send pilgrim from castle unelss for exploration
-// find the id of all nearby mines so you can increase activity level 
-function nearMines(r,mineID){
-    let toRet = []
-    let mapsize = r.map.length
-    // r.log('Castle: near mine of')
-    // r.log(mineID)    
-    let curMine=mineStatus.get(mineID)
-    let mineLoc = curMine.loc //location array
-    for (let i = -mine_range; i < mine_range; i++){        
-        for (let j = -mine_range; j < mine_range; j++){
-            if (Math.abs(i) + Math.abs(j) < mine_range){
-                let curX = mineLoc[0] + i
-                let curY = mineLoc[1] + j
-                // no need to check in range or not since it's already part of the key it's in                
-                let curLoc = arrayToString([curX,curY])
-                if (curLoc in mineToID){
-                    toRet.push(mineToID[curLoc])
-                }               
-            }
-        }
-    }
-    return toRet
-}
-
-// returns length of near by mine for distance
-// used to find all near mine id so you can increase activity level when pilgirm sent
-// we want to not send pilgrim from castle unless for exploration
-// find the id of all nearby mines so you can increase activity level 
-function lengthNearMinesWithXY(r, x, y){
-    let toRet = 0
-    let mapsize = r.map.length    
-    let mineLoc = [x,y]
-
-    for (let i = -mine_range; i < mine_range; i++){        
-        for (let j = -mine_range; j < mine_range; j++){
-            if (Math.abs(i) + Math.abs(j) < mine_range){
-                let curX = mineLoc[0] + i
-                let curY = mineLoc[1] + j
-                // check in range or not               
-                if (!(curX < 0 || curX >= r.map[0].length || curY < 0 || curY >= r.map.length)){
-                    if (r.karbonite_map[curY][curX] || r.fuel_map[curY][curX]){
-                        toRet++;
-                    }
-                }
-            }               
-        }
-    }
-    return toRet
 }
 
 function nextLatticeLocation(r) {
@@ -585,11 +448,98 @@ function nextLatticeLocation(r) {
             continue
         }
         if (r.getVisibleRobotMap()[loc[1]][loc[0]] === 0) {
-            usedLatticeLocations[loc] = castlePathField.getDistanceAtPoint(loc[0], loc[1]) + 4
+            usedLatticeLocations[loc] = castlePathField.getDistanceAtPoint(loc[0], loc[1]) + 4  // 4 is random
             return loc
         }
     }
     return null
+}
+
+// returns conservative estimate of number of pilgrims we need to have to mine at every mine
+// DOES NOT ACCOUNT FOR MINING MULTIPLE RESOURCES WHICH IS A MUCH BETTER IDEA
+// Theres usually different ratios of mines i think, but for every 2-mine grouping it would be distance * 2 / 10 + 2 i think
+function calculateNumPilgrims(r) {
+    let num = 0
+    // r.log("Castle: sortedmines"+sortedMines)
+    for (const mineID of sortedMines) {  // take only a portion of the closest mines
+        const mine = mineStatus.get(mineID)
+        if (mine.distance < mine_range) {
+            // r.log("Castle: distance is "+mine.distance)
+            num++;  // logic is 10 turns to mine to full, pilgrims walk 1 tile per turn back and forth
+        }
+    }
+    // r.log("Castle: im going to try to make " + num + " pilgrims")
+    return num
+}
+
+function nextMineID(r) {  // uses resource-blind ids
+    // use sortedMines with mineStatus to decide the next mine to send a pilgrim toward
+    for (const mineID of sortedMines) {
+        const mine = mineStatus.get(mineID)
+        // r.log("Castle: ID of " + mineID + " has activity of " + mine.activity)
+        if (mine.activity === 0) {  // no pilgrim activity here yet, temp way to cutoff distance
+            // if close to castle no need to descrease activity
+            if (mine.distance > mine_range) {
+                const near = nearMines(r,mineID)
+                for (const tempMineID of near) {
+                    const tempMineStatus = mineStatus.get(tempMineID) 
+                    tempMineStatus.activity += 10  // increase nearby activity
+                }
+                
+            }
+            return mineID
+        }
+    }
+    return null
+}
+
+// returns a list of nearby mine ids
+// used to find all near mine id so you can increase activity level wehn pilgirm sent
+// we want to not send pilgrim from castle unelss for exploration
+// find the id of all nearby mines so you can increase activity level 
+function nearMines(r, mineID) {
+    let toRet = []
+    let mapsize = r.map.length
+    // r.log('Castle: near mine of')
+    // r.log(mineID)    
+    let curMine = mineStatus.get(mineID)
+    let mineLoc = curMine.loc // location array
+    for (let i = -mine_range; i < mine_range; i++) {
+        for (let j = -mine_range; j < mine_range; j++) {
+            if (Math.abs(i) + Math.abs(j) < mine_range) {
+                let curX = mineLoc[0] + i
+                let curY = mineLoc[1] + j
+                // no need to check in range or not since it's already part of the key it's in                
+                if ([curX, curY] in mineToID) 
+                    toRet.push(mineToID[[curX, curY]])
+            }
+        }
+    }
+    return toRet
+}
+
+// returns length of near by mine for distance
+// used to find all near mine id so you can increase activity level when pilgirm sent
+// we want to not send pilgrim from castle unless for exploration
+// find the id of all nearby mines so you can increase activity level 
+function lengthNearMinesWithXY(r, x, y) {
+    let toRet = 0
+    let mapsize = r.map.length    
+    let mineLoc = [x, y]
+    for (let i = -mine_range; i < mine_range; i++) {         
+        for (let j = -mine_range; j < mine_range; j++) {
+            if (Math.abs(i) + Math.abs(j) < mine_range) {
+                let curX = mineLoc[0] + i
+                let curY = mineLoc[1] + j
+                // check in range or not               
+                if (!(curX < 0 || curX >= r.map[0].length || curY < 0 || curY >= r.map.length)) {
+                    if (r.karbonite_map[curY][curX] || r.fuel_map[curY][curX])
+                        toRet++
+                }
+            }               
+        }
+    }
+    return toRet
 }
 
 // use defenseCenter and occupied set to return the next position for a defensive unit
