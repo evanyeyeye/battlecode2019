@@ -46,35 +46,35 @@ export default {
         return this._encodeSignal(mine1, mine2, this.MINE)
     },
 
-    _encodeSignal: function(x, y, four, loc_bits = 6, signal_len = 16) {
+    _encodeSignal: function(x, y, four, locBits=6, signalLen=16) {
         let loc1 = x.toString(2)
         let loc2 = y.toString(2)
-        loc1 = "0".repeat(loc_bits - loc1.length) + loc1  // pad to length
-        loc2 = "0".repeat(loc_bits - loc2.length) + loc2
+        loc1 = "0".repeat(locBits - loc1.length) + loc1  // pad to length
+        loc2 = "0".repeat(locBits - loc2.length) + loc2
         return parseInt(loc1 + loc2 + four, 2)
     },
 
-    encodeCastleTalk: function(x, two, loc_bits = 6, signal_len = 8) {
-        let loc1 = x.toString(2)
-        loc1 = "0".repeat(loc_bits - loc1.length) + loc1
-        return parseInt(loc1 + two, 2)
+    encodeCastleTalk: function(x, two, locBits=6, signalLen=8) {
+        let loc = x.toString(2)
+        loc = "0".repeat(locBits - loc.length) + loc
+        return parseInt(loc + two, 2)
     },
 
-    decodeCastleTalk: function(message, loc_bits = 6, signal_len = 8) {
+    decodeCastleTalk: function(message, locBits=6, signalLen=8) {
         let binary = message.toString(2)
-        binary = "0".repeat(signal_len - binary.length) + binary
-        const b = binary.substring(0, loc_bits)
-        const action = binary.substring(loc_bits)
+        binary = "0".repeat(signalLen - binary.length) + binary
+        const b = binary.substring(0, locBits)
+        const action = binary.substring(locBits)
         const loc = parseInt(b, 2)
         return [loc, action]
     },
 
-    decodeSignal: function (message, loc_bits = 6, signal_len = 16) {
+    decodeSignal: function (message, locBits=6, signalLen=16) {
         let binary = message.toString(2)
-        binary = "0".repeat(signal_len - binary.length) + binary  // pad the message if necessary
-        const b1 = binary.substring(0, loc_bits)
-        const b2 = binary.substring(loc_bits, loc_bits + loc_bits)
-        const action = binary.substring(loc_bits + loc_bits)
+        binary = "0".repeat(signalLen - binary.length) + binary  // pad the message if necessary
+        const b1 = binary.substring(0, locBits)
+        const b2 = binary.substring(locBits, locBits + locBits)
+        const action = binary.substring(locBits + locBits)
         const loc1 = parseInt(b1, 2)
         const loc2 = parseInt(b2, 2)
         return [loc1, loc2, action]
