@@ -16,16 +16,8 @@ export default {
 
     // return the next position for a defensive unit
     nextPosition: function(r, defense_center, occupied, target = null) {
-        if (target === null) {
-            if (defense_center !== null) {
-                const positions = this.listPerpendicular(r, defense_center, [r.me.x, r.me.y])
-                for (const pos of positions) {
-                    if (!occupied.has(pos)) {
-                        return utils.stringToCoord(pos)
-                    }
-                }
-            }
-        }
+        if (target === null)
+            target = [r.me.x, r.me.y]  // technically facing the wrong way, but also not really
         else {
             if (defense_center !== null) {
                 const positions = this.listPerpendicular(r, defense_center, target)

@@ -2,27 +2,24 @@ export default {
 
     CASTLE_GREETING: 255,
 
-    ATTACK_MINE: "00",  // mine or attack depends on unit
-    ZONE_SCOUT: "01",  // basically hanging out around the mine
-    CHANGE_ATTACK_MINE: "10",  // change from current action to attack
-    CHANGE_ZONE_BUILD: "11",  // change from current action zonescout
-
-    BUILDING_CHURCH: "1111",
-    ALL_IN: "1000",
-    KILLED: "1001",
-    DEFEND: "0010",
-    STAND: "0011",
-    ENEMY_HERE: "0100",
-
     MINE: "0000",
     ATTACK: "0001",
+    DEFEND: "0010",
+    KILLED: "0011",
+    STAND: "0100",
+    ALL_IN: "0101",
+    ENEMY_HERE: "0110",
+    ALL_IN: "0111",
+    BUILDING_CHURCH: "1000",
+    ATTACK_CHURCH: "1001",
+
 
     CASTLETALK_ON_MINE: "00",
     CASTLETALK_GOING_MINE: "01",
     CASTLETALK_ENEMY_SPOTTED: "10",
     CASTLETALK_SAVE: "11",
 
-    encodeGeneric: function(x, y, action) {
+    encodeSignal: function(x, y, action) {
         return this._encodeSignal(x, y, action)
     },
 
