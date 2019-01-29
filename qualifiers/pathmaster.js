@@ -2,7 +2,6 @@ import {SPECS} from 'battlecode'
 import {PathField} from './pathfield.js'
 import utils from './utils.js'
 
-
 class BFSLocation {
 
     constructor(x, y, dir, dist) {

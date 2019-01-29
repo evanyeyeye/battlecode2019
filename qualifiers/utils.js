@@ -1,6 +1,5 @@
 import {SPECS} from 'battlecode'
 
-
 export default {
 
     attackingUnits: new Set([SPECS.CRUSADER, SPECS.PROPHET, SPECS.PREACHER]),
